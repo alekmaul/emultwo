@@ -12,8 +12,7 @@
       src\patternviewer_.obj src\adam\fdidisk.obj src\cartprofile_.obj 
       src\nametabviewer_.obj src\spriteviewer_.obj src\symbolstore.obj 
       src\editvalue_.obj src\symbbrows_.obj src\setbreakpoint_.obj 
-      src\searchsequence_.obj src\dumpmem_.obj 
-      \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\printviewer_.obj"/>
+      src\searchsequence_.obj src\dumpmem_.obj printviewer_.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -22,7 +21,7 @@
       src\patternviewer_.dfm src\cartprofile_.dfm src\nametabviewer_.dfm 
       src\spriteviewer_.dfm src\editvalue_.dfm src\symbbrows_.dfm 
       src\setbreakpoint_.dfm src\searchsequence_.dfm src\dumpmem_.dfm 
-      \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\printviewer_.dfm"/>
+      printviewer_.dfm"/>
     <LIBFILES value="libs\directdraw\ddraw.lib libs\libpngstat\libpngstat.lib 
       libs\libpngstat\zlib.lib"/>
     <LIBRARIES value="etcomp.lib AnimTimer.lib Vcl50.lib"/>
@@ -32,7 +31,7 @@
       ibsmp50.bpi vcldbx50.bpi Qrpt50.bpi TeeUI50.bpi TeeDB50.bpi Tee50.bpi 
       Dss50.bpi TeeQR50.bpi VCLIB50.bpi Vclmid50.bpi NMFast50.bpi bcbie50.bpi 
       bcb2kaxserver50.bpi"/>
-    <PATHCPP value=".;src\z80;src;src\coleco;src\sn76489;src\tms9928a;src\ay8910;src\eeprom;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src"/>
+    <PATHCPP value=".;src\z80;src;src\coleco;src\sn76489;src\tms9928a;src\ay8910;src\eeprom;src\adam"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>

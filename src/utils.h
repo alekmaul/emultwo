@@ -33,7 +33,8 @@ AnsiString FileNameGetPath(AnsiString Fname);
 AnsiString FileNameGetExt(AnsiString Fname);
 AnsiString GetExt(AnsiString Fname);
 unsigned int CRC32Block (const unsigned char *buf, unsigned int len);
-bool ImageToPNG(AnsiString name,TImage* image);
+//bool ImageToPNG(AnsiString name,TImage* image);
+bool ImageToPNG(AnsiString name,Graphics::TBitmap *bitmap);
 
 #ifdef __cplusplus
 }

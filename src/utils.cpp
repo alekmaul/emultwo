@@ -170,7 +170,8 @@ unsigned int CRC32Block (const unsigned char *buf, unsigned int len) {
 }
 
 // ----------------------------------------------------------------------------------------
-bool ImageToPNG(AnsiString name,TImage* image)
+//bool ImageToPNG(AnsiString name,TImage* image)
+bool ImageToPNG(AnsiString name,Graphics::TBitmap *bitmap)
 {
 	FILE *fp;
 	png_structp png_ptr;
@@ -179,8 +180,10 @@ bool ImageToPNG(AnsiString name,TImage* image)
 	unsigned char* src;
 	int x,y,temp,width,height;
 
-	width=image->Picture->Bitmap->Width;
-	height=image->Picture->Bitmap->Height;
+	//width=image->Picture->Bitmap->Width;
+	//height=image->Picture->Bitmap->Height;
+          width=bitmap->Width;
+          height=bitmap->Height;
 
 	png_ptr=png_create_write_struct(PNG_LIBPNG_VER_STRING,NULL,NULL,NULL);
 
@@ -217,7 +220,8 @@ bool ImageToPNG(AnsiString name,TImage* image)
 
 	for(y=0;y<height;y++)
 	{
-		src=(unsigned char*)image->Picture->Bitmap->ScanLine[y];
+		//src=(unsigned char*)image->Picture->Bitmap->ScanLine[y];
+                src=(unsigned char*)bitmap->ScanLine[y];
 		row_pointers[y]=src;
 
 		for(x=0;x<width;++x)
@@ -246,7 +250,8 @@ bool ImageToPNG(AnsiString name,TImage* image)
 
 	for(y=0;y<height;y++)
 	{
-		src=(unsigned char*)image->Picture->Bitmap->ScanLine[y];
+		//src=(unsigned char*)image->Picture->Bitmap->ScanLine[y];
+                src=(unsigned char*)bitmap->ScanLine[y];
 
 		for(x=0;x<width;++x)
 		{

@@ -860,6 +860,17 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
                 coleco.stop=1;
 
         //PCAllKeysUp();
+                m = (TMenuItem *) Sender;
+                if ((m->Tag == 0) || (m->Tag == 0))
+                {
+                        OpenDialogDT->Filter="Disk Files (*.DSK)|*.dsk";
+                        OpenDialogDT->DefaultExt="dsk";
+                }
+                else
+                {
+                        OpenDialogDT->Filter="Tape Files (*.DDP)|*.ddp";
+                        OpenDialogDT->DefaultExt="ddp";
+                }
                 if (!OpenDialogDT->Execute())
                 {
                         coleco.stop=stopped;
@@ -869,7 +880,6 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
                         coleco.stop=stopped;
                         Filename=OpenDialogDT->FileName;
                         Extension=FileNameGetExt(Filename);
-                        m = (TMenuItem *) Sender;
                         if (m->Tag == 0)
                                 LoadDiskTape(0, 0,Filename);
                         else if (m->Tag == 1)

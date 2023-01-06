@@ -33,6 +33,7 @@
 #include "main_.h"
 #include "colecoconfig.h"
 #include "coleco.h"
+#include "utils.h"
 
 //---------------------------------------------------------------------------
 
@@ -465,7 +466,7 @@ void RenderSaveScreenBMP(AnsiString filename)
     for(i=h-1;i>=0;i--)
     {
         if (Form1->RenderMode==RENDERDDRAW) {
-          unsigned int *pixel = (unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4; //(dword *)GDIFrame->ScanLine[i];
+          unsigned int *pixel = (unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4;
           for(j=0;j<w;j++)
           {
               int val = *pixel++;
@@ -496,7 +497,32 @@ void RenderSaveScreenBMP(AnsiString filename)
 
 void RenderSaveScreenPNG(AnsiString filename)
 {
-        //ImageToPNG(filename,ImageView);
+        Graphics::TBitmap *bmp;
+
+        bmp = new Graphics::TBitmap;
+        bmp->Width=TVW;
+        bmp->Height=TVH;
+        bmp->PixelFormat=pf24bit;
+
+        try
+        {
+                if (Form1->RenderMode==RENDERDDRAW)
+                {
+                        StretchBlt(bmp->Canvas->Handle, 0,0, TVW, TVH,
+                                DDFrameSurface.lpSurface, 0, 0, TVW,TVH,SRCCOPY);
+                }
+                else
+                {
+                        StretchBlt(bmp->Canvas->Handle, 0,0, TVW, TVH,
+                                GDIFrame->Canvas->Handle, 0, 0, TVW,TVH,SRCCOPY);
+                }
+                ImageToPNG( filename, bmp);
+        }
+        __finally
+        {
+                delete bmp; 
+        }
+
 }
 
 

@@ -1,0 +1,23 @@
+AnimTimer - fast timer component
+----------------------------------
+(c) 1996-2000 Lucian Wischik
+
+
+AnimTimer is a fast multi-threaded timer for animation.
+It behaves like a regular Timer but has two differences:
+ - You can set it to go a lot faster. If the computer isn't
+   up to the speed you ask of it, it will do the best it can.
+ - It doesn't interferes with user-responsiveness. This timer
+   runs at a priority level slightly lower than that of the
+   user interface. Hence your timer events will never make
+   the application appear sluggish.
+There is one other small difference. Setting Interval to the
+special value of -1 means 'go flat out uncooperatively'.
+
+Source code for AnimTimer is included in the LIB
+directory. There's also an example application
+(to demonstrate the difference between
+AnimTimer and a regular timer).
+
+You're free to use AnimTimer in any way you wish.
+There are no restrictions on its use.

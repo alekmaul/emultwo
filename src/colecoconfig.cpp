@@ -25,7 +25,6 @@
 #include "colecoconfig.h"
 
 COLECO coleco;
-TV tv;
 MACHINE machine;
 MOUSE mouse;
 
@@ -67,17 +66,10 @@ void load_config(void)
         machine.tperframe=312*207;
         machine.intposition=0;
 
-        coleco.bordersize=BORDERNORMAL;
-
         coleco.singlestep=0;
         coleco.stop=0;
 
         strcpy(coleco.machinename, "E.mul T.wo");
-
-        tv.AdvancedEffects=0;
-        tv.DotCrawl=0;
-        tv.Interlaced=0;
-        tv.DisableAdvanced=0;
 
         mouse.x=0;
         mouse.y=0;

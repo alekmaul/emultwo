@@ -41,6 +41,7 @@
 
 #define MACHINECOLECO           0
 #define MACHINEADAM             1
+#define MACHINEPHOENIX          2
 
 #define NOBACKUP                0
 #define EEP24C08                1

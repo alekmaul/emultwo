@@ -8,21 +8,26 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 #include <IniFiles.hpp>
+#include <Buttons.hpp>
 
 //---------------------------------------------------------------------------
 class Thardware : public TForm
 {
 __published:	// IDE-managed Components
         TButton *OK;
-        TRadioButton *RadioButton1;
-        TRadioButton *RadioButton2;
         TCheckBox *chkNTSC;
         TCheckBox *chkSGM;
+        TGroupBox *gSEMachine;
+        TSpeedButton *maccol;
+        TSpeedButton *macpho;
+        TSpeedButton *macadam;
+        TButton *bCancel;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
-        void __fastcall RadioButton1Click(TObject *Sender);
-        void __fastcall RadioButton2Click(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);
+        void __fastcall maccolClick(TObject *Sender);
+        void __fastcall macphoClick(TObject *Sender);
+        void __fastcall macadamClick(TObject *Sender);
 private:	// User declarations
         int NewMachine;
         AnsiString NewMachineName;

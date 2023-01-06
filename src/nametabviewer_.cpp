@@ -28,6 +28,7 @@
 #include "coleco.h"
 #include "colecoconfig.h"
 #include "tms9928a.h"
+#include "utils.h"
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
@@ -82,7 +83,10 @@ void __fastcall Tnametabviewer::SaveasBMP1Click(TObject *Sender)
     if(dlgSVPic->Execute())
     {
         CreateMap(bmp->Canvas,bmp->Width,bmp->Height);
-        bmp->SaveToFile(dlgSVPic->FileName);
+        if (dlgSVPic->FilterIndex==1)
+                bmp->SaveToFile(dlgSVPic->FileName);
+        else
+                ImageToPNG( dlgSVPic->FileName, bmp);
     }
     delete bmp;
 }

@@ -31,6 +31,7 @@
 #include "coleco.h"
 #include "colecoconfig.h"
 #include "tms9928a.h"
+#include "utils.h"
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
@@ -111,7 +112,10 @@ void __fastcall Tspriteviewer::SaveasBMP1Click(TObject *Sender)
             bmps->Canvas->Draw((i*16) % (16*8), (i<8 ? 0 : i<16 ? 16 : i < 24 ? 32 : 48), bmp);
 
         }
-        bmps->SaveToFile(dlgSVPic->FileName);
+        if (dlgSVPic->FilterIndex==1)
+                bmp->SaveToFile(dlgSVPic->FileName);
+        else
+                ImageToPNG( dlgSVPic->FileName, bmp);
     }
     delete bmp, bmps;
 }

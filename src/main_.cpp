@@ -805,44 +805,6 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString FileName)
 {
-/*
-byte ChangeDisk(byte N,const char *FileName)
-{
-  int NeedState;
-  byte *P;
-
-  // We only have MAX_DISKS drives
-  if(N>=MAX_DISKS) return(0);
-
-        // Load state when inserting first disk into drive A:
-        NeedState = FileName && *FileName && !N && !Disks[N].Data;
-
-                // Eject disk if requested
-  if(!FileName) { EjectFDI(&Disks[N]);return(1); }
-
-        // Drop out if cannot reset to Adam mode
-  if(NeedState && !AdamROMs) return(0);
-
-        // If FileName not empty, try loading disk image
-        if(*FileName && LoadFDI(&Disks[N],FileName,FMT_ADMDSK))
-        {
-                // If first disk...
-    if(NeedState)
-    {
-        // Reset hardware, enabling Adam mode
-      ResetColeco(Mode|CV_ADAM);
-// Try loading state, etc.
-      FindState(FileName);
-    }
-    // Done
-    return(1);
-  }
-
-        // If no existing file, create a new 160kB disk image
-  P = FormatFDI(&Disks[N],FMT_ADMDSK);
-  return(!!P);
-  */
-
         BYTE retload;
 
         try

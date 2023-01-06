@@ -57,7 +57,7 @@ USEFORM("src\symbbrows_.cpp", SymbBrows);
 USEFORM("src\setbreakpoint_.cpp", SetBreakpoint);
 USEFORM("src\searchsequence_.cpp", SearchSequence);
 USEFORM("src\dumpmem_.cpp", DumpMem);
-USEFORM("printviewer_.cpp", printviewer);
+USEFORM("src\printviewer_.cpp", printviewer);
 //---------------------------------------------------------------------------
 #include "main_.h"
 

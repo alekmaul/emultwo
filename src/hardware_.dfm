@@ -1652,6 +1652,7 @@ object hardware: Thardware
         D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4}
       Layout = blGlyphTop
       Margin = 0
+      OnClick = spSGMClick
     end
     object spF18A: TSpeedButton
       Left = 112
@@ -1661,6 +1662,7 @@ object hardware: Thardware
       AllowAllUp = True
       GroupIndex = 3
       Caption = 'F18A VGA Adapter'
+      Enabled = False
       Glyph.Data = {
         36300000424D3630000000000000360000002800000040000000400000000100
         1800000000000030000000000000000000000000000000000000C8D0D4C8D0D4

@@ -371,29 +371,23 @@ void TForm1::UpdateStatusBar(void)
 
         // Update status bar
         text="Coleco";
-        if (coleco.machine == MACHINEPHOENIX) {
+        if (coleco.machine == MACHINEPHOENIX)
                 text = "Phoenix";
-        }
-        else if (coleco.machine == MACHINEADAM) {
+        else if (coleco.machine == MACHINEADAM)
                 text = "Adam";
-        }
         StatusBar1->Panels->Items[0]->Text = text;
 
-        text="";
-        if (coleco.romCartridge == ROMCARTRIDGESTD) {
+        text="No cart";
+        if (coleco.romCartridge == ROMCARTRIDGESTD)
                 text="Standard Cart";
-        if (coleco.romCartridge == ROMCARTRIDGEMEGA) {
+        if (coleco.romCartridge == ROMCARTRIDGEMEGA)
                 text = "MegaCart";
-        }
-        else if (coleco.romCartridge == ROMCARTRIDGEZX81) {
+        else if (coleco.romCartridge == ROMCARTRIDGEZX81)
                 text = "ZX81 31In1";
-        }
-        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE) {
+        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE)
                 text = "Disk Image";
-        }
-        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE) {
+        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE)
                 text = "Digital Data Pack";
-        }
         StatusBar1->Panels->Items[2]->Text = text;
 
         text="";
@@ -749,6 +743,9 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
                             MruList->Delete(MRFUCOUNT);
                         UpdateMruMenu();
 
+                        // Update StatusBar if needed
+                        UpdateStatusBar();
+
                         coleco.stop=0;//machine.StartDebug ? 1 : 0;
 
                         // if stop, well, show debug Window
@@ -795,9 +792,15 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
                 if (retload && !DiskTapeNum) // only for 1st disk
                 {
 
+                        // Change media type
+                        coleco.romCartridge = TypeMedia ? ROMCARTRIDGEDTAPE : ROMCARTRIDGEDISK;
+
                         // Reset engine in Adam mode
                         coleco.machine=MACHINEADAM;
                         coleco_reset();
+
+                        // Update StatusBar if needed
+                        UpdateStatusBar();
 
                         coleco.stop=0;//machine.StartDebug ? 1 : 0;
 

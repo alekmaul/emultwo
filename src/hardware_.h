@@ -30,6 +30,7 @@ __published:	// IDE-managed Components
         void __fastcall maccolClick(TObject *Sender);
         void __fastcall macphoClick(TObject *Sender);
         void __fastcall macadamClick(TObject *Sender);
+        void __fastcall spSGMClick(TObject *Sender);
 private:	// User declarations
         int NewMachine;
         AnsiString NewMachineName;

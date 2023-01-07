@@ -35,10 +35,11 @@
 #define SYNCTYPEV               2
 
 #define ROMCARTRIDGENONE        0X00
-#define ROMCARTRIDGEMEGA        0X01
-#define ROMCARTRIDGEZX81        0X02
-#define ROMCARTRIDGEDISK        0X03
-#define ROMCARTRIDGEDTAPE       0X04
+#define ROMCARTRIDGESTD         0X01
+#define ROMCARTRIDGEMEGA        0X02
+#define ROMCARTRIDGEZX81        0X03
+#define ROMCARTRIDGEDISK        0X04
+#define ROMCARTRIDGEDTAPE       0X05
 
 #define ROM_LOAD_FAIL           0X01
 #define ROM_LOAD_PASS           0X02

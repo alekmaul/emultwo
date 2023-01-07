@@ -170,3 +170,9 @@ void __fastcall Thardware::macadamClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall Thardware::spSGMClick(TObject *Sender)
+{
+    ResetRequired=true;
+}
+//---------------------------------------------------------------------------
+

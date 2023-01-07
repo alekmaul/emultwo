@@ -333,6 +333,7 @@ BYTE coleco_loadcart(char *filename, unsigned char cardtype)
                 size = j<<14;
                 coleco_megasize = j;
                 coleco_megacart = i ? j-1:0;
+                coleco.romCartridge = coleco_megacart ? ROMCARTRIDGEMEGA : ROMCARTRIDGESTD;
         }
 
         // Rewind file to the beginning
@@ -873,15 +874,16 @@ int coleco_do_scanline(void)
                         if (CurScanLine_len>=MaxScanLen)
                         {
                                 // if end of line, update sound
-                                SoundUpdate(tms.CurLine);
+                                //SoundUpdate(tms.CurLine);
 
                                 // go to next line and check nmi
                                 NMI_generator = tms9918_loop();
                                 CurScanLine_len-=MaxScanLen;
 
-                                // end of screen, go outside
+                                // end of screen, update sound and go outside
                                 if (tms.CurLine==(tms.ScanLines-1))
                                 {
+                                        SoundUpdate(tms.CurLine);
                                         CurScanLinesync_valid=1;
                                 }
 

@@ -557,7 +557,8 @@ void SoundUpdate(unsigned int lineupdate )
                 sn76489_update(ptr, sound_framesiz - done_so_far);
 
                 // Generate AY sample data
-                ay8910_update(ptr1, sound_framesiz - done_so_far);
+                if (coleco.SGM)
+                        ay8910_update(ptr1, sound_framesiz - done_so_far);
 
                 // Mix all voices
                 sound_mixer_callback();
@@ -578,7 +579,8 @@ void SoundUpdate(unsigned int lineupdate )
                 sn76489_update(ptr, tinybit);
 
                 // Generate AY sample data
-                ay8910_update(ptr1,tinybit);
+                if (coleco.SGM)
+                        ay8910_update(ptr1,tinybit);
 
                 // Sum total
                 done_so_far += tinybit;

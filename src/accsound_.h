@@ -28,14 +28,14 @@
 //---------------------------------------------------------------------------
 #ifdef __cplusplus
 extern "C" int SoundPrepSmpTab(int linesperframe);
-extern "C" int SoundInit(void);
+extern "C" int SoundInit(int freq, int speed);
 extern "C" void SoundEnd(void);
 extern "C" void SoundUpdate(unsigned int lineupdate );
 extern "C" void SoundSuspend(void);
 extern "C" void SoundResume(void);
 #else
 extern int SoundPrepSmpTab(int linesperframe);
-extern int SoundInit(void);
+extern int SoundInit(int freq, int speed);
 extern void SoundEnd(void);
 extern void SoundUpdate(unsigned int lineupdate );
 extern void SoundSuspend(void);

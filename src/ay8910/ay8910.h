@@ -22,11 +22,8 @@
 #ifndef _AY8910_H
 #define _AY8910_H
 
-#define AYMAX_OUTPUT 0x7F // 0x7fff
+#define AYMAX_OUTPUT 0x7fff
 #define AYSTEP 0x8000
-
-//#define AY8910RATE  32768
-//#define AY8910BUFLEN 512
 
 // register id's
 #define AY_AFINE	(0)
@@ -69,17 +66,17 @@ typedef struct {
 
 #ifdef __cplusplus
 extern "C" ay8910 ay;
-extern  "C" void ay8910_update(char * buffer, unsigned int length);
+extern  "C" void ay8910_update(short *buffer, unsigned int length);
 extern "C" void ay8910_write(int a ,int data);
 extern "C" unsigned short ay8910_read(void);
-extern "C" void ay8910_reset(int clock, int sample_rate);
+extern "C" void ay8910_reset(void);
 extern "C" void ay8910_init(int clock, int sample_rate);
 #else
 extern ay8910 ay;
-extern void ay8910_update(char * buffer, unsigned int length);
+extern void ay8910_update(short *buffer, unsigned int length);
 extern void ay8910_write(int a ,int data);
 extern unsigned short ay8910_read(void);
-extern void ay8910_reset(int clock, int sample_rate);
+extern void ay8910_reset(void);
 extern void ay8910_init(int clock, int sample_rate);
 #endif
 

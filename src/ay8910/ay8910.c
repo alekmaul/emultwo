@@ -23,220 +23,250 @@
 
 ay8910 ay;
 
-void ay8910_update(char *buffer, unsigned int length)
+void ay8910_update(short *buffer, unsigned int length)
 {
-    unsigned int index;
-    int outn;
-    int prelen=length*AYSTEP;
-    unsigned int out;
-    int val;
+        unsigned int index;
+        int outn;
+        int prelen=length*AYSTEP;
+        unsigned int out;
+        int val;
 
-    int vola,volb,volc;
-    int left;
+        int vola,volb,volc;
+        int left;
 
-    char *out_l;
-    //int * out_l;
-    out_l = buffer;
+        short *out_l;
+        out_l = buffer;
 
-    // The 8910 has three outputs, each output is the mix of one of the three
-    // tone generators and of the (single) noise generator. The two are mixed
-    // BEFORE going into the DAC. The formula to mix each channel is:
-    // (ToneOn | ToneDisable) & (NoiseOn | NoiseDisable).
-    // Note that this means that if both tone and noise are disabled, the output
-    // is 1, not 0, and can be modulated changing the volume.
+        // The 8910 has three outputs, each output is the mix of one of the three
+        // tone generators and of the (single) noise generator. The two are mixed
+        // BEFORE going into the DAC. The formula to mix each channel is:
+        // (ToneOn | ToneDisable) & (NoiseOn | NoiseDisable).
+        // Note that this means that if both tone and noise are disabled, the output
+        // is 1, not 0, and can be modulated changing the volume.
 
-    // If the channels are disabled, set their output to 1, and increase the
-    // counter, if necessary, so they will not be inverted during this update.
-    // Setting the output to 1 is necessary because a disabled channel is locked
-    // into the ON state (see above); and it has no effect if the volume is 0.
-    // If the volume is 0, increase the counter, but don't touch the output.
-    if (ay.Regs[AY_ENABLE]&0x01) {
-        if (ay.CountA <= prelen) ay.CountA += prelen;
-        ay.OutputA = 1;
-    }
-    else if (ay.Regs[AY_AVOL] == 0) {
-        // note that I do count += length, NOT count = length + 1. You might think
-        // it's the same since the volume is 0, but doing the latter could cause
-        // interferencies when the program is rapidly modulating the volume.
-        if (ay.CountA <= prelen) ay.CountA += prelen;
-    }
-    if (ay.Regs[AY_ENABLE] & 0x02) {
-    if (ay.CountB <= prelen) ay.CountB += prelen;
-        ay.OutputB = 1;
-    }
-    else if (ay.Regs[AY_BVOL] == 0) {
-        if (ay.CountB <= prelen) ay.CountB += prelen;
-    }
-    if (ay.Regs[AY_ENABLE] & 0x04) {
-        if (ay.CountC <= prelen) ay.CountC += prelen;
-        ay.OutputC = 1;
-    }
-    else if (ay.Regs[AY_CVOL] == 0) {
-        if (ay.CountC <= prelen) ay.CountC += prelen;
-    }
-
-    // for the noise channel we must not touch OutputN - it's also not necessary
-    // since we use outn.
-    if ((ay.Regs[AY_ENABLE] & 0x38) == 0x38)	//all off
-    if (ay.CountN <= prelen) ay.CountN += prelen;
-
-    outn = (ay.OutputN | ay.Regs[AY_ENABLE]);
-
-    // buffering loop
-    for (index = 0; index < length; index++)  {
-        // vola, volb and volc keep track of how long each square wave stays
-        // in the 1 position during the sample period.
-        vola = volb = volc = 0;
-        left = AYSTEP;
-        do {
-            int nextevent;
-            if (ay.CountN < left) nextevent = ay.CountN;
-            else nextevent = left;
-
-            if (outn & 0x08) {
-                if (ay.OutputA) vola += ay.CountA;
-                ay.CountA -= nextevent;
-                while (ay.CountA <= 0) {
-                    ay.CountA += ay.PeriodA;
-                    if (ay.CountA > 0) {
-                        ay.OutputA ^= 1;
-                        if (ay.OutputA) vola += ay.PeriodA;
-                        break;
-                    }
-                    ay.CountA += ay.PeriodA;
-                    vola += ay.PeriodA;
-                }
-                if (ay.OutputA) vola -= ay.CountA;
-            }
-            else {
-                ay.CountA -= nextevent;
-                while (ay.CountA <= 0) {
-                    ay.CountA += ay.PeriodA;
-                    if (ay.CountA > 0) {
-                        ay.OutputA ^= 1;
-                        break;
-                    }
-                    ay.CountA += ay.PeriodA;
-                }
-            }
-
-            if (outn & 0x10) {
-                if (ay.OutputB) volb += ay.CountB;
-                ay.CountB -= nextevent;
-                while (ay.CountB <= 0) {
-                    ay.CountB += ay.PeriodB;
-                    if (ay.CountB > 0) {
-                        ay.OutputB ^= 1;
-                        if (ay.OutputB) volb += ay.PeriodB;
-			break;
-                    }
-                    ay.CountB += ay.PeriodB;
-                    volb += ay.PeriodB;
-                }
-                if (ay.OutputB) volb -= ay.CountB;
-            }
-            else {
-                ay.CountB -= nextevent;
-                while (ay.CountB <= 0) {
-                    ay.CountB += ay.PeriodB;
-                    if (ay.CountB > 0) {
-                        ay.OutputB ^= 1;
-                        break;
-                    }
-                    ay.CountB += ay.PeriodB;
-                }
-            }
-
-            if (outn & 0x20) {
-                if (ay.OutputC) volc += ay.CountC;
-                ay.CountC -= nextevent;
-                while (ay.CountC <= 0) {
-                    ay.CountC += ay.PeriodC;
-                    if (ay.CountC > 0) {
-                        ay.OutputC ^= 1;
-                        if (ay.OutputC) volc += ay.PeriodC;
-                        break;
-                    }
-                    ay.CountC += ay.PeriodC;
-                    volc += ay.PeriodC;
-                }
-                if (ay.OutputC) volc -= ay.CountC;
-            }
-            else {
-                ay.CountC -= nextevent;
-                while (ay.CountC <= 0) {
-                    ay.CountC += ay.PeriodC;
-                    if (ay.CountC > 0) {
-                        ay.OutputC ^= 1;
-                        break;
-                    }
-                    ay.CountC += ay.PeriodC;
-                }
-            }
-
-            ay.CountN -= nextevent;
-            if (ay.CountN <= 0) {
-                // Is noise output going to change?
-                if ((ay.RNG + 1) & 2)	// (bit0^bit1)?
-                {
-                    ay.OutputN = ~ay.OutputN;
-                    outn = (ay.OutputN | ay.Regs[AY_ENABLE]);
-                }
-
-                // The Random Number Generator of the 8910 is a 17-bit shift register.
-                // The input to the shift register is bit0 XOR bit2 (bit0 is the output).
-
-                // The following is a fast way to compute bit 17 = bit0^bit2.
-		// Instead of doing all the logic operations, we only check bit 0,
-                //  relying on the fact that after two shifts of the  register,
-                // what now is bit 2 will become bit 0, and will invert, if necessary, bit 16, which previously was bit 18.
-                if (ay.RNG & 1) ay.RNG ^= 0x24000; /* This version is called the "Galois configuration". */
-                ay.RNG >>= 1;
-                ay.CountN += ay.PeriodN;
-            }
-
-            left -= nextevent;
-        } while (left > 0);
-
-	// update envelope
-	if (ay.Holding == 0) {
-            ay.CountE -= AYSTEP;
-            if (ay.CountE <= 0) {
-                do {
-                    ay.CountEnv--;
-                    ay.CountE += ay.PeriodE;
-                } while (ay.CountE <= 0);
-                // check envelope current position
-                if (ay.CountEnv < 0) {
-                    if (ay.Hold) {
-                        if (ay.Alternate)
-		            ay.Attack ^= 0x1f;
-                        ay.Holding = 1;
-                        ay.CountEnv = 0;
-                    }
-                    else {
-                        // if CountEnv has looped an odd number of times (usually 1),
-                        // invert the output.
-                        if (ay.Alternate && (ay.CountEnv & 0x20))
-                            ay.Attack ^= 0x1f;
-                        ay.CountEnv &= 0x1f;
-                    }
-                }
-                ay.VolE = ay.VolTable[ay.CountEnv ^ ay.Attack];
-
-                // reload volume
-                if (ay.EnvelopeA) ay.VolA = ay.VolE;
-                if (ay.EnvelopeB) ay.VolB = ay.VolE;
-                if (ay.EnvelopeC) ay.VolC = ay.VolE;
-            }
+        // If the channels are disabled, set their output to 1, and increase the
+        // counter, if necessary, so they will not be inverted during this update.
+        // Setting the output to 1 is necessary because a disabled channel is locked
+        // into the ON state (see above); and it has no effect if the volume is 0.
+        // If the volume is 0, increase the counter, but don't touch the output.
+        if (ay.Regs[AY_ENABLE]&0x01)
+        {
+                if (ay.CountA <= prelen) ay.CountA += prelen;
+                ay.OutputA = 1;
+        }
+        else if (ay.Regs[AY_AVOL] == 0)
+        {
+                // note that I do count += length, NOT count = length + 1. You might think
+                // it's the same since the volume is 0, but doing the latter could cause
+                // interferencies when the program is rapidly modulating the volume.
+                if (ay.CountA <= prelen) ay.CountA += prelen;
+        }
+        if (ay.Regs[AY_ENABLE] & 0x02)
+        {
+                if (ay.CountB <= prelen) ay.CountB += prelen;
+                ay.OutputB = 1;
+        }
+        else if (ay.Regs[AY_BVOL] == 0)
+        {
+                if (ay.CountB <= prelen) ay.CountB += prelen;
+        }
+        if (ay.Regs[AY_ENABLE] & 0x04)
+        {
+                if (ay.CountC <= prelen) ay.CountC += prelen;
+                ay.OutputC = 1;
+        }
+        else if (ay.Regs[AY_CVOL] == 0)
+        {
+                if (ay.CountC <= prelen) ay.CountC += prelen;
         }
 
-        out = (vola*ay.VolA)+(volb*ay.VolB)+(volc*ay.VolC);
-    //out = (volc*PSG->VolC);//+(volc*PSG->VolC));
-        if (out > AYMAX_OUTPUT*AYSTEP) out = AYMAX_OUTPUT*AYSTEP;
-        val = (out>>16);
-        out_l[index] = val;
-    } // for (index = 0; index < length; index++)  {
+        // for the noise channel we must not touch OutputN - it's also not necessary
+        // since we use outn.
+        if ((ay.Regs[AY_ENABLE] & 0x38) == 0x38)	//all off
+        if (ay.CountN <= prelen) ay.CountN += prelen;
+
+        outn = (ay.OutputN | ay.Regs[AY_ENABLE]);
+
+        // buffering loop
+        for (index = 0; index < length; index++)
+        {
+                // vola, volb and volc keep track of how long each square wave stays
+                // in the 1 position during the sample period.
+                vola = volb = volc = 0;
+                left = AYSTEP;
+                do {
+                        int nextevent;
+                        if (ay.CountN < left) nextevent = ay.CountN;
+                        else nextevent = left;
+
+                        if (outn & 0x08)
+                        {
+                                if (ay.OutputA) vola += ay.CountA;
+                                ay.CountA -= nextevent;
+                                while (ay.CountA <= 0)
+                                {
+                                        ay.CountA += ay.PeriodA;
+                                        if (ay.CountA > 0)
+                                        {
+                                                ay.OutputA ^= 1;
+                                                if (ay.OutputA) vola += ay.PeriodA;
+                                                break;
+                                        }
+                                        ay.CountA += ay.PeriodA;
+                                        vola += ay.PeriodA;
+                                }
+                                if (ay.OutputA) vola -= ay.CountA;
+                        }
+                        else
+                        {
+                                ay.CountA -= nextevent;
+                                while (ay.CountA <= 0)
+                                {
+                                        ay.CountA += ay.PeriodA;
+                                        if (ay.CountA > 0)
+                                        {
+                                                ay.OutputA ^= 1;
+                                                break;
+                                        }
+                                        ay.CountA += ay.PeriodA;
+                                }
+                        }
+
+                        if (outn & 0x10)
+                        {
+                                if (ay.OutputB) volb += ay.CountB;
+                                ay.CountB -= nextevent;
+                                while (ay.CountB <= 0)
+                                {
+                                        ay.CountB += ay.PeriodB;
+                                        if (ay.CountB > 0)
+                                        {
+                                                ay.OutputB ^= 1;
+                                                if (ay.OutputB) volb += ay.PeriodB;
+			                        break;
+                                        }
+                                        ay.CountB += ay.PeriodB;
+                                        volb += ay.PeriodB;
+                                }
+                                if (ay.OutputB) volb -= ay.CountB;
+                        }
+                        else
+                        {
+                                ay.CountB -= nextevent;
+                                while (ay.CountB <= 0)
+                                {
+                                        ay.CountB += ay.PeriodB;
+                                        if (ay.CountB > 0)
+                                        {
+                                                ay.OutputB ^= 1;
+                                                break;
+                                        }
+                                        ay.CountB += ay.PeriodB;
+                                }
+                        }
+
+                        if (outn & 0x20)
+                        {
+                                if (ay.OutputC) volc += ay.CountC;
+                                ay.CountC -= nextevent;
+                                while (ay.CountC <= 0)
+                                {
+                                        ay.CountC += ay.PeriodC;
+                                        if (ay.CountC > 0)
+                                        {
+                                                ay.OutputC ^= 1;
+                                                if (ay.OutputC) volc += ay.PeriodC;
+                                                break;
+                                        }
+                                        ay.CountC += ay.PeriodC;
+                                        volc += ay.PeriodC;
+                                }
+                                if (ay.OutputC) volc -= ay.CountC;
+                        }
+                        else
+                        {
+                                ay.CountC -= nextevent;
+                                while (ay.CountC <= 0)
+                                {
+                                        ay.CountC += ay.PeriodC;
+                                        if (ay.CountC > 0)
+                                        {
+                                                ay.OutputC ^= 1;
+                                                break;
+                                        }
+                                        ay.CountC += ay.PeriodC;
+                                }
+                        }
+
+                        ay.CountN -= nextevent;
+                        if (ay.CountN <= 0)
+                        {
+                                // Is noise output going to change?
+                                if ((ay.RNG + 1) & 2)	// (bit0^bit1)?
+                                {
+                                        ay.OutputN = ~ay.OutputN;
+                                        outn = (ay.OutputN | ay.Regs[AY_ENABLE]);
+                                }
+
+                                // The Random Number Generator of the 8910 is a 17-bit shift register.
+                                // The input to the shift register is bit0 XOR bit2 (bit0 is the output).
+
+                                // The following is a fast way to compute bit 17 = bit0^bit2.
+		                // Instead of doing all the logic operations, we only check bit 0,
+                                //  relying on the fact that after two shifts of the  register,
+                                // what now is bit 2 will become bit 0, and will invert, if necessary, bit 16, which previously was bit 18.
+                                if (ay.RNG & 1) ay.RNG ^= 0x24000; /* This version is called the "Galois configuration". */
+                                ay.RNG >>= 1;
+                                ay.CountN += ay.PeriodN;
+                        }
+
+                        left -= nextevent;
+                } while (left > 0);
+
+	        // update envelope
+	        if (ay.Holding == 0)
+                {
+                        ay.CountE -= AYSTEP;
+                        if (ay.CountE <= 0)
+                        {
+                                do {
+                                        ay.CountEnv--;
+                                        ay.CountE += ay.PeriodE;
+                                } while (ay.CountE <= 0);
+
+                                // check envelope current position
+                                if (ay.CountEnv < 0)
+                                {
+                                        if (ay.Hold)
+                                        {
+                                                if (ay.Alternate)
+		                                        ay.Attack ^= 0x1f;
+                                                ay.Holding = 1;
+                                                ay.CountEnv = 0;
+                                        }
+                                        else
+                                        {
+                                                // if CountEnv has looped an odd number of times (usually 1),
+                                                // invert the output.
+                                                if (ay.Alternate && (ay.CountEnv & 0x20))
+                                                        ay.Attack ^= 0x1f;
+                                                ay.CountEnv &= 0x1f;
+                                        }
+                                }
+                                ay.VolE = ay.VolTable[ay.CountEnv ^ ay.Attack];
+
+                                // reload volume
+                                if (ay.EnvelopeA) ay.VolA = ay.VolE;
+                                if (ay.EnvelopeB) ay.VolB = ay.VolE;
+                                if (ay.EnvelopeC) ay.VolC = ay.VolE;
+                        }
+                }
+
+                out = (vola*ay.VolA)+(volb*ay.VolB)+(volc*ay.VolC);
+                if (out > AYMAX_OUTPUT*AYSTEP) out = AYMAX_OUTPUT*AYSTEP;
+                val = (out>>16);
+                out_l[index] = val;
+        } // for (index = 0; index < length; index++)  {
 }
 
 // ----------------------------------------------------------------------------------------
@@ -462,11 +492,12 @@ void ay8910_setclock(int clock)
     // STEP is a multiplier used to turn the fraction into a fixed point
     // number.
 	//PSG->UpdateStep = ((double)STEP * PSG->SampleRate * 8) / clock;
-    ay.UpdateStep = ((double)AYSTEP * ay.SampleRate * 8 + clock/2) / clock;
+    //ay.UpdateStep = ((double)AYSTEP * ay.SampleRate * 8 + clock/2) / clock;
+    ay.UpdateStep = ((double)AYSTEP * ay.SampleRate * 8 ) / clock;
 }
 
 // ----------------------------------------------------------------------------------------
-void ay8910_reset(int clock, int sample_rate)
+void ay8910_reset(void)
 {
     int i;
     ay.register_latch = 0;
@@ -484,7 +515,7 @@ void ay8910_init(int clock, int sample_rate)
 {
     ay.SampleRate = sample_rate;
     ay8910_setclock(clock);
-    ay8910_reset(clock, sample_rate);
+    ay8910_reset();
     ay8910_buildmixertable();
 }
 

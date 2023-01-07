@@ -440,13 +440,15 @@ int SoundPrepSmpTab(int linesperframe)
         return (1);
 }
 
-int SoundInit(void)
+int SoundInit(int freq, int speed)
 {
         int i;
         short *ptr,*ptr1;
         int sound_oldval;
 
         // Init directx sound
+        sound_freq=freq;
+        tickframe=speed;
         if (!DSinit(sound_freq,tickframe))
         {
                 return(0);
@@ -555,6 +557,7 @@ void SoundUpdate(unsigned int lineupdate )
                 sn76489_update(ptr, sound_framesiz - done_so_far);
 
                 // Generate AY sample data
+                ay8910_update(ptr1, sound_framesiz - done_so_far);
 
                 // Mix all voices
                 sound_mixer_callback();
@@ -575,6 +578,7 @@ void SoundUpdate(unsigned int lineupdate )
                 sn76489_update(ptr, tinybit);
 
                 // Generate AY sample data
+                ay8910_update(ptr1,tinybit);
 
                 // Sum total
                 done_so_far += tinybit;

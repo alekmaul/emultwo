@@ -222,7 +222,7 @@ void __fastcall Tabout::Button1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall Tabout::Label15Click(TObject *Sender)
+void __fastcall Tabout::lGithubURLClick(TObject *Sender)
 {
         //  Original = http://www.chuntey.com/eightyone/
         
@@ -230,14 +230,14 @@ void __fastcall Tabout::Label15Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall Tabout::Label15MouseDown(TObject *Sender,
+void __fastcall Tabout::lGithubURLMouseDown(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
         Label15->Font->Color=clRed;
 }
 //---------------------------------------------------------------------------
 
-void __fastcall Tabout::Label15MouseUp(TObject *Sender,
+void __fastcall Tabout::lGithubURLMouseUp(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
         Label15->Font->Color=clHighlight;

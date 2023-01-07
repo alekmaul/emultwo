@@ -1,4 +1,16 @@
-/* EmulTwo  - A Windows ColecoVision emulator.
+
+        TLabel *lAbout8;
+        TLabel *lAbout7;
+        TLabel *lAbout6;
+        TLabel *lAbout5;
+        TLabel *lAbout4;
+        TLabel *lAbout3;
+        TLabel *lAbout2;
+        TLabel *lAbout1;
+        TLabel *lGithubURL;
+        TLabel *lCopyright;
+        TLabel *Label9;
+        TLabel *Label7;/* EmulTwo  - A Windows ColecoVision emulator.
  * Copyright (C) 2014-2023 Alekmaul
  *
  * This program is free software; you can redistribute it and/or modify
@@ -49,10 +61,10 @@ __published:	// IDE-managed Components
         TLabel *Label4;
         TLabel *Label6;
         void __fastcall Button1Click(TObject *Sender);
-        void __fastcall Label15Click(TObject *Sender);
-        void __fastcall Label15MouseDown(TObject *Sender,
+        void __fastcall lGithubURLClick(TObject *Sender);
+        void __fastcall lGithubURLMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
-        void __fastcall Label15MouseUp(TObject *Sender,
+        void __fastcall lGithubURLMouseUp(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
         
 private:	// User declarations

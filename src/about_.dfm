@@ -4,7 +4,7 @@ object About: TAbout
   BorderIcons = [biHelp]
   BorderStyle = bsToolWindow
   Caption = 'About'
-  ClientHeight = 247
+  ClientHeight = 286
   ClientWidth = 336
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -242,21 +242,21 @@ object About: TAbout
       3A41A23A41A23AB566B7B566B7B566B7CCCCCCCCCCCCCCCCCCFFFFFFFFFFFFFF
       FFFF}
   end
-  object Label1: TLabel
+  object lCopyright: TLabel
     Left = 88
     Top = 48
     Width = 115
     Height = 13
     Caption = '© 2014 - 2023 Alekmaul'
   end
-  object Label2: TLabel
+  object lAbout1: TLabel
     Left = 8
     Top = 96
     Width = 289
     Height = 13
     Caption = 'This program is released under the GNU GPL. Please see the'
   end
-  object Label3: TLabel
+  object lAbout2: TLabel
     Left = 7
     Top = 112
     Width = 320
@@ -265,7 +265,7 @@ object About: TAbout
       'attached readme.txt file that should be included with this distr' +
       'ibution.'
   end
-  object Label5: TLabel
+  object lAbout3: TLabel
     Left = 8
     Top = 136
     Width = 300
@@ -292,7 +292,7 @@ object About: TAbout
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object Label10: TLabel
+  object lAbout4: TLabel
     Left = 8
     Top = 152
     Width = 279
@@ -305,7 +305,7 @@ object About: TAbout
     Width = 3
     Height = 13
   end
-  object Label15: TLabel
+  object lGithubURL: TLabel
     Left = 8
     Top = 72
     Width = 179
@@ -320,27 +320,41 @@ object About: TAbout
     Font.Style = [fsUnderline]
     ParentColor = False
     ParentFont = False
-    OnClick = Label15Click
-    OnMouseDown = Label15MouseDown
-    OnMouseUp = Label15MouseUp
+    OnClick = lGithubURLClick
+    OnMouseDown = lGithubURLMouseDown
+    OnMouseUp = lGithubURLMouseUp
   end
-  object Label4: TLabel
+  object lAbout5: TLabel
     Left = 8
     Top = 176
     Width = 259
     Height = 13
     Caption = 'Interface and parts of code based of EightyOne project'
   end
-  object Label6: TLabel
+  object lAbout6: TLabel
     Left = 8
     Top = 192
     Width = 286
     Height = 13
     Caption = 'https://sourceforge.net/projects/eightyone-sinclair-emulator/'
   end
+  object lAbout7: TLabel
+    Left = 8
+    Top = 216
+    Width = 308
+    Height = 13
+    Caption = 'Parts of  Adam emulation code from Marat Fayzullin ColEm project'
+  end
+  object lAbout8: TLabel
+    Left = 8
+    Top = 232
+    Width = 151
+    Height = 13
+    Caption = 'https://fms.komkon.org/ColEm/'
+  end
   object Button1: TButton
     Left = 248
-    Top = 214
+    Top = 253
     Width = 81
     Height = 26
     Anchors = [akRight, akBottom]

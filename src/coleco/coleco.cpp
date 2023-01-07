@@ -520,6 +520,9 @@ void coleco_reset(void)
         tms9918_reset();
         tms.ScanLines=coleco.NTSC ? TMS9918_LINES : TMS9929_LINES;
         sn76489_init(coleco.NTSC ? CLOCK_NTSC : CLOCK_PAL, 44100);
+        if (coleco.SGM) {
+                ay8910_init(coleco.NTSC ? CLOCK_NTSC : CLOCK_PAL, 44100);
+        }
         SoundPrepSmpTab(tms.ScanLines);
         if (coleco.typebackup!=NOBACKUP)
                 c24xx_reset(eepromdata,coleco.typebackup==EEP24C08 ? C24XX_24C08 : coleco.typebackup==EEP24C256 ? C24XX_24C256 : 0);
@@ -779,8 +782,8 @@ void coleco_writeport(int Address, int Data, int *tstates)
                         if(coleco.SGM)
                         {
                                 if(Address==0x53) coleco_setmemory(coleco_port60,coleco_port20,Data);
-                                //else if(Port==0x50) WrCtrl8910(&AYPSG,Value);
-                                //else if(Port==0x51) WrData8910(&AYPSG,Value);
+                                else if(Address==0x50) ay8910_write(0,Data);
+                                else if(Address==0x51) ay8910_write(1,Data);
                         }
                         break;
                 case 0x20:
@@ -809,7 +812,7 @@ BYTE ReadInputPort(int Address, int *tstates)
         {
                 case 0x40: // Printer Status and SGM Module
                         if((coleco.machine == MACHINEADAM)&&(Address==0x40)) return(0xFF);
-                        //if((Mode&CV_SGM)&&(Port==0x52))  return(RdData8910(&AYPSG));
+                        if((coleco.SGM)&&(Address==0x52))  return(ay8910_read());
                         break;
 
                 case 0x20: // AdamNet Control
@@ -853,7 +856,6 @@ int coleco_do_scanline(void)
         {
                 do
                 {
-//                LastInstruction=LASTINSTNONE;
                         ts = z80_do_opcode();
 
                         frametstates += ts;
@@ -904,4 +906,5 @@ void Printer(BYTE V)
 {
         printviewer->SendPrint(V);
 }
+
 

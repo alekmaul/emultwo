@@ -310,6 +310,7 @@ object About: TAbout
     Top = 72
     Width = 179
     Height = 13
+    Cursor = crHandPoint
     Hint = 'Click to visit the EightyOne home page'
     Caption = 'https://github.com/alekmaul/emultwo'
     Color = clBtnFace

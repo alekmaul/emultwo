@@ -1,16 +1,4 @@
-
-        TLabel *lAbout8;
-        TLabel *lAbout7;
-        TLabel *lAbout6;
-        TLabel *lAbout5;
-        TLabel *lAbout4;
-        TLabel *lAbout3;
-        TLabel *lAbout2;
-        TLabel *lAbout1;
-        TLabel *lGithubURL;
-        TLabel *lCopyright;
-        TLabel *Label9;
-        TLabel *Label7;/* EmulTwo  - A Windows ColecoVision emulator.
+/* EmulTwo  - A Windows ColecoVision emulator.
  * Copyright (C) 2014-2023 Alekmaul
  *
  * This program is free software; you can redistribute it and/or modify
@@ -48,24 +36,25 @@ class Tabout : public TForm
 {
 __published:	// IDE-managed Components
         TImage *Image1;
-        TLabel *Label1;
-        TLabel *Label2;
-        TLabel *Label3;
+        TLabel *lCopyright;
+        TLabel *lGithubURL;
+        TLabel *lAbout1;
         TButton *Button1;
-        TLabel *Label5;
+        TLabel *lAbout2;
         TLabel *Version;
-        TLabel *Label8;
-        TLabel *Label10;
-        TLabel *Label11;
-        TLabel *Label15;
-        TLabel *Label4;
-        TLabel *Label6;
+        TLabel *lAbout3;
+        TLabel *lAbout4;
+        TLabel *lAbout5;
+        TLabel *lAbout6;
+        TLabel *lAbout7;
+        TLabel *lAbout8;
         void __fastcall Button1Click(TObject *Sender);
         void __fastcall lGithubURLClick(TObject *Sender);
         void __fastcall lGithubURLMouseDown(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
         void __fastcall lGithubURLMouseUp(TObject *Sender,
           TMouseButton Button, TShiftState Shift, int X, int Y);
+        
         
 private:	// User declarations
 

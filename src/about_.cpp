@@ -204,13 +204,13 @@ __fastcall Tabout::Tabout(TComponent* Owner)
                 Version->Caption = "Unknown";
         }
 
-        MaxWidth(Label1,w);
-        MaxWidth(Label2,w); MaxWidth(Label10,w);
-        MaxWidth(Label3,w); MaxWidth(Label11,w);
-        MaxWidth(Label4,w);
-        MaxWidth(Label5,w);
-        MaxWidth(Label15,w);
-        MaxWidth(Label8,w);
+        MaxWidth(lAbout1,w);
+        MaxWidth(lAbout2,w); MaxWidth(lAbout3,w);
+        MaxWidth(lAbout4,w); MaxWidth(lAbout5,w);
+        MaxWidth(lAbout6,w);
+        MaxWidth(lAbout7,w);
+        MaxWidth(lAbout8,w);
+        MaxWidth(lCopyright,w);
 
         ClientWidth=w+8;
 }
@@ -233,18 +233,15 @@ void __fastcall Tabout::lGithubURLClick(TObject *Sender)
 void __fastcall Tabout::lGithubURLMouseDown(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
-        Label15->Font->Color=clRed;
+        lGithubURL->Font->Color=clRed;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tabout::lGithubURLMouseUp(TObject *Sender,
       TMouseButton Button, TShiftState Shift, int X, int Y)
 {
-        Label15->Font->Color=clHighlight;
+        lGithubURL->Font->Color=clHighlight;
 }
 //---------------------------------------------------------------------------
-
-
-
 
 

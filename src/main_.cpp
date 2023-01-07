@@ -133,35 +133,6 @@ void __fastcall TForm1::GatherWindows1Click(TObject *Sender)
         l = (this->Width / 2);
         t = (this->Height / 2);
         MoveWindow(hardware, l, t);
-/*
-        MoveWindow(Dbg, l, t);
-        MoveWindow(MemoryWindow, l, t);
-        MoveWindow(SymbolBrowser, l, t);
-        MoveWindow(SoundOutput, l, t);
-        MoveWindow(TZX, l, t);
-        MoveWindow(WavLoad, l, t);
-        MoveWindow(Speed, l, t);
-        MoveWindow(Artifacts, l, t);
-        MoveWindow(Keyboard, l, t);
-        Keyboard->KbChange();
-        MoveWindow(FSSettings, l, t);
-        MoveWindow(Printer, l, t);
-        MoveWindow(MidiForm, l, t);
-        MoveWindow(MemSave, l, t);
-        MoveWindow(SerialConfig, l, t);
-        MoveWindow(IF1, l, t);
-        MoveWindow(HistoryBox, l, t);
-        MoveWindow(ZX97Dialog, l, t);
-        MoveWindow(ParallelPort, l, t);
-        MoveWindow(Kb, l, t);
-        MoveWindow(ZipFile, l, t);
-        MoveWindow(P3Drive, l, t);
-        MoveWindow(CreateHDF, l, t);
-        MoveWindow(Debug68k, l, t);
-        MoveWindow(LiveMemoryWindow, l, t);
-        MoveWindow(ProfilePlot, l, t);
-        MoveWindow(Profiler, l, t);
-        MoveWindow(BasicLister, l, t);     */
 }
 
 //---------------------------------------------------------------------------
@@ -203,7 +174,7 @@ void __fastcall TForm1::FormMouseDown(TObject *Sender, TMouseButton Button,
 
 void __fastcall TForm1::Exit1Click(TObject *Sender)
 {
-        Close();        
+        Close();
 }
 //---------------------------------------------------------------------------
 
@@ -241,6 +212,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 
         delete MruList;
 }
+
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::FormCreate(TObject *Sender)
@@ -281,6 +253,7 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         AnimTimer1->Interval=20;
         Timer2->Interval=1000;
 }
+
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::AppMessage(TMsg &Msg, bool &Handled)
@@ -485,6 +458,7 @@ void __fastcall TForm1::OVS1xClick(TObject *Sender)
         ClientHeight=BaseHeight;
         ClientHeight += StatusBar1->Height;
 }
+
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::OVS2xClick(TObject *Sender)
@@ -525,41 +499,7 @@ void __fastcall TForm1::OVS3xClick(TObject *Sender)
         ClientHeight=BaseHeight*3;
         ClientHeight += StatusBar1->Height;
 }
-//---------------------------------------------------------------------------
 
-void __fastcall TForm1::Open1Click(TObject *Sender)
-{
-        AnsiString Extension, Filename;
-        int stopped;
-
-        SoundSuspend();
-        try
-        {
-                stopped=coleco.stop;
-                coleco.stop=1;
-
-        //PCAllKeysUp();
-                if (!OpenDialog1->Execute())
-                {
-                        coleco.stop=stopped;
-                }
-                else
-                {
-                        coleco.stop=stopped;
-                        Filename=OpenDialog1->FileName;
-                        Extension=FileNameGetExt(Filename);
-                        LoadProgram(Filename);
-                }
-        }
-        catch (Exception &exception)
-        {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
-        }
-
-        SoundResume();
-}
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::Emulation1Click(TObject *Sender)
@@ -571,8 +511,6 @@ void __fastcall TForm1::Emulation1Click(TObject *Sender)
 void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 {
         static int j, borrow;
-
-        //if (!nosound) sound_frame();
 
         if (coleco.stop)
         {
@@ -661,8 +599,6 @@ void __fastcall TForm1::mRU1Click(TObject *Sender)
 void __fastcall TForm1::FormKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
-        //if (Key==VK_LSHIFT) Key=VK_SHIFT;
-        //if (Key==VK_RSHIFT) Key=VK_CONTROL;
         CheckKeyDown(Key);
 }
 //---------------------------------------------------------------------------
@@ -670,31 +606,32 @@ void __fastcall TForm1::FormKeyDown(TObject *Sender, WORD &Key,
 void __fastcall TForm1::FormKeyUp(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
-        //if (Key==VK_LSHIFT) Key=VK_SHIFT;
-        //if (Key==VK_RSHIFT) Key=VK_CONTROL;
         CheckKeyUp(Key);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 {
-    // Check save dialog to save effectively to disk
-    try
-    {
-        if(Form1->SaveScrDialog->Execute())
+        try
         {
-                if (Form1->SaveScrDialog->FilterIndex==1)
-                        RenderSaveScreenBMP(Form1->SaveScrDialog->FileName);
-                else
-                        RenderSaveScreenPNG(Form1->SaveScrDialog->FileName);
+                // Check save dialog to save effectively to disk
+                SaveDialog->DefaultExt="png";
+                SaveDialog->FileName="*.png";
+                SaveDialog->Filter="Portable Network Graphic (.png)|*.png|Windows Bitmap (.bmp)|*.bmp";
+                if(SaveDialog->Execute())
+                {
+                        if (SaveDialog->FilterIndex==1)
+                                RenderSaveScreenPNG(SaveDialog->FileName);
+                        else
+                                RenderSaveScreenBMP(SaveDialog->FileName);
+                }
         }
-    }
-    catch (Exception &exception)
-    {
-        // The default exception handler not only shows the exception that
-        // occured, but also quits the message handler
-        Application->ShowException(&exception);
-    }
+        catch (Exception &exception)
+        {
+                // The default exception handler not only shows the exception that
+                // occured, but also quits the message handler
+                Application->ShowException(&exception);
+        }
 }
 //---------------------------------------------------------------------------
 
@@ -847,6 +784,44 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
 
 //---------------------------------------------------------------------------
 
+void __fastcall TForm1::Open1Click(TObject *Sender)
+{
+        AnsiString Extension, Filename;
+        int stopped;
+
+        SoundSuspend();
+        try
+        {
+                stopped=coleco.stop;
+                coleco.stop=1;
+
+                OpenDialog->DefaultExt="rom";
+                OpenDialog->FileName="*.rom";
+                OpenDialog->Filter="All Files (*.COL,*.ROM,*.BIN,*.SG)|*.col;*.rom;*.bin;*.sg|BIN Files (*.BIN)|*.bin|COL Files (*.COL)|*.col|ROM FIles (*.ROM)|*.rom|SG Files (*.SG)|*.sg";
+                if (!OpenDialog->Execute())
+                {
+                        coleco.stop=stopped;
+                }
+                else
+                {
+                        coleco.stop=stopped;
+                        Filename=OpenDialog->FileName;
+                        Extension=FileNameGetExt(Filename);
+                        LoadProgram(Filename);
+                }
+        }
+        catch (Exception &exception)
+        {
+                // The default exception handler not only shows the exception that
+                // occured, but also quits the message handler
+                Application->ShowException(&exception);
+        }
+
+        SoundResume();
+}
+
+//---------------------------------------------------------------------------
+
 void __fastcall TForm1::DDAInsertClick(TObject *Sender)
 {
         AnsiString Extension, Filename;
@@ -859,26 +834,27 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
                 stopped=coleco.stop;
                 coleco.stop=1;
 
-        //PCAllKeysUp();
                 m = (TMenuItem *) Sender;
-                if ((m->Tag == 0) || (m->Tag == 0))
+                if ((m->Tag == 0) || (m->Tag == 1))
                 {
-                        OpenDialogDT->Filter="Disk Files (*.DSK)|*.dsk";
-                        OpenDialogDT->DefaultExt="dsk";
+                        OpenDialog->FileName="*.dsk";
+                        OpenDialog->Filter="Disk Files (*.DSK)|*.dsk";
+                        OpenDialog->DefaultExt="dsk";
                 }
                 else
                 {
-                        OpenDialogDT->Filter="Tape Files (*.DDP)|*.ddp";
-                        OpenDialogDT->DefaultExt="ddp";
+                        OpenDialog->FileName="*.ddp";
+                        OpenDialog->Filter="Tape Files (*.DDP)|*.ddp";
+                        OpenDialog->DefaultExt="ddp";
                 }
-                if (!OpenDialogDT->Execute())
+                if (!OpenDialog->Execute())
                 {
                         coleco.stop=stopped;
                 }
                 else
                 {
                         coleco.stop=stopped;
-                        Filename=OpenDialogDT->FileName;
+                        Filename=OpenDialog->FileName;
                         Extension=FileNameGetExt(Filename);
                         if (m->Tag == 0)
                                 LoadDiskTape(0, 0,Filename);

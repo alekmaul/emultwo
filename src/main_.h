@@ -45,7 +45,7 @@ __published:	// IDE-managed Components
         TTimer *Timer2;
         TAnimTimer *AnimTimer1;
         TStatusBar *StatusBar1;
-        TOpenDialog *OpenDialog1;
+        TOpenDialog *OpenDialog;
         TMainMenu *MainMenu;
         TMenuItem *File1;
         TMenuItem *Open1;
@@ -97,14 +97,13 @@ __published:	// IDE-managed Components
         TMenuItem *Donate1;
         TMenuItem *N7;
         TMenuItem *MenuItem5;
-        TSaveDialog *SaveScrDialog;
+        TSaveDialog *SaveDialog;
         TMenuItem *OpenDA;
         TMenuItem *OpenDB;
         TMenuItem *DDAInsert;
         TMenuItem *DDAEject;
         TMenuItem *OpenRecent1;
         TMenuItem *mRU4;
-        TOpenDialog *OpenDialogDT;
         TMenuItem *OpenTA;
         TMenuItem *TDAInsert;
         TMenuItem *TDAEject;

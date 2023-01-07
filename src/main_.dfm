@@ -292,7 +292,7 @@ object Form1: TForm1
     Left = 96
     Top = 8
   end
-  object OpenDialog1: TOpenDialog
+  object OpenDialog: TOpenDialog
     DefaultExt = 'bin'
     Filter = 
       'All Files (*.COL,*.ROM,*.BIN,*.SG)|*.col;*.rom;*.bin;*.sg|BIN Fi' +
@@ -543,18 +543,12 @@ object Form1: TForm1
       end
     end
   end
-  object SaveScrDialog: TSaveDialog
+  object SaveDialog: TSaveDialog
     DefaultExt = 'bmp'
     Filter = 
       'Windows Bitmap (.bmp)|*.bmp|Portable Network Graphic (.png)|*.pn' +
       'g'
     Left = 40
     Top = 96
-  end
-  object OpenDialogDT: TOpenDialog
-    DefaultExt = 'bin'
-    Filter = 'Disk Files (*.DSK)|*.dsk'
-    Left = 8
-    Top = 128
   end
 end

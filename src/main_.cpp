@@ -194,14 +194,18 @@ void __fastcall TForm1::Donate1Click(TObject *Sender)
 void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 {
         TIniFile *ini;
+        int J;
 
         // stop properly the current machine
         if (machine.exit) machine.exit();
         coleco.stop=1;
         AnimTimer1->Enabled=false;
 
-        //if (!nosound) sound_end();
+        // Eject all disks and tapes
+        for(J=0;J<MAX_DISKS;++J) EjectFDI(&Disks[J]);
+        for(J=0;J<MAX_TAPES;++J) EjectFDI(&Tapes[J]); 
 
+        // Save current settings
         ini = new TIniFile(coleco.inipath);
         SaveSettings(ini);
         delete ini;
@@ -209,6 +213,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
         RenderEnd();
 
         SoundEnd();
+
 
         delete MruList;
 }

@@ -52,7 +52,8 @@ void __fastcall Thardware::OKClick(TObject *Sender)
         if (coleco.NTSC) Form1->AnimTimer1->Interval=17;
         else Form1->AnimTimer1->Interval=20;
 
-        coleco.SGM = chkSGM->Checked;
+        coleco.SGM = spSGM->Down ? 1 : 0;
+        coleco.F18A = spF18A->Down ? 1 : 0;
 
         machine.clockspeed=coleco.NTSC ? CLOCK_NTSC : CLOCK_PAL;
         machine.tperscanline=coleco.NTSC ? TMS9918_LINE : TMS9929_LINE;
@@ -83,33 +84,10 @@ void __fastcall Thardware::OKClick(TObject *Sender)
 
 void __fastcall Thardware::FormShow(TObject *Sender)
 {
-/*
-        FloatingPointHardwareFix->Enabled = false;
+    ResetRequired=false;
 
-        if (ZX80Btn->Down || ZX81Btn->Down || Spec16Btn->Down || Spec48Btn->Down || Spec128Btn->Down || QLBtn->Down)
-        {
-                Machine->ActivePage=Sinclair;
-                FloatingPointHardwareFix->Enabled = ZX81Btn->Down;
-        }
-        else if (SpecP2Btn->Down || SpecP2aBtn->Down || SpecP3Btn->Down)
-        {
-                Machine->ActivePage=Amstrad;
-        }
-        else if (TS1000Btn->Down || TS1500Btn->Down  || TC2048Btn->Down || TS2068Btn->Down)
-        {
-                Machine->ActivePage=Timex;
-        }
-        else if (ZX97LEBtn->Down || SpecSEBtn->Down)
-        {
-                Machine->ActivePage=HomeBrew;
-        }
-        else
-        {
-                Machine->ActivePage=Others;
-        }
-
-        ResetRequired=false;
-*/                
+    // Value that can be changed during loading phase
+    //cboSEBACK->ItemIndex=machine.typebackup;
 }
 //---------------------------------------------------------------------------
 
@@ -127,7 +105,8 @@ void Thardware::SaveSettings(TIniFile *ini)
 
         ini->WriteBool("HWARE","NTSC",chkNTSC->Checked);
 
-        ini->WriteBool("HWARE","SGM",chkSGM->Checked);
+        ini->WriteBool("HWARE","F18A",spF18A->Down);
+        ini->WriteInteger("HWARE","SGM",spSGM->Down);
 }
 
 void Thardware::LoadSettings(TIniFile *ini)
@@ -142,8 +121,11 @@ void Thardware::LoadSettings(TIniFile *ini)
 
         Top=ini->ReadInteger("HWARE","Top",Top);
         Left=ini->ReadInteger("HWARE","Left",Left);
+
         if (ini->ReadBool("HWARE","NTSC",chkNTSC->Checked)) chkNTSCClick(NULL);
-        if (ini->ReadBool("HWARE","SGM",chkSGM->Checked)) chkNTSCClick(NULL);
+
+        spF18A->Down=ini->ReadBool("HWARE","F18A",spF18A->Down);
+        spSGM->Down=ini->ReadBool("HWARE","SGM",spSGM->Down);
 }
 
 //---------------------------------------------------------------------------

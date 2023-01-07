@@ -16,12 +16,14 @@ class Thardware : public TForm
 __published:	// IDE-managed Components
         TButton *OK;
         TCheckBox *chkNTSC;
-        TCheckBox *chkSGM;
         TGroupBox *gSEMachine;
         TSpeedButton *maccol;
         TSpeedButton *macpho;
         TSpeedButton *macadam;
         TButton *bCancel;
+        TGroupBox *tSCExpMod;
+        TSpeedButton *spSGM;
+        TSpeedButton *spF18A;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);

@@ -25,9 +25,36 @@
 #ifndef kbstatusH
 #define kbstatusH
 
+//---------------------------------------------------------------------------
+#include <dinput.h>
+#include <mmsystem.h>
+
+//---------------------------------------------------------------------------
 #include <IniFiles.hpp>
 
 #define NBKEYCV 20
+
+// DirectInput joystick
+#define   JOY_AXIS_UP       0x00000001
+#define   JOY_AXIS_DOWN     0x00000002
+#define   JOY_AXIS_LEFT     0x00000004
+#define   JOY_AXIS_RIGHT    0x00000008
+#define   JOY_PAD_UP        0x00000010
+#define   JOY_PAD_DOWN      0x00000020
+#define   JOY_PAD_LEFT      0x00000040
+#define   JOY_PAD_RIGHT     0x00000080
+#define   JOY_BUTTON_1      0x00000100
+#define   JOY_BUTTON_2      0x00000200
+#define   JOY_BUTTON_3      0x00000400
+#define   JOY_BUTTON_4      0x00000800
+#define   JOY_BUTTON_5      0x00001000
+#define   JOY_BUTTON_6      0x00002000
+#define   JOY_BUTTON_7      0x00004000
+#define   JOY_BUTTON_8      0x00008000
+#define   JOY_BUTTON_9      0x00010000
+#define   JOY_BUTTON_10     0x00020000
+#define   JOY_BUTTON_11     0x00040000
+#define   JOY_BUTTON_12     0x00080000
 
 // Joystick() Result Bits
 #define JST_NONE      0x0000
@@ -58,10 +85,19 @@
 extern unsigned short  JoyP1[NBKEYCV],JoyP2[NBKEYCV];
 
 //---------------------------------------------------------------------------
+extern JOYINFO JoyInfo;
+extern JOYCAPS JoyCaps;
 
 extern void KeysRead(TIniFile *ini);
 extern void KeysWrite(TIniFile *ini);
 extern void CheckKeyDown(WORD key);
 extern void CheckKeyUp(WORD key);
+
+extern void CheckJoyMove(TMessage &msg);
+extern void CheckJoyDown(TMessage &msg);
+extern void CheckJoyUp(TMessage &msg);
+
+extern void JoystickInit(HWND hWnd, HINSTANCE hInst);
+extern void JoystickEnd(void);
 
 #endif

@@ -38,7 +38,7 @@
 #include "cartprofile_.h"
 #include "debug_.h"
 #include "hardware_.h"
-#include "kbstatus_.h"
+
 
 #include "nametabviewer_.h"
 #include "patternviewer_.h"
@@ -54,6 +54,7 @@ TForm1 *Form1;
 #define MRFUCOUNT 5
 
 extern char **CommandLine;
+extern HINSTANCE g_hwndMain;
 static bool iniFileExists = false;
 
 bool nosound;
@@ -210,10 +211,10 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
         SaveSettings(ini);
         delete ini;
 
+        // Release video, sound and input
         RenderEnd();
-
         SoundEnd();
-
+        JoystickEnd();
 
         delete MruList;
 }
@@ -233,12 +234,16 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
         load_config();
 
+        // Load current ini config
         ini = new TIniFile(coleco.inipath);
-
         iniFileExists = FileExists(coleco.inipath);
         LoadSettings(ini);
         delete ini;
 
+        // Init joystick if possible
+        JoystickInit(Form1->Handle, g_hwndMain);
+
+        // Prepare timer for emulation
         AnimTimer1->Interval=20;
         Timer2->Interval=1000;
 }
@@ -950,3 +955,31 @@ void __fastcall TForm1::DDAEjectClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TForm1::OnJoyMove(TMessage &msg)
+{
+        // Check joystick
+        CheckJoyMove(msg);
+
+        // Continue to impart information
+        TForm::Dispatch (&msg);
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TForm1::OnJoyDown(TMessage &msg)
+{
+        // Check joystick
+        CheckJoyDown(msg);
+
+        // Dispatch message with joystick
+        TForm::Dispatch (&msg);
+}
+
+//---------------------------------------------------------------------------
+void __fastcall TForm1::OnJoyUp(TMessage &msg)
+{
+        // Check joystick
+        CheckJoyUp(msg);
+
+        // Dispatch message with joystick
+        TForm::Dispatch (&msg);
+}

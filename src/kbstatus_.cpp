@@ -58,7 +58,12 @@ struct kb
         WORD WinKey;
 };
 
-BYTE KeyState[256];
+JOYINFO JoyInfo;
+JOYCAPS JoyCaps;
+
+unsigned int JoystickState;
+
+BYTE KeyState[256];
 
 unsigned short JoyP1[NBKEYCV],JoyP2[NBKEYCV];
 unsigned int key_shift=0;
@@ -281,6 +286,25 @@ void CheckKeyDown(WORD key)
         if(coleco_joystat&(JST_RIGHT<<16)) coleco_joystat&=~(JST_LEFT<<16);
         if(coleco_joystat&(JST_DOWN<<16))  coleco_joystat&=~(JST_UP<<16);
 
+        // Get joystick values if possible
+        if ((JoyCaps.wMid != 0) && JoystickState)
+        {
+                if (JoystickState & JOY_BUTTON_1) coleco_joystat |=  keyCoresp[4]; // but #1
+                if (JoystickState & JOY_BUTTON_2) coleco_joystat |=  keyCoresp[5]; // but #2
+
+/*        if (JoystickState & JOY_BUTTON_3) valTche |=  keyCoresp[6]; // but ##
+        if (JoystickState & JOY_BUTTON_4) valTche |=  keyCoresp[7]; // but #*
+
+        if (JoystickState & JOY_BUTTON_5) valTche |=  keyCoresp[8]; // 0
+        if (JoystickState & JOY_BUTTON_6) valTche |=  keyCoresp[9]; // 1
+        if (JoystickState & JOY_BUTTON_7) valTche |=  keyCoresp[10]; // 2
+        if (JoystickState & JOY_BUTTON_8) valTche |=  keyCoresp[11]; // 3
+        if (JoystickState & JOY_BUTTON_9) valTche |=  keyCoresp[12]; // 4
+        if (JoystickState & JOY_BUTTON_10) valTche |=  keyCoresp[13]; // 5
+        if (JoystickState & JOY_BUTTON_11) valTche |=  keyCoresp[14]; // 6
+        if (JoystickState & JOY_BUTTON_12) valTche |=  keyCoresp[15]; // 7*/
+        }
+
         // Check now keyboard if we are in ADAM mode
         if (coleco.machine==MACHINEADAM)
         {
@@ -333,8 +357,78 @@ void CheckKeyUp(WORD key)
                 }
         }
 }
+//---------------------------------------------------------------------------
+
+void CheckJoyMove(TMessage &msg)
+{
+        int PosX,PosY;
+
+        PosX=msg.LParamLo;
+        PosY=msg.LParamHi;
+        JoystickState &= 0xFFFFFF00;
+        if (PosX<10000) JoystickState |= JOY_PAD_LEFT;
+        else if (PosX>55000) JoystickState |= JOY_PAD_RIGHT;
+        if (PosY<10000) JoystickState |= JOY_PAD_UP;
+        else if (PosY>55000) JoystickState |= JOY_PAD_DOWN;
+/*
+        if (JoystickState & JOY_PAD_UP) coleco_joystat |=  keyCoresp[0]; // UP
+        else coleco_joystat &= ~keyCoresp[0];
+        if (JoystickState & JOY_PAD_DOWN) coleco_joystat |=  keyCoresp[1]; // DOWN
+        else coleco_joystat &= ~keyCoresp[1];
+        if (JoystickState & JOY_PAD_LEFT) coleco_joystat |=  keyCoresp[2]; // LEFT
+        else coleco_joystat &= ~keyCoresp[2];
+        if (JoystickState & JOY_PAD_RIGHT) coleco_joystat |=  keyCoresp[3]; // RIGHT
+        else coleco_joystat &= ~keyCoresp[3];
+*/
+}
 
 //---------------------------------------------------------------------------
 
+void CheckJoyDown(TMessage &msg)
+{
+        // Acquire buttons
+        if (msg.WParam & JOY_BUTTON1) JoystickState |= JOY_BUTTON_1;
+        if (msg.WParam & JOY_BUTTON2) JoystickState |= JOY_BUTTON_2;
+        if (msg.WParam & JOY_BUTTON3) JoystickState |= JOY_BUTTON_3;
+        if (msg.WParam & JOY_BUTTON4) JoystickState |= JOY_BUTTON_4;
+}
+//---------------------------------------------------------------------------
 
+void CheckJoyUp(TMessage &msg)
+{
+    // Acquire buttons
+     if (msg.WParam & JOY_BUTTON1) JoystickState &= ~JOY_BUTTON_1;
+     if (msg.WParam & JOY_BUTTON2) JoystickState &= ~JOY_BUTTON_2;
+     if (msg.WParam & JOY_BUTTON3) JoystickState &= ~JOY_BUTTON_3;
+     if (msg.WParam & JOY_BUTTON4) JoystickState &= ~JOY_BUTTON_4;
+}
+//---------------------------------------------------------------------------
+
+void JoystickInit(HWND hWnd, HINSTANCE hInst)
+{
+    memset((void *) &JoyCaps,0x00,sizeof(JOYCAPS));
+    JoystickState=0;
+
+    // Do we support joysticks ?
+    if (joyGetNumDevs()==0){
+        return;
+    }
+
+    // OK, we have support, do we have joystick connected ?
+    if (joyGetPos(JOYSTICKID1,&JoyInfo)!=JOYERR_NOERROR){
+        return;
+    }
+
+    // Get joystick capabilities
+    joyGetDevCaps(JOYSTICKID1,&JoyCaps,sizeof(JOYCAPS));
+    joySetCapture(hWnd,JOYSTICKID1,2*JoyCaps.wPeriodMin,false);
+}
+
+//---------------------------------------------------------------------------
+void JoystickEnd(void)
+{
+    if (JoyCaps.wMid != 0) {
+        joyReleaseCapture(JOYSTICKID1);
+    }
+}
 

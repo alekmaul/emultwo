@@ -35,6 +35,8 @@
 #include <IniFiles.hpp>
 #include <Dialogs.hpp>
 
+#include "kbstatus_.h"
+
 #define RENDERGDI 0
 #define RENDERDDRAW 1
 
@@ -152,6 +154,11 @@ private:	// User declarations
         void __fastcall LoadProgram(AnsiString FileName);
         void __fastcall LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString FileName);
         void UpdateStatusBar(void);
+
+        void __fastcall OnJoyMove(TMessage &msg);
+        void __fastcall OnJoyDown(TMessage &msg);
+        void __fastcall OnJoyUp(TMessage &msg);
+
 public:		// User declarations
         int BaseWidth;
         int BaseHeight;
@@ -162,6 +169,12 @@ public:		// User declarations
         void LoadSettings(TIniFile *ini);
         void SaveSettings(TIniFile *ini);
         void GatherWindowsIfRequired();
+
+        BEGIN_MESSAGE_MAP
+                MESSAGE_HANDLER(MM_JOY1MOVE,TMessage,OnJoyMove);
+                MESSAGE_HANDLER(MM_JOY1BUTTONDOWN,TMessage,OnJoyDown);
+                MESSAGE_HANDLER(MM_JOY1BUTTONUP,TMessage,OnJoyUp);
+        END_MESSAGE_MAP(TForm)
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

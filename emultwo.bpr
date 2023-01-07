@@ -72,8 +72,8 @@
 [Version Info]
 IncludeVerInfo=1
 AutoIncBuild=0
-MajorVer=0
-MinorVer=1
+MajorVer=2
+MinorVer=0
 Release=0
 Build=0
 Debug=0
@@ -85,15 +85,15 @@ Locale=1036
 CodePage=1252
 
 [Version Info Keys]
-CompanyName=
-FileDescription=
-FileVersion=0.1.0.0
-InternalName=
+CompanyName=PortableDev
+FileDescription=ColecoVision / Adam emulator
+FileVersion=2.0.0.0
+InternalName=EmulTwo
 LegalCopyright=
 LegalTrademarks=
 OriginalFilename=
 ProductName=
-ProductVersion=1.0.0.0
+ProductVersion=2.0.0.0
 Comments=
 
 [HistoryLists\hlIncludePath]

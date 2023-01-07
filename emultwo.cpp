@@ -63,8 +63,9 @@ USEFORM("src\printviewer_.cpp", printviewer);
 
 //---------------------------------------------------------------------------
 char **CommandLine;
+HINSTANCE g_hwndMain;
 
-WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
+WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
 {
         int i;
         char *p, *CmdLineRaw;
@@ -119,17 +120,19 @@ WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR cmdline, int)
 
         try
         {
-                 Application->Initialize();
-                 Application->Title = "Emul Two";
-                 #include "allformsImpl.cpp"
+                g_hwndMain=hInstance;
 
-                 Application->ProcessMessages();
+                Application->Initialize();
+                Application->Title = "Emul Two";
+                #include "allformsImpl.cpp"
 
-                 Form1->Enabled = true;
-                 Form1->GatherWindowsIfRequired();
-                 Form1->AnimTimer1->Enabled=true;
-                 Form1->Timer2->Enabled=true;
-                 Application->Run();
+                Application->ProcessMessages();
+
+                Form1->Enabled = true;
+                Form1->GatherWindowsIfRequired();
+                Form1->AnimTimer1->Enabled=true;
+                Form1->Timer2->Enabled=true;
+                Application->Run();
         }
         catch (Exception &exception)
         {

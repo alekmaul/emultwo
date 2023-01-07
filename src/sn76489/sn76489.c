@@ -31,86 +31,99 @@ sn76496 sn;
 #if 1
 void sn76489_update(short *buffer, unsigned int length)
 {
-  int i;
-  unsigned int j;
-  int vol[4];
-  int left, nextstep;
-  unsigned int out;
-  int val;
+        int i;
+        unsigned int j;
+        int vol[4];
+        int left, nextstep;
+        unsigned int out;
+        int val;
 
-  short * out_l;
-  out_l = buffer;
+        short * out_l;
+        out_l = buffer;
 
-  for(i=0; i<4; i++){
-    if(sn.Volume[i]==0){
-      if(sn.Count[i] <= (length*SNSTEP)) sn.Count[i] += length*SNSTEP;
-    }
-  }
-
-  for(j=0; j<length; j++){
-    vol[0] = vol[1] = vol[2] = vol[3] = 0;
-    out = 0;
-    left = 0;
-
-    for(i=0; i<3; i++) {
-      if(sn.Output[i]!=0) vol[i] += sn.Count[i];
-      sn.Count[i] -= SNSTEP;
-      while(sn.Count[i] <= 0){
-        sn.Count[i] += sn.Period[i];
-        if(sn.Count[i] > 0){
-          sn.Output[i] ^= 1;
-          if(sn.Output[i] != 0) vol[i] += sn.Period[i];
-          break;
+        for(i=0; i<4; i++)
+        {
+                if(sn.Volume[i]==0)
+                {
+                        if(sn.Count[i] <= (length*SNSTEP)) sn.Count[i] += length*SNSTEP;
+                }
         }
-        sn.Count[i] += sn.Period[i];
-        vol[i] += sn.Period[i];
-      }
-      if(sn.Output[i] != 0) vol[i] -= sn.Count[i];
-    }
 
-    left = SNSTEP;
+        for(j=0; j<length; j++)
+        {
+                vol[0] = vol[1] = vol[2] = vol[3] = 0;
+                out = 0;
+                left = 0;
 
-    do {
-      nextstep = (sn.Count[3] < left)?sn.Count[3]:left;
+                for(i=0; i<3; i++)
+                {
+                        if(sn.Output[i]!=0) vol[i] += sn.Count[i];
+                        sn.Count[i] -= SNSTEP;
+                        while(sn.Count[i] <= 0)
+                        {
+                                sn.Count[i] += sn.Period[i];
+                                if(sn.Count[i] > 0)
+                                {
+                                        sn.Output[i] ^= 1;
+                                        if(sn.Output[i] != 0) vol[i] += sn.Period[i];
+                                        break;
+                                }
+                                sn.Count[i] += sn.Period[i];
+                                vol[i] += sn.Period[i];
+                        }
+                        if(sn.Output[i] != 0) vol[i] -= sn.Count[i];
+                }
 
-      if(sn.Output[3] != 0) vol[3] += sn.Count[3];
-      sn.Count[3] -= nextstep;
+                left = SNSTEP;
 
-      if (sn.Count[3] <= 0) {
-        // white noise mode ?
-        if (sn.Register[6] & 4) {
-			    if (((sn.RNG & 0x06) != 0x06) && ((sn.RNG & 0x06) != 0)) {
-            sn.RNG >>= 1;
-            sn.RNG |= 0x8000;
+                do {
+                        nextstep = (sn.Count[3] < left)?sn.Count[3]:left;
+
+                        if(sn.Output[3] != 0) vol[3] += sn.Count[3];
+                        sn.Count[3] -= nextstep;
+
+                        if (sn.Count[3] <= 0)
+                        {
+                                // white noise mode ?
+                                if (sn.Register[6] & 4)
+                                {
+			                if (((sn.RNG & 0x06) != 0x06) && ((sn.RNG & 0x06) != 0))
+                                        {
+                                                sn.RNG >>= 1;
+                                                sn.RNG |= 0x8000;
 					}
-					else {
-            sn.RNG >>= 1;
+					else
+                                        {
+                                                sn.RNG >>= 1;
 					}
 				}
-        // Periodic noise mode
-				else {
-			    if (sn.RNG & 1) {
-            sn.RNG >>= 1;
-            sn.RNG |= 0x8000;
+                                // Periodic noise mode
+				else
+                                {
+			                if (sn.RNG & 1)
+                                        {
+                                                sn.RNG >>= 1;
+                                                sn.RNG |= 0x8000;
 					}
-					else {
-            sn.RNG >>= 1;
+					else
+                                        {
+                                                sn.RNG >>= 1;
 					}
+                                }
+                                sn.Output[3] = sn.RNG&1;
+                                sn.Count[3] += sn.Period[3];
+                                if(sn.Output[3]) vol[3] += sn.Period[3];
+                        }
+                        if(sn.Output[3]) vol[3] -= sn.Count[3];
+
+                        left -= nextstep;
+                } while( left > 0 );
+
+                out = (vol[0]*sn.Volume[0]) + (vol[1]*sn.Volume[1]) + (vol[2]*sn.Volume[2]) + (vol[3]*sn.Volume[3]);
+                if (out > MAX_OUTPUT*SNSTEP) out = MAX_OUTPUT*SNSTEP;
+                val = (out>>16);
+                out_l[j] = val;
         }
-        sn.Output[3] = sn.RNG&1;
-        sn.Count[3] += sn.Period[3];
-        if(sn.Output[3]) vol[3] += sn.Period[3];
-      }
-      if(sn.Output[3]) vol[3] -= sn.Count[3];
-
-      left -= nextstep;
-    } while( left > 0 );
-
-        out = (vol[0]*sn.Volume[0]) + (vol[1]*sn.Volume[1]) + (vol[2]*sn.Volume[2]) + (vol[3]*sn.Volume[3]);
-        if (out > MAX_OUTPUT*SNSTEP) out = MAX_OUTPUT*SNSTEP;
-        val = (out>>17);
-        out_l[j] = val;
-    }
 }
 
 void sn76489_write(int data)

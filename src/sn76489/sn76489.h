@@ -30,7 +30,7 @@
 // 1 x 3 bit noise register.
 // --------------------------------------------------------------------------------------------
 #define MAX_OUTPUT     	0x7fff
-#define SNSTEP          0x10000
+#define SNSTEP          0x8000 //0x10000
 
 #define	FB_WNOISE      	0x12000
 #define FB_PNOISE      	0x08000

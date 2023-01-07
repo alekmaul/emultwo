@@ -57,6 +57,7 @@ typedef struct
         CFGBYTE machine;
         CFGBYTE NTSC;
         CFGBYTE SGM;
+        CFGBYTE F18A;
         CFGBYTE inverse;
         CFGBYTE aysound;
         CFGBYTE aytype;

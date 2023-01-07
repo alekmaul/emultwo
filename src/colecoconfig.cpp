@@ -51,6 +51,7 @@ void load_config(void)
         coleco.machine=MACHINECOLECO;
         coleco.NTSC=1;
         coleco.SGM=0;
+        coleco.F18A=0;
         coleco.inverse=0;
         coleco.frameskip=0;
         coleco.aysound=0;

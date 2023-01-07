@@ -59,7 +59,7 @@ void load_config(void)
         coleco.vsyncsound=0;
         coleco.cardcrc=-1;
         coleco.cardsize=0;
-        coleco.romCartridge = ROMCARTRIDGENONE;
+        coleco.romCartridge = ROMCARTRIDGEDISK;
         coleco.typebackup=NOBACKUP;
 
         machine.clockspeed=CLOCK_NTSC;

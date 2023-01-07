@@ -267,15 +267,15 @@ object Form1: TForm1
       end
       item
         Alignment = taCenter
-        Text = 'Zoom'
+        Text = 'FPS'
         Width = 100
       end
       item
-        Text = ' '
+        Text = ' CardType'
         Width = 100
       end
       item
-        Text = ' '
+        Text = ' Periph'
         Width = 50
       end>
     SimplePanel = False

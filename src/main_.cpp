@@ -153,10 +153,10 @@ void __fastcall TForm1::FormMouseUp(TObject *Sender, TMouseButton Button,
 {
         switch(Button)
         {
-        case mbLeft: mouse.buttons |= 2; break;
-        case mbRight: mouse.buttons |= 1; break;
-        case mbMiddle: mouse.buttons |= 4; break;
-        }        
+                case mbLeft: mouse.buttons |= 2; break;
+                case mbRight: mouse.buttons |= 1; break;
+                case mbMiddle: mouse.buttons |= 4; break;
+        }
 }
 //---------------------------------------------------------------------------
 
@@ -165,9 +165,9 @@ void __fastcall TForm1::FormMouseDown(TObject *Sender, TMouseButton Button,
 {
         switch(Button)
         {
-        case mbLeft: mouse.buttons &= ~2; break;
-        case mbRight: mouse.buttons &= ~1; break;
-        case mbMiddle: mouse.buttons &= ~4; break;
+                case mbLeft: mouse.buttons &= ~2; break;
+                case mbRight: mouse.buttons &= ~1; break;
+                case mbMiddle: mouse.buttons &= ~4; break;
         }
 }
 //---------------------------------------------------------------------------
@@ -222,29 +222,13 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
         AnimTimer1->Enabled=false;
 
-        nosound = true;
+        nosound = false;
 
         Application->OnMessage = AppMessage;
 
         load_config();
 
         ini = new TIniFile(coleco.inipath);
-        if (!SoundInit())
-        {
-                Application->MessageBox("Count not initialise DirectSound.\nPlease ensure DirectX 5 or greater is installed.",
-				"Error",
-	                        MB_OK | MB_ICONERROR);
-                SoundEnd();
-        }
-        nosound = false;
-
-        RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI);
-
-        if (!RenderInit())
-        {
-                RenderEnd();
-                exit(0);
-        }
 
         iniFileExists = FileExists(coleco.inipath);
         LoadSettings(ini);
@@ -307,8 +291,12 @@ void TForm1::UpdateMruMenu(void)
 
 void TForm1::LoadSettings(TIniFile *ini)
 {
-        KeysRead(ini);
-
+        RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI);
+        if (!RenderInit())
+        {
+                RenderEnd();
+                exit(0);
+        }
         AccurateInit(true);
 
         if (ini->ReadBool("MAIN","OVS1x",OVS1x->Checked)) OVS1xClick(NULL);
@@ -323,6 +311,17 @@ void TForm1::LoadSettings(TIniFile *ini)
         StartUpHeight = Height;
         StartUpWidth = Width;
 
+        KeysRead(ini);
+
+        if (!SoundInit(44100,60))
+        {
+                Application->MessageBox("Count not initialise DirectSound.\nPlease ensure DirectX 5 or greater is installed.",
+				"Error",
+	                        MB_OK | MB_ICONERROR);
+                SoundEnd();
+                nosound = true;
+        }
+
         // Most recent files management
         MruList->Add(ini->ReadString("RecentFiles","MRU1",""));
         MruList->Add(ini->ReadString("RecentFiles","MRU2",""));
@@ -334,6 +333,9 @@ void TForm1::LoadSettings(TIniFile *ini)
         // Always default to the 100% to begin with, before changing to real dimensions upon the next timer event
         ClientHeight = BaseHeight + StatusBar1->Height;
         ClientWidth = BaseWidth;
+
+        // Update the status bar
+        UpdateStatusBar();
 }
 
 void TForm1::SaveSettings(TIniFile *ini)
@@ -361,6 +363,43 @@ void TForm1::SaveSettings(TIniFile *ini)
         hardware->SaveSettings(ini);
         patternviewer->SaveSettings(ini);
         spriteviewer->SaveSettings(ini);
+}
+//---------------------------------------------------------------------------
+void TForm1::UpdateStatusBar(void)
+{
+        AnsiString text="";
+
+        // Update status bar
+        text="Coleco";
+        if (coleco.machine == MACHINEPHOENIX) {
+                text = "Phoenix";
+        }
+        else if (coleco.machine == MACHINEADAM) {
+                text = "Adam";
+        }
+        StatusBar1->Panels->Items[0]->Text = text;
+
+        text="";
+        if (coleco.romCartridge == ROMCARTRIDGESTD) {
+                text="Standard Cart";
+        if (coleco.romCartridge == ROMCARTRIDGEMEGA) {
+                text = "MegaCart";
+        }
+        else if (coleco.romCartridge == ROMCARTRIDGEZX81) {
+                text = "ZX81 31In1";
+        }
+        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE) {
+                text = "Disk Image";
+        }
+        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE) {
+                text = "Digital Data Pack";
+        }
+        StatusBar1->Panels->Items[2]->Text = text;
+
+        text="";
+        if (coleco.SGM == 1)
+                text = "SGM";
+        StatusBar1->Panels->Items[3]->Text = text;
 }
 
 //---------------------------------------------------------------------------
@@ -477,8 +516,6 @@ void __fastcall TForm1::OVS2xClick(TObject *Sender)
         ClientWidth=BaseWidth*2;
         ClientHeight=BaseHeight*2;
         ClientHeight += StatusBar1->Height;
-        StatusBar1->Refresh();
-        StatusBar1->Invalidate();
 }
 //---------------------------------------------------------------------------
 
@@ -505,6 +542,9 @@ void __fastcall TForm1::OVS3xClick(TObject *Sender)
 void __fastcall TForm1::Emulation1Click(TObject *Sender)
 {
         hardware->ShowModal();
+
+        // Refresh StatusBar if needed
+        UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
 
@@ -754,6 +794,7 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
 
                 if (retload && !DiskTapeNum) // only for 1st disk
                 {
+
                         // Reset engine in Adam mode
                         coleco.machine=MACHINEADAM;
                         coleco_reset();

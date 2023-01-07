@@ -151,6 +151,7 @@ private:	// User declarations
         TStringList* MruList;
         void __fastcall LoadProgram(AnsiString FileName);
         void __fastcall LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString FileName);
+        void UpdateStatusBar(void);
 public:		// User declarations
         int BaseWidth;
         int BaseHeight;

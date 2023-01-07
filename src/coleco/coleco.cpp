@@ -782,8 +782,8 @@ void coleco_writeport(int Address, int Data, int *tstates)
                         if(coleco.SGM)
                         {
                                 if(Address==0x53) coleco_setmemory(coleco_port60,coleco_port20,Data);
-                                else if(Address==0x50) ay8910_write(0,Data);
-                                else if(Address==0x51) ay8910_write(1,Data);
+                                else if (Address==0x50) ay8910_write(0,Data); // Control data
+                                else if (Address==0x51) ay8910_write(1,Data); // Write data
                         }
                         break;
                 case 0x20:

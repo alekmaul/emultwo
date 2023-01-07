@@ -265,7 +265,7 @@ GetMouse
 
 void CheckKeyDown(WORD key)
 {
-        int i,  adamkey;
+        int i,  adamkey=0;
         unsigned int valtche;
 
         // Check joystick for player one & two (16 bits shifted)
@@ -306,7 +306,8 @@ void CheckKeyDown(WORD key)
                                 if(key<='~') adamkey=key;
                                 break;
                 }
-                PutKBD(adamkey | ( (((adamkey >= 'A') && (adamkey <= 'Z')) || key_shift) ? CON_SHIFT:0) );
+                if (adamkey)
+                        PutKBD(adamkey | ( (key_shift) ? CON_SHIFT:0) );
         }
 }
 

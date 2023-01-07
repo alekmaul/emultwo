@@ -83,7 +83,7 @@ void ay8910_update(short *buffer, unsigned int length)
         // for the noise channel we must not touch OutputN - it's also not necessary
         // since we use outn.
         if ((ay.Regs[AY_ENABLE] & 0x38) == 0x38)	//all off
-        if (ay.CountN <= prelen) ay.CountN += prelen;
+                if (ay.CountN <= prelen) ay.CountN += prelen;
 
         outn = (ay.OutputN | ay.Regs[AY_ENABLE]);
 

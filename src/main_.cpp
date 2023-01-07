@@ -797,8 +797,11 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
                 if (retload && !DiskTapeNum) // only for 1st disk
                 {
 
-                        // Change media type
+                        // Change media type  and eject disk if on a tape
                         coleco.romCartridge = TypeMedia ? ROMCARTRIDGEDTAPE : ROMCARTRIDGEDISK;
+                        if (TypeMedia)
+                                EjectFDI(&Disks[0]);
+                                
 
                         // Reset engine in Adam mode
                         coleco.machine=MACHINEADAM;

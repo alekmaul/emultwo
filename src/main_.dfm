@@ -527,6 +527,14 @@ object Form1: TForm1
       object Content1: TMenuItem
         Caption = 'Content'
       end
+      object Reportabug1: TMenuItem
+        Caption = 'Report a bug'
+        OnClick = Reportabug1Click
+      end
+      object Chatwithcommunity1: TMenuItem
+        Caption = 'Chat with community'
+        OnClick = Chatwithcommunity1Click
+      end
       object N8: TMenuItem
         Caption = '-'
       end

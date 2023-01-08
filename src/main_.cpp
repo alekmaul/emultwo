@@ -983,3 +983,15 @@ void __fastcall TForm1::OnJoyUp(TMessage &msg)
         // Dispatch message with joystick
         TForm::Dispatch (&msg);
 }
+void __fastcall TForm1::Reportabug1Click(TObject *Sender)
+{
+        ShellExecute(NULL, "open", "https://github.com/alekmaul/emultwo/issues", "", NULL, SW_RESTORE);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::Chatwithcommunity1Click(TObject *Sender)
+{
+        ShellExecute(NULL, "open", "https://discord.gg/2qxH6FAgzW", "", NULL, SW_RESTORE);
+}
+//---------------------------------------------------------------------------
+

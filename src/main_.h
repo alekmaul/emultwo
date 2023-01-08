@@ -111,6 +111,8 @@ __published:	// IDE-managed Components
         TMenuItem *TDAEject;
         TMenuItem *DDBInsert;
         TMenuItem *DDBEject;
+        TMenuItem *Reportabug1;
+        TMenuItem *Chatwithcommunity1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall FormMouseUp(TObject *Sender, TMouseButton Button,
@@ -147,6 +149,8 @@ __published:	// IDE-managed Components
         void __fastcall DDAInsertClick(TObject *Sender);
         void __fastcall PrinterViewer1Click(TObject *Sender);
         void __fastcall DDAEjectClick(TObject *Sender);
+        void __fastcall Reportabug1Click(TObject *Sender);
+        void __fastcall Chatwithcommunity1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;

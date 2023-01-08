@@ -4,8 +4,8 @@ object About: TAbout
   BorderIcons = [biHelp]
   BorderStyle = bsToolWindow
   Caption = 'About'
-  ClientHeight = 286
-  ClientWidth = 336
+  ClientHeight = 296
+  ClientWidth = 386
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,9 +18,8 @@ object About: TAbout
   object Image1: TImage
     Left = 8
     Top = 8
-    Width = 48
-    Height = 48
-    AutoSize = True
+    Width = 96
+    Height = 96
     Picture.Data = {
       07544269746D6170361B0000424D361B00000000000036000000280000003000
       0000300000000100180000000000001B00000000000000000000000000000000
@@ -241,9 +240,10 @@ object About: TAbout
       5965DB7D89FF7D89FF7D89FF5EC3CC5EC3CC5EC3CC87D0DE87D0DE87D0DE41A2
       3A41A23A41A23AB566B7B566B7B566B7CCCCCCCCCCCCCCCCCCFFFFFFFFFFFFFF
       FFFF}
+    Stretch = True
   end
   object lCopyright: TLabel
-    Left = 88
+    Left = 112
     Top = 48
     Width = 115
     Height = 13
@@ -251,14 +251,14 @@ object About: TAbout
   end
   object lAbout1: TLabel
     Left = 8
-    Top = 96
+    Top = 112
     Width = 289
     Height = 13
     Caption = 'This program is released under the GNU GPL. Please see the'
   end
   object lAbout2: TLabel
     Left = 7
-    Top = 112
+    Top = 128
     Width = 320
     Height = 13
     Caption = 
@@ -267,20 +267,20 @@ object About: TAbout
   end
   object lAbout3: TLabel
     Left = 8
-    Top = 136
+    Top = 152
     Width = 300
     Height = 13
     Caption = 'Z80 core and DirectSound code taken from fuse, the free UNIX'
   end
   object Version: TLabel
-    Left = 88
+    Left = 112
     Top = 32
     Width = 84
     Height = 13
     Caption = 'Unknown Version'
   end
   object Label8: TLabel
-    Left = 88
+    Left = 112
     Top = 8
     Width = 73
     Height = 20
@@ -294,7 +294,7 @@ object About: TAbout
   end
   object lAbout4: TLabel
     Left = 8
-    Top = 152
+    Top = 168
     Width = 279
     Height = 13
     Caption = 'AY8910 Code taken from Z81 © 1995-2001 Russell Marks.'
@@ -306,7 +306,7 @@ object About: TAbout
     Height = 13
   end
   object lGithubURL: TLabel
-    Left = 8
+    Left = 112
     Top = 72
     Width = 179
     Height = 13
@@ -327,35 +327,35 @@ object About: TAbout
   end
   object lAbout5: TLabel
     Left = 8
-    Top = 176
+    Top = 192
     Width = 259
     Height = 13
     Caption = 'Interface and parts of code based of EightyOne project'
   end
   object lAbout6: TLabel
     Left = 8
-    Top = 192
+    Top = 208
     Width = 286
     Height = 13
     Caption = 'https://sourceforge.net/projects/eightyone-sinclair-emulator/'
   end
   object lAbout7: TLabel
     Left = 8
-    Top = 216
+    Top = 232
     Width = 308
     Height = 13
     Caption = 'Parts of  Adam emulation code from Marat Fayzullin ColEm project'
   end
   object lAbout8: TLabel
     Left = 8
-    Top = 232
+    Top = 248
     Width = 151
     Height = 13
     Caption = 'https://fms.komkon.org/ColEm/'
   end
   object Button1: TButton
-    Left = 248
-    Top = 253
+    Left = 298
+    Top = 263
     Width = 81
     Height = 26
     Anchors = [akRight, akBottom]

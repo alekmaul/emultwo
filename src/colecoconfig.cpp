@@ -52,10 +52,7 @@ void load_config(void)
         coleco.NTSC=1;
         coleco.SGM=0;
         coleco.F18A=0;
-        coleco.inverse=0;
         coleco.frameskip=0;
-        coleco.aysound=0;
-        coleco.aytype=0;
         coleco.vsyncsound=0;
         coleco.cardcrc=-1;
         coleco.cardsize=0;

@@ -26,8 +26,9 @@
 
 #include "fdidisk.h"
 
-#define MAXRAMSIZE      512*1024                 // 512 K of Memory (rom begin at 0x38000, so for 256K max of ROM)
-#define MAXEEPROMSIZE   32*1024
+#define MAXRAMSIZE      512*1024                 // 512K of Memory (rom begin at 0x38000, so for 256K max of ROM)
+#define MAXEEPROMSIZE   32*1024                  // 32K of EEProm memory
+#define MAXSTATESIZE    (MAXRAMSIZE+MAXEEPROMSIZE+32*1024)
 
 #define ROM_WRITER      (cvmemory)              // 32kB SmartWriter ROM
 #define RAM_MAIN_LO     (cvmemory+0x8000)       // 32kB main Adam RAM
@@ -89,5 +90,8 @@ extern void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y);
 extern BYTE coleco_loadcart(char *filename, unsigned char cardtype);
 extern void coleco_reset(void);
 extern void Printer(BYTE V);
+
+extern BYTE coleco_savestate(char *filename);
+extern BYTE coleco_loadstate(char *filename);
 
 #endif

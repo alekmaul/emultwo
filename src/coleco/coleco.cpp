@@ -68,10 +68,10 @@ unsigned int coleco_spincount;                  // Spinner counters
 unsigned int coleco_spinstep;                   // Spinner steps
 unsigned int coleco_spinstate;                  // Spinner bit states
 
-int tstates,frametstates;
-int tStatesCount;
+int tstates,frametstates;                       // count of instruction  times
+int tStatesCount;                               // count of instruction  times
 
-int NMI_generator=0;                            // 1 if we need to do a NMI
+int coleco_nmigenerate=0;                       // 1 if we need to do a NMI
 int coleco_updatetms=0;                         // 1 if TMS is updated
 
 FDIDisk Disks[MAX_DISKS] = { 0 };               // Adam disk drives
@@ -209,10 +209,11 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
         case RAM:
             result = cartrom[0x6000+addr];
             break;
+            */
         case EEPROM:
             result = eepromdata[addr];
             break;
-        case SRAM:
+/*        case SRAM:
             result = cartrom[0xE800+addr];
             break;                        */
     }
@@ -246,10 +247,11 @@ void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
         case ROM:
             cartrom[addr]=y;
             break;
+            */
         case EEPROM:
             eepromdata[addr]=y;
             break;
-        case SRAM:
+/*        case SRAM:
             addr&=0x07FF;
             cartrom[0xE800+addr]=y;
             break;
@@ -258,6 +260,7 @@ void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
 }
 
 //---------------------------------------------------------------------------
+// Load a rom file
 BYTE coleco_loadcart(char *filename, unsigned char cardtype)
 {
         int i,j,size;
@@ -356,6 +359,7 @@ BYTE coleco_loadcart(char *filename, unsigned char cardtype)
 }
 
 //---------------------------------------------------------------------------
+// update the 16 colors Coleco
 void coleco_setpalette(int palette) {
         int index, idxpal;
 
@@ -370,6 +374,7 @@ void coleco_setpalette(int palette) {
 }
 
 //---------------------------------------------------------------------------
+// Update memory mapping
 void coleco_setmemory(BYTE NewPort60,BYTE NewPort20,BYTE NewPort53)
 {
         BYTE *P;
@@ -561,7 +566,7 @@ void coleco_initialise(void)
         InitialiseRomCartridge();
 */
 
-        NMI_generator=0;
+        coleco_nmigenerate=0;
 
         // Load COLECO.ROM: OS7 (ColecoVision BIOS)
         memcpy(ROM_BIOS,colecobios_rom,0x2000);
@@ -757,6 +762,7 @@ BYTE coleco_opcode_fetch(int Address)
         return byte;
 }
 
+//---------------------------------------------------------------------------
 void coleco_writeport(int Address, int Data, int *tstates)
 {
         // Coleco uses 8bit port addressing
@@ -776,7 +782,7 @@ void coleco_writeport(int Address, int Data, int *tstates)
                 case 0xA0:
                         coleco_updatetms=1; // to update screen if needed
                         if(!(Address&0x01)) tms9918_writedata(Data);
-                        else if (tms9918_writectrl(Data)) NMI_generator=1;;
+                        else if (tms9918_writectrl(Data)) coleco_nmigenerate=1;;
                         break;
                 case 0x40:
                         if((coleco.machine == MACHINEADAM)&&(Address==0x40)) Printer(Data);
@@ -796,6 +802,7 @@ void coleco_writeport(int Address, int Data, int *tstates)
         }
 }
 
+//---------------------------------------------------------------------------
 BYTE coleco_readport(int Address, int *tstates)
 {
         BYTE data = ReadInputPort(Address, tstates);
@@ -804,6 +811,7 @@ BYTE coleco_readport(int Address, int *tstates)
         return data;
 }
 
+//---------------------------------------------------------------------------
 BYTE ReadInputPort(int Address, int *tstates)
 {
         // Coleco uses 8bit port addressing
@@ -837,11 +845,14 @@ BYTE ReadInputPort(int Address, int *tstates)
         return idleDataBus;
 }
 
+//---------------------------------------------------------------------------
 int coleco_contend(int Address, int states, int time)
 {
         return(time);
 }
 
+//---------------------------------------------------------------------------
+// do a Z80 instruction or frame
 int coleco_do_scanline(void)
 {
         int ts;
@@ -863,12 +874,12 @@ int coleco_do_scanline(void)
                         tStatesCount += ts;
                         CurScanLine_len += ts;
 
-                        if (NMI_generator)
+                        if (coleco_nmigenerate)
                         {
                                 int nmilen;
                                 nmilen = z80_nmi(CurScanLine_len);
                                 ts += nmilen;
-                                NMI_generator=0;
+                                coleco_nmigenerate=0;
                         }
 
                         if (CurScanLine_len>=MaxScanLen)
@@ -877,7 +888,7 @@ int coleco_do_scanline(void)
                                 //SoundUpdate(tms.CurLine);
 
                                 // go to next line and check nmi
-                                NMI_generator = tms9918_loop();
+                                coleco_nmigenerate = tms9918_loop();
                                 CurScanLine_len-=MaxScanLen;
 
                                 // end of screen, update sound and go outside
@@ -904,9 +915,154 @@ int coleco_do_scanline(void)
         return(tstotal);
 }
 
+//---------------------------------------------------------------------------
 void Printer(BYTE V)
 {
         printviewer->SendPrint(V);
 }
 
+//---------------------------------------------------------------------------
+// Save a state file
+BYTE coleco_savestate(char *filename)
+{
+        BYTE stateheader[24] = "emultwo state\032\0\0\0\0\0\0\0\0\0\0";
+        unsigned int statesave[48];
+        unsigned int statesize,i;
+        BYTE *statebuf;
+        FILE *fstatefile = NULL;
+
+
+        // Allocate temporary buffer
+        statebuf  = (BYTE *) malloc(MAXSTATESIZE);
+        if(!statebuf)
+                return(0);
+
+        // Fill header with current crc (still have space for something else)
+        stateheader[4] = coleco.cardcrc&0xFF;
+        stateheader[5] = (coleco.cardcrc>>8)&0xFF;
+        stateheader[6] = (coleco.cardcrc>>16)&0xFF;
+        stateheader[7] = (coleco.cardcrc>>24)&0xFF;
+
+        // Get memory pointers
+        statesize=0;
+        memset(statesave,0,sizeof(statesave));
+
+        // Get coleco and machine info
+        memcpy(statebuf+statesize,&coleco,sizeof(coleco)); statesize+=sizeof(coleco);
+        memcpy(statebuf+statesize,&machine,sizeof(machine)); statesize+=sizeof(machine);
+
+        // Get global variable memory location
+        i=0;
+        statesave[i++] = coleco_megapage;
+        statesave[i++] = coleco_megasize;
+        statesave[i++] = coleco_megacart;
+        statesave[i++] = coleco_port20;
+        statesave[i++] = coleco_port60;
+        statesave[i++] = coleco_port53;
+        statesave[i++] = coleco_joymode;
+        statesave[i++] = coleco_joystat;
+        statesave[i++] = coleco_spincount;
+        statesave[i++] = coleco_spinstep;
+        statesave[i++] = coleco_spinstate;
+        statesave[i++] = coleco_nmigenerate;
+        statesave[i++] = coleco_updatetms;
+        statesave[i++] = tstates;
+        statesave[i++] = frametstates;
+        statesave[i++] = tStatesCount;
+        statesave[i++] = (int) (ROMPage[0]-RAM); statesave[i++] = (int) (ROMPage[1]-RAM); statesave[i++] = (int) (ROMPage[2]-RAM);
+        statesave[i++] = (int) (ROMPage[3]-RAM); statesave[i++] = (int) (ROMPage[4]-RAM); statesave[i++] = (int) (ROMPage[5]-RAM);
+        statesave[i++] = (int) (ROMPage[6]-RAM); statesave[i++] = (int) (ROMPage[7]-RAM);
+        statesave[i++] = (int) (RAMPage[0]-RAM); statesave[i++] = (int) (RAMPage[1]-RAM); statesave[i++] = (int) (RAMPage[2]-RAM);
+        statesave[i++] = (int) (RAMPage[3]-RAM); statesave[i++] = (int) (RAMPage[4]-RAM); statesave[i++] = (int) (RAMPage[5]-RAM);
+        statesave[i++] = (int) (RAMPage[6]-RAM); statesave[i++] = (int) (RAMPage[7]-RAM);
+        memcpy(statebuf+statesize,&statesave,sizeof(statesave));statesize+=sizeof(statesave);
+
+        // Save Z80 CPU
+        memcpy(statebuf+statesize,&z80,sizeof(z80)); statesize+=sizeof(z80);
+        memcpy(statebuf+statesize,&sz53_table,0x100); statesize+=0x100;
+        memcpy(statebuf+statesize,&parity_table,0x100); statesize+=0x100;
+        memcpy(statebuf+statesize,&sz53p_table,0x100); statesize+=0x100;
+
+        // Save VDP
+        memcpy(statebuf+statesize,&tms,sizeof(tms)); statesize+=sizeof(tms);
+
+        // Save sound
+        memcpy(statebuf+statesize,&sn,sizeof(sn)); statesize+=sizeof(sn);
+        memcpy(statebuf+statesize,&tms,sizeof(ay)); statesize+=sizeof(ay);
+
+        // Save memory
+        memcpy(statebuf+statesize,&statesave,sizeof(statesave)); statesize+=sizeof(statesave);
+        memcpy(statebuf+statesize,cvmemory,MAXRAMSIZE);statesize+=MAXRAMSIZE;
+        memcpy(statebuf+statesize,eepromdata,MAXEEPROMSIZE);statesize+=MAXEEPROMSIZE;
+
+        // Open new state file
+        fstatefile = fopen(filename,"wb");
+        if(!fstatefile)
+        {
+                free(statebuf);return(0);
+        }
+
+        // Write out the header and data
+        if (fwrite(stateheader,1,24,fstatefile)!=24)
+        {
+                fclose(fstatefile);fstatefile=NULL;
+        }
+        if ((fstatefile!=NULL) && (fwrite(statebuf,1,statesize,fstatefile)!=statesize))
+        {
+                fclose(fstatefile);fstatefile=NULL;
+        }
+
+        // If failed writing state, delete open file
+        if(fstatefile) fclose(fstatefile); else unlink(filename);
+
+        // Done
+        free(statebuf);
+        return(1);
+}
+
+//---------------------------------------------------------------------------
+// Load a state file
+BYTE coleco_loadstate(char *filename)
+{
+#if 0
+  byte Header[16],*Buf;
+  int Size,OldMode,J;
+  FILE *F;
+
+  /* Fail if no state file */
+  if(!Name) return(0);
+
+  /* Open saved state file */
+  if(!(F=fopen(Name,"rb"))) return(0);
+
+  /* Read and check the header */
+  if(fread(Header,1,16,F)!=16)       { fclose(F);return(0); }
+  if(memcmp(Header,"STF\032\002",5)) { fclose(F);return(0); }
+  J = LastCRC;
+  if(
+    (Header[5]!=(Mode&CV_ADAM)) ||
+    (Header[6]!=(J&0xFF))       ||
+    (Header[7]!=((J>>8)&0xFF))  ||
+    (Header[8]!=((J>>16)&0xFF)) ||
+    (Header[9]!=((J>>24)&0xFF))
+  ) { fclose(F);return(0); }
+
+  /* Allocate temporary buffer */
+  Buf = malloc(MAX_STASIZE);
+  if(!Buf) { fclose(F);return(0); }
+
+  /* Read state into temporary buffer, then load it */
+  OldMode = Mode;
+  Size    = fread(Buf,1,MAX_STASIZE,F);
+  Size    = Size>0? LoadState(Buf,Size):0;
+
+  /* If failed loading state, reset hardware */
+  if(!Size) ResetColeco(OldMode);
+
+  /* Done */
+  free(Buf);
+  fclose(F);
+#endif
+        return(1);
+}
 

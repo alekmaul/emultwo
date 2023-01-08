@@ -64,9 +64,6 @@ typedef struct
         CFGBYTE NTSC;
         CFGBYTE SGM;
         CFGBYTE F18A;
-        CFGBYTE inverse;
-        CFGBYTE aysound;
-        CFGBYTE aytype;
         CFGBYTE singlestep;                      // (1) if debug mode on and doing single step
         CFGBYTE stop;                            // to stop (1) or not (0) emulation
         CFGBYTE vsyncsound;

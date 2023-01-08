@@ -373,16 +373,21 @@ object Form1: TForm1
           OnClick = DDAEjectClick
         end
       end
-      object MenuItem2: TMenuItem
+      object N0: TMenuItem
         Caption = '-'
       end
       object SaveState1: TMenuItem
         Caption = 'Save State...'
         ShortCut = 16503
+        OnClick = SaveState1Click
       end
       object LoadState1: TMenuItem
         Caption = 'Load State...'
         ShortCut = 16504
+        OnClick = LoadState1Click
+      end
+      object N1: TMenuItem
+        Caption = '-'
       end
       object Screenshot1: TMenuItem
         Caption = 'Save Screenshot...'

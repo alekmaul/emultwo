@@ -679,16 +679,6 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-
-void __fastcall TForm1::TilesViewer1Click(TObject *Sender)
-{
-    TilesViewer1->Checked = !TilesViewer1->Checked;
-    if (TilesViewer1->Checked) patternviewer->Show();
-    else patternviewer->Close();
-
-}
-//---------------------------------------------------------------------------
-
 void __fastcall TForm1::Cartprofile1Click(TObject *Sender)
 {
         Cartprofile1->Checked = !Cartprofile1->Checked;
@@ -711,6 +701,24 @@ void __fastcall TForm1::SpritesViewer1Click(TObject *Sender)
     if (SpritesViewer1->Checked) spriteviewer->Show();
     else spriteviewer->Close();
 }
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::TilesViewer1Click(TObject *Sender)
+{
+    TilesViewer1->Checked = !TilesViewer1->Checked;
+    if (TilesViewer1->Checked) patternviewer->Show();
+    else patternviewer->Close();
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::PrinterViewer1Click(TObject *Sender)
+{
+    PrinterViewer1->Checked = !PrinterViewer1->Checked;
+    if (PrinterViewer1->Checked) printviewer->Show();
+    else printviewer->Close();
+}
+
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::Debugger1Click(TObject *Sender)
@@ -933,13 +941,33 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
 
 //---------------------------------------------------------------------------
 
-
-void __fastcall TForm1::PrinterViewer1Click(TObject *Sender)
+void __fastcall TForm1::LoadState1Click(TObject *Sender)
 {
-    PrinterViewer1->Checked = !PrinterViewer1->Checked;
-    if (PrinterViewer1->Checked) printviewer->Show();
-    else printviewer->Close();
+//
 }
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::SaveState1Click(TObject *Sender)
+{
+        try
+        {
+                // Check save dialog to save effectively current emulator state to disk
+                SaveDialog->DefaultExt="sta";
+                SaveDialog->FileName="*.sta";
+                SaveDialog->Filter="Save State (.sta)|*.sta";
+                if(SaveDialog->Execute())
+                {
+                        coleco_savestate(SaveDialog->FileName.c_str());
+                }
+        }
+        catch (Exception &exception)
+        {
+                // The default exception handler not only shows the exception that
+                // occured, but also quits the message handler
+                Application->ShowException(&exception);
+        }
+}
+//---------------------------------------------------------------------------
 
 void __fastcall TForm1::DDAEjectClick(TObject *Sender)
 {
@@ -963,8 +991,8 @@ void __fastcall TForm1::OnJoyMove(TMessage &msg)
         // Continue to impart information
         TForm::Dispatch (&msg);
 }
-
 //---------------------------------------------------------------------------
+
 void __fastcall TForm1::OnJoyDown(TMessage &msg)
 {
         // Check joystick
@@ -973,8 +1001,8 @@ void __fastcall TForm1::OnJoyDown(TMessage &msg)
         // Dispatch message with joystick
         TForm::Dispatch (&msg);
 }
-
 //---------------------------------------------------------------------------
+
 void __fastcall TForm1::OnJoyUp(TMessage &msg)
 {
         // Check joystick
@@ -983,6 +1011,8 @@ void __fastcall TForm1::OnJoyUp(TMessage &msg)
         // Dispatch message with joystick
         TForm::Dispatch (&msg);
 }
+//---------------------------------------------------------------------------
+
 void __fastcall TForm1::Reportabug1Click(TObject *Sender)
 {
         ShellExecute(NULL, "open", "https://github.com/alekmaul/emultwo/issues", "", NULL, SW_RESTORE);
@@ -993,5 +1023,5 @@ void __fastcall TForm1::Chatwithcommunity1Click(TObject *Sender)
 {
         ShellExecute(NULL, "open", "https://discord.gg/2qxH6FAgzW", "", NULL, SW_RESTORE);
 }
-//---------------------------------------------------------------------------
+
 

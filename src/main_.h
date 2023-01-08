@@ -55,7 +55,7 @@ __published:	// IDE-managed Components
         TMenuItem *mRU2;
         TMenuItem *mRU3;
         TMenuItem *mRU5;
-        TMenuItem *MenuItem2;
+        TMenuItem *N0;
         TMenuItem *SaveState1;
         TMenuItem *LoadState1;
         TMenuItem *Screenshot1;
@@ -113,6 +113,7 @@ __published:	// IDE-managed Components
         TMenuItem *DDBEject;
         TMenuItem *Reportabug1;
         TMenuItem *Chatwithcommunity1;
+        TMenuItem *N1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall FormMouseUp(TObject *Sender, TMouseButton Button,
@@ -151,6 +152,8 @@ __published:	// IDE-managed Components
         void __fastcall DDAEjectClick(TObject *Sender);
         void __fastcall Reportabug1Click(TObject *Sender);
         void __fastcall Chatwithcommunity1Click(TObject *Sender);
+        void __fastcall LoadState1Click(TObject *Sender);
+        void __fastcall SaveState1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;

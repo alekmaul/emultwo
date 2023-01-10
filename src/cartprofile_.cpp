@@ -142,6 +142,9 @@ __fastcall Tcartprofile::Tcartprofile(TComponent* Owner)
         ini = new TIniFile(coleco.inipath);
         LoadSettings(ini);
         delete ini;
+
+        // Init empty value
+        valEmpty=0xFF;
 }
 //---------------------------------------------------------------------------
 
@@ -269,7 +272,7 @@ void __fastcall Tcartprofile::DrawBANK(int x,int y,unsigned char *data,int fill)
 		for(j=0;j<64;++j)
                 {
                         *dst++=((*src++==valEmpty)?2:0);
-                        src++;
+                        src++;src++;src++;
                 }
 	}
 
@@ -292,26 +295,26 @@ void __fastcall Tcartprofile::DrawBANK(int x,int y,unsigned char *data,int fill)
         // Calculate size regarding content (0 or else)
 	src=data;
 	bf=0;
-	for(i=0;i<128;++i)
+	for(i=0;i<512;++i)
 	{
 		n=64;
 		for(j=0;j<64;++j) if(*src++==valEmpty) n=0;
 		bf+=n;
 	}
 
-	c->TextOut(x,y+132,"~"+IntToStr(bf/1024)+"K free ("+IntToStr((int)(100.0f/16384.0f*(float)bf))+"%)");
+	c->TextOut(x,y+132,"~"+IntToStr(bf/1024)+"K free ("+IntToStr((int)(100.0f/32768.0f*(float)bf))+"%)");
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tcartprofile::ShowBanks(void)
 {
         AnsiString info;
-	int lens[256];
         int romsize;
-        int i,bknum;
+        int i,x,y,bknum;
         BYTE *romentry;
+        int maxx,maxy,off,hgt;
 
-	int j,k,x,y,n,prg,chr,mapper,off,off1,fill,hgt,len,prev,max,maxx,maxy,tf,bf;
+//	int j,k,n,prg,chr,mapper,,off1,fill,hgt,len,prev,max,,tf,bf;
 
 	if (coleco.romCartridge == ROMCARTRIDGENONE)
 	{
@@ -323,47 +326,12 @@ void __fastcall Tcartprofile::ShowBanks(void)
         romentry=ROM_CARTRIDGE;
         bknum=coleco_megasize-1;
 
-
-        /*
-        // calculate rom size in banks to adapt view
-	for(i=0;i<256;i++) lens[i]=0;
-	bf=0;
-        off=0;
-	tf=bknum*16384;
-	for(i=0;i<bknum;i++)
-        {
-	        off1=off;
-		len=0;
-		prev=romentry[off++];
-		for(j=1;j<16384;++j)
-		{
-			if (romentry[off]==prev)
-			{
-				len++;
-			}
-			else
-			{
-				if ((len>=8) && (len>lens[prev])) lens[prev]=len;
-				prev=romentry[off];
-				len=0;
-			}
-			off++;
-		}
-		for(j=0;j<256;++j)
-		{
-			n=64;
-			for(k=0;k<64;++k) if (romentry[off1++]) n=0;
-			bf+=n;
-		}
-        }
-*/
+        // Calculate size of view
 	x=8;
 	y=8;
-
 	maxx=grpMemFootPrint->ClientWidth;
 	maxy=y;
-	hgt=128+60;
-
+        hgt=128+60;
 	for(i=0;i<bknum;i++)
 	{
 		maxy=y+hgt;
@@ -389,7 +357,7 @@ void __fastcall Tcartprofile::ShowBanks(void)
 		ImageBanks->Canvas->TextOut(x,y,"BANK $"+IntToHex(i+1,2));
 		DrawBANK(x,y+16,&romentry[off],0x00);
 
-		off+=16384;
+		off+=32768;
 		x+=64+20;
 		if(x+64+10>=maxx)
 		{

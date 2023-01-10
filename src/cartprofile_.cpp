@@ -77,42 +77,6 @@ $8024 : GAME_NAME
         a slash as a separator, then the usual PRESENTS with  the original licensor,
         a slash separator again, and finally the release year in 4 digits.
 
-
-Hardware Information
-Video Type    : NTSC 60Hz
-Chipset       : -
-Mapping       : LoROM
-ROM Size      : 1024K
-ROM Speed     : Slow (2.68MHz)
-SRAM Size     : 0K
-Battery       : No
-Exp.RAM Size  : 0K
-Exp.FLASH Size: 0K
-DataPackSlot  : No
-
-ROM-Image (File)
-File Name     : F:\DropboxSvnClient\snes\illmoorebay\out\illmoorebay.sfc
-Short Name    : illmoorebay.s
-File Format   : RAW
-CRC-32        : ADDE20DBh
-
-Header Corruption
-Invalid ROM Size Entry
-
-Special Controllers
-(no special controllers detected)
-
-Header Dump
-FFB0 28 6B 53 4E 45 53 6D 61 70 5F 6D 61 69 6E 0A 00 (kSNESmap_main
-FFC0 49 4C 4C 4D 4F 4F 52 45 42 41 59 20 20 20 20 20 ILLMOOREBAY     
-FFD0 20 20 20 20 20 20 00 0B 00 01 00 00 15 B9 EA 46       F
-FFE0 CB 6B 6B 6B 00 80 00 80 00 80 91 80 00 00 00 80 kkk
-FFF0 6B 00 00 00 00 80 00 00 00 80 00 80 F8 8A 00 80 k
-
-Registers
-(no special registers)
-
-
 */
 
 //---------------------------------------------------------------------------
@@ -272,7 +236,7 @@ void __fastcall Tcartprofile::DrawBANK(int x,int y,unsigned char *data,int fill)
 		for(j=0;j<64;++j)
                 {
                         *dst++=((*src++==valEmpty)?2:0);
-                        src++;src++;src++;
+                        src++;
                 }
 	}
 
@@ -295,10 +259,11 @@ void __fastcall Tcartprofile::DrawBANK(int x,int y,unsigned char *data,int fill)
         // Calculate size regarding content (0 or else)
 	src=data;
 	bf=0;
-	for(i=0;i<512;++i)
+	for(i=0;i<1024;++i)
 	{
-		n=64;
-		for(j=0;j<64;++j) if(*src++==valEmpty) n=0;
+		n=16;
+		for(j=0;j<16;j++)
+                        if(*src++!=valEmpty) n=0;
 		bf+=n;
 	}
 
@@ -324,7 +289,7 @@ void __fastcall Tcartprofile::ShowBanks(void)
 
         // Init some vars regarding current rom
         romentry=ROM_CARTRIDGE;
-        bknum=coleco_megasize-1;
+        bknum=coleco_megasize;
 
         // Calculate size of view
 	x=8;
@@ -357,7 +322,7 @@ void __fastcall Tcartprofile::ShowBanks(void)
 		ImageBanks->Canvas->TextOut(x,y,"BANK $"+IntToHex(i+1,2));
 		DrawBANK(x,y+16,&romentry[off],0x00);
 
-		off+=32768;
+		off+=16384;
 		x+=64+20;
 		if(x+64+10>=maxx)
 		{

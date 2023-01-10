@@ -137,15 +137,25 @@ Tcartprofile *cartprofile;
 __fastcall Tcartprofile::Tcartprofile(TComponent* Owner)
         : TForm(Owner)
 {
-    TIniFile *ini;
+        TIniFile *ini;
 
-    ini = new TIniFile(coleco.inipath);
-    LoadSettings(ini);
-    delete ini;
+        ini = new TIniFile(coleco.inipath);
+        LoadSettings(ini);
+        delete ini;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tcartprofile::FormShow(TObject *Sender)
+{
+        // Display rom information
+        ShowProfile();
+
+        // Display banks footprint
+        ShowBanks();
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::ShowProfile(void)
 {
     char text[256],tVal[16];
     int ix,iy,tlen;
@@ -162,16 +172,16 @@ void __fastcall Tcartprofile::FormShow(TObject *Sender)
             Memo1->Lines->Add("Header Type: Game (0xAA55)");
         else if ((coleco_getbyte(0x8000)==0x55) && (coleco_getbyte(0x8001)==0xAA) )
             Memo1->Lines->Add("Header Type: Test (0x55AA)");
-        else if ((coleco_megacart != 0) )
+        else if ((coleco.romCartridge == ROMCARTRIDGEMEGA) )
         {
             sprintf(text,"Header Type: MegaCart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
             Memo1->Lines->Add(text);
         }
-/*        else if ((coleco_zxcart != 0) )
+        else if ((coleco.romCartridge == ROMCARTRIDGEZX81) )
         {
             sprintf(text,"Header Type: ZX81Cart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
             Memo1->Lines->Add(text);
-        }*/
+        }
         else
             Memo1->Lines->Add("Header Type: Invalid (InsertCartridge message)");
         strcpy(text,"Game Name  : ....................................");
@@ -240,6 +250,156 @@ void __fastcall Tcartprofile::FormShow(TObject *Sender)
             Memo1->Lines->Add(text);
         }
 }
+
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::DrawBANK(int x,int y,unsigned char *data,int fill)
+{
+	const int markw[9]={8,3,6,3,8,3,6,3,8};
+	int i,j,n,bf,sy;
+	unsigned char *src,*dst;
+	TCanvas *c;
+
+        // Fill content with color or not regarding fill value
+	c=ImageBanks->Canvas;
+	src=data;
+	for(i=0;i<128;++i)
+	{
+		dst=(unsigned char*)iBank->Picture->Bitmap->ScanLine[i];
+		for(j=0;j<64;++j)
+                {
+                        *dst++=((*src++==valEmpty)?2:0);
+                        src++;
+                }
+	}
+
+        // Draw border
+	c->Pen->Color=clBlack;
+	c->Rectangle(x,y,x+66,y+130);
+	c->Draw(x+1,y+1,iBank->Picture->Bitmap);
+
+        // Draw the lines on the side
+	sy=y;
+	for(i=0;i<9;++i)
+	{
+		c->PenPos=TPoint(x+66,sy);
+		c->LineTo(x+66+markw[i],sy);
+		c->PenPos=TPoint(x+66,sy+1);
+		c->LineTo(x+66+markw[i],sy+1);
+		sy+=16;
+	}
+
+        // Calculate size regarding content (0 or else)
+	src=data;
+	bf=0;
+	for(i=0;i<128;++i)
+	{
+		n=64;
+		for(j=0;j<64;++j) if(*src++==valEmpty) n=0;
+		bf+=n;
+	}
+
+	c->TextOut(x,y+132,"~"+IntToStr(bf/1024)+"K free ("+IntToStr((int)(100.0f/16384.0f*(float)bf))+"%)");
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::ShowBanks(void)
+{
+        AnsiString info;
+	int lens[256];
+        int romsize;
+        int i,bknum;
+        BYTE *romentry;
+
+	int j,k,x,y,n,prg,chr,mapper,off,off1,fill,hgt,len,prev,max,maxx,maxy,tf,bf;
+
+	if (coleco.romCartridge == ROMCARTRIDGENONE)
+	{
+                ImageBanks->Canvas->TextOut(10,10,"No rom cartridge");
+		return;
+	}
+
+        // Init some vars regarding current rom
+        romentry=ROM_CARTRIDGE;
+        bknum=coleco_megasize-1;
+
+
+        /*
+        // calculate rom size in banks to adapt view
+	for(i=0;i<256;i++) lens[i]=0;
+	bf=0;
+        off=0;
+	tf=bknum*16384;
+	for(i=0;i<bknum;i++)
+        {
+	        off1=off;
+		len=0;
+		prev=romentry[off++];
+		for(j=1;j<16384;++j)
+		{
+			if (romentry[off]==prev)
+			{
+				len++;
+			}
+			else
+			{
+				if ((len>=8) && (len>lens[prev])) lens[prev]=len;
+				prev=romentry[off];
+				len=0;
+			}
+			off++;
+		}
+		for(j=0;j<256;++j)
+		{
+			n=64;
+			for(k=0;k<64;++k) if (romentry[off1++]) n=0;
+			bf+=n;
+		}
+        }
+*/
+	x=8;
+	y=8;
+
+	maxx=grpMemFootPrint->ClientWidth;
+	maxy=y;
+	hgt=128+60;
+
+	for(i=0;i<bknum;i++)
+	{
+		maxy=y+hgt;
+		x+=64+20;
+		if(x+64+10>=maxx)
+		{
+			x=10;
+			y+=hgt;
+			if(i==bknum-1) hgt=128+20;
+		}
+	}
+	ImageBanks->Height=(maxy<ScrollBanks->ClientHeight)?ScrollBanks->ClientHeight:maxy;
+	ImageBanks->Canvas->Brush->Color=clWhite;
+	ImageBanks->Canvas->Rectangle(0,0,ImageBanks->Width,ImageBanks->Height);
+
+	off=0;
+	x=8;
+	y=4;
+	hgt=128+40;
+
+	for(i=0;i<bknum;i++)
+	{
+		ImageBanks->Canvas->TextOut(x,y,"BANK $"+IntToHex(i+1,2));
+		DrawBANK(x,y+16,&romentry[off],0x00);
+
+		off+=16384;
+		x+=64+20;
+		if(x+64+10>=maxx)
+		{
+			x=10;
+			y+=hgt;
+			if(i==bknum-1) hgt=128+20;
+		}
+	}
+}
+
 //---------------------------------------------------------------------------
 
 void __fastcall Tcartprofile::FormClose(TObject *Sender,
@@ -261,4 +421,60 @@ void Tcartprofile::SaveSettings(TIniFile *ini)
     ini->WriteInteger("TCPROF","Top",Top);
     ini->WriteInteger("TCPROF","Left",Left);
 }
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::Button1Click(TObject *Sender)
+{
+        Close();
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::FormCreate(TObject *Sender)
+{
+	Graphics::TBitmap *bmp;
+        PALETTEENTRY pal[256];
+
+        // create bitmap for each 16K bank
+	bmp=new Graphics::TBitmap();
+	bmp->Width=iBank->Width;
+        bmp->Height=iBank->Height;
+	bmp->PixelFormat=pf8bit;
+
+	pal[0].peBlue =255; pal[0].peGreen=255;	pal[0].peRed=255;
+	pal[1].peBlue =240; pal[1].peGreen=240;	pal[1].peRed=240;
+	pal[2].peBlue =48; pal[2].peGreen=255; pal[2].peRed=48;
+	pal[3].peBlue =0; pal[3].peGreen=0; pal[3].peRed=240;
+
+	SetPaletteEntries(bmp->Palette,0,4,pal);
+
+	iBank->Picture=new TPicture();
+	iBank->Picture->Bitmap=bmp;
+
+        delete bmp;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::RefreshClick(TObject *Sender)
+{
+        // Display rom information
+        ShowProfile();
+
+        // Display banks footprint
+        ShowBanks();
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::EmptyFFClick(TObject *Sender)
+{
+        valEmpty=0xFF;
+        RefreshClick(NULL);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tcartprofile::Empty00Click(TObject *Sender)
+{
+        valEmpty=0x00;
+        RefreshClick(NULL);
+}
+//---------------------------------------------------------------------------
 

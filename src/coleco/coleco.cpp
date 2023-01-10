@@ -274,7 +274,8 @@ BYTE coleco_loadcart(char *filename, unsigned char cardtype)
                 return(retf);
 
         // Determine size via ftell() or by reading entire [GZIPped] stream
-        if(!fseek(fRomfile,0,SEEK_END)) size=ftell(fRomfile);
+        if(!fseek(fRomfile,0,SEEK_END))
+                size=ftell(fRomfile);
         else
         {
                 // Read file in 8kB increments
@@ -285,11 +286,17 @@ BYTE coleco_loadcart(char *filename, unsigned char cardtype)
         }
 
         // Validate size
-        if((size<=0)||(size>128*0x4000)) { fclose(fRomfile);return(retf); }
+        if((size<=0)||(size>128*0x4000))
+        {
+                fclose(fRomfile);return(retf);
+        }
 
         // Rewind file to the beginning & Read magic number
         rewind(fRomfile);
-        if(fread(Buf,1,2,fRomfile)!=2) { fclose(fRomfile);return(retf); }
+        if(fread(Buf,1,2,fRomfile)!=2)
+        {
+                fclose(fRomfile);return(retf);
+        }
 
         // If it is a ColecoVision game cartridge or a Coleco Adam expansion ROM...
         P = (Buf[0]==0x55)&&(Buf[1]==0xAA)? ROM_CARTRIDGE
@@ -556,15 +563,12 @@ void coleco_initialise(void)
         z80_init();
         tStatesCount = 0;
 
+        // Init rom banking
         coleco_megasize = 2;
         coleco_megacart = 0;
+        coleco.romCartridge == ROMCARTRIDGENONE;
 
-
-/*
-        directMemoryAccess = false;
-        ResetLastIOAccesses();
-        InitialiseRomCartridge();
-*/
+        //ResetLastIOAccesses();
 
         coleco_nmigenerate=0;
 
@@ -678,20 +682,17 @@ void coleco_WriteByte(int Address, int Data)
 
 void coleco_setbyte(int Address, int Data)
 {
-//        directMemoryAccess = true;
         coleco_WriteByte(Address, Data);
-//        directMemoryAccess = false;
 }
 
 void coleco_writebyte(int Address, int Data)
 {
-/*
         lastMemoryWriteAddrLo = lastMemoryWriteAddrHi;
         lastMemoryWriteAddrHi = Address;
 
         lastMemoryWriteValueLo = lastMemoryWriteValueHi;
         lastMemoryWriteValueHi = Data;
-*/
+
         coleco_WriteByte(Address, Data);
 }
 
@@ -988,10 +989,9 @@ BYTE coleco_savestate(char *filename)
 
         // Save sound
         memcpy(statebuf+statesize,&sn,sizeof(sn)); statesize+=sizeof(sn);
-        memcpy(statebuf+statesize,&tms,sizeof(ay)); statesize+=sizeof(ay);
+        memcpy(statebuf+statesize,&ay,sizeof(ay)); statesize+=sizeof(ay);
 
         // Save memory
-        memcpy(statebuf+statesize,&statesave,sizeof(statesave)); statesize+=sizeof(statesave);
         memcpy(statebuf+statesize,cvmemory,MAXRAMSIZE);statesize+=MAXRAMSIZE;
         memcpy(statebuf+statesize,eepromdata,MAXEEPROMSIZE);statesize+=MAXEEPROMSIZE;
 
@@ -1024,45 +1024,93 @@ BYTE coleco_savestate(char *filename)
 // Load a state file
 BYTE coleco_loadstate(char *filename)
 {
-#if 0
-  byte Header[16],*Buf;
-  int Size,OldMode,J;
-  FILE *F;
+        BYTE stateheader[24];
+        unsigned int statesave[48];
+        unsigned int statesize,i;
+        BYTE *statebuf;
+        FILE *fstatefile = NULL;
 
-  /* Fail if no state file */
-  if(!Name) return(0);
+        // Allocate temporary buffer
+        statebuf  = (BYTE *) malloc(MAXSTATESIZE);
+        if(!statebuf)
+                return(0);
 
-  /* Open saved state file */
-  if(!(F=fopen(Name,"rb"))) return(0);
+        // Open saved state file
+        if( !(fstatefile=fopen(filename,"rb"))) return(0);
 
-  /* Read and check the header */
-  if(fread(Header,1,16,F)!=16)       { fclose(F);return(0); }
-  if(memcmp(Header,"STF\032\002",5)) { fclose(F);return(0); }
-  J = LastCRC;
-  if(
-    (Header[5]!=(Mode&CV_ADAM)) ||
-    (Header[6]!=(J&0xFF))       ||
-    (Header[7]!=((J>>8)&0xFF))  ||
-    (Header[8]!=((J>>16)&0xFF)) ||
-    (Header[9]!=((J>>24)&0xFF))
-  ) { fclose(F);return(0); }
+        // Read and check the header
+        if (fread(stateheader,1,24,fstatefile)!=24)
+        {
+                fclose(fstatefile);return(0);
+        }
+        if(memcmp(stateheader,"emultwo state\032",14))
+        {
+                fclose(fstatefile);return(0);
+        }
 
-  /* Allocate temporary buffer */
-  Buf = malloc(MAX_STASIZE);
-  if(!Buf) { fclose(F);return(0); }
 
-  /* Read state into temporary buffer, then load it */
-  OldMode = Mode;
-  Size    = fread(Buf,1,MAX_STASIZE,F);
-  Size    = Size>0? LoadState(Buf,Size):0;
+        // Read state into temporary buffer, then load it
+        statesize=fread(statebuf,1,MAXSTATESIZE,fstatefile);
 
-  /* If failed loading state, reset hardware */
-  if(!Size) ResetColeco(OldMode);
+        // If failed loading state, reset hardware
+        if(!statesize)
+                machine.initialise();
+        else
+        {
+                statesize=0;
 
-  /* Done */
-  free(Buf);
-  fclose(F);
-#endif
+                // Get coleco and machine info
+                memcpy(&coleco,statebuf+statesize,sizeof(coleco)); statesize+=sizeof(coleco);
+                memcpy(&machine,statebuf+statesize,sizeof(machine)); statesize+=sizeof(machine);
+
+                // Get global variable memory location
+                memcpy(&statesave,statebuf+statesize,sizeof(statesave));statesize+=sizeof(statesave);
+                i=0;
+                coleco_megapage=statesave[i++];
+                coleco_megasize=statesave[i++];
+                coleco_megacart=statesave[i++];
+                coleco_port20=statesave[i++];
+                coleco_port60=statesave[i++];
+                coleco_port53=statesave[i++];
+                coleco_joymode=statesave[i++];
+                coleco_joystat=statesave[i++];
+                coleco_spincount=statesave[i++];
+                coleco_spinstep=statesave[i++];
+                coleco_spinstate=statesave[i++];
+                coleco_nmigenerate=statesave[i++];
+                coleco_updatetms=statesave[i++];
+                tstates=statesave[i++];
+                frametstates=statesave[i++];
+                tStatesCount=statesave[i++];
+                ROMPage[0]=(unsigned char *) (statesave[i++]+RAM); ROMPage[1]=(unsigned char *) (statesave[i++]+RAM); ROMPage[2]=(unsigned char *) (statesave[i++]+RAM);
+                ROMPage[3]=(unsigned char *) (statesave[i++]+RAM); ROMPage[4]=(unsigned char *) (statesave[i++]+RAM); ROMPage[5]=(unsigned char *) (statesave[i++]+RAM);
+                ROMPage[6]=(unsigned char *) (statesave[i++]+RAM); ROMPage[7]=(unsigned char *) (statesave[i++]+RAM);
+                RAMPage[0]=(unsigned char *) (statesave[i++]+RAM); RAMPage[1]=(unsigned char *) (statesave[i++]+RAM); RAMPage[2]=(unsigned char *) (statesave[i++]+RAM);
+                RAMPage[3]=(unsigned char *) (statesave[i++]+RAM); RAMPage[4]=(unsigned char *) (statesave[i++]+RAM); RAMPage[5]=(unsigned char *) (statesave[i++]+RAM);
+                RAMPage[6]=(unsigned char *) (statesave[i++]+RAM); RAMPage[7]=(unsigned char *) (statesave[i++]+RAM);
+
+                // Get Z80 CPU
+                memcpy(&z80,statebuf+statesize,sizeof(z80)); statesize+=sizeof(z80);
+                memcpy(&sz53_table,statebuf+statesize,0x100); statesize+=0x100;
+                memcpy(&parity_table,statebuf+statesize,0x100); statesize+=0x100;
+                memcpy(&sz53p_table,statebuf+statesize,0x100); statesize+=0x100;
+
+                // Get VDP
+                memcpy(&tms,statebuf+statesize,sizeof(tms)); statesize+=sizeof(tms);
+
+                // Get sound
+                memcpy(&sn,statebuf+statesize,sizeof(sn)); statesize+=sizeof(sn);
+                memcpy(&ay,statebuf+statesize,sizeof(ay)); statesize+=sizeof(ay);
+
+                // Get memory
+                memcpy(cvmemory,statebuf+statesize,MAXRAMSIZE);statesize+=MAXRAMSIZE;
+                memcpy(eepromdata,statebuf+statesize,MAXEEPROMSIZE);statesize+=MAXEEPROMSIZE;
+        }
+
+        // Done, close file and free memory
+        fclose(fstatefile);
+        free(statebuf);
         return(1);
+
 }
 

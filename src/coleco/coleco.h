@@ -58,9 +58,14 @@ extern BYTE cv_display[TVW*TVH];                        // Coleco display buffer
 extern int cv_pal32[16];                                // Coleco display palette in 32 bits RGB
 extern unsigned int *cv_screen[TVH];                    // Coleco display buffer in 32 bits RGB
 
+extern BYTE cvmemory[MAXRAMSIZE];                      // CPU address space
+extern BYTE eepromdata[MAXEEPROMSIZE];                 // Max EEProm memory 32Ko
+
 extern int tstates,frametstates;
 
 extern BYTE coleco_megacart;                            // <>0 if mega cart rom detected
+extern BYTE coleco_megapage;                           // selected page for megacart
+extern BYTE coleco_megasize;                           // mega cart rom size in 16kB pages
 
 extern unsigned int coleco_joystat;                     // Joystick / Paddle management
 

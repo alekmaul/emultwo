@@ -128,8 +128,6 @@ extern int lastMemoryReadValueLo, lastMemoryWriteValueLo;
 extern int lastMemoryReadAddrHi, lastMemoryWriteAddrHi;
 extern int lastMemoryReadValueHi, lastMemoryWriteValueHi;
 
-extern int directMemoryAccess;
-
 extern void load_config();
 
 #define readbyte_internal(Addr) (machine.opcode_fetch(Addr))

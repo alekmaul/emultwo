@@ -1245,6 +1245,7 @@ object hardware: Thardware
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
+    Cancel = True
     Caption = 'Cancel'
     TabOrder = 3
   end

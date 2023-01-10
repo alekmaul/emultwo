@@ -32,7 +32,6 @@ int lastMemoryReadAddrLo, lastMemoryWriteAddrLo;
 int lastMemoryReadValueLo, lastMemoryWriteValueLo;
 int lastMemoryReadAddrHi, lastMemoryWriteAddrHi;
 int lastMemoryReadValueHi, lastMemoryWriteValueHi;
-int directMemoryAccess;
 
 extern bool GetVersionNumber(int& versionNumberMajor, int& versionNumberMinor, int& versionNumberPart3, int& versionNumberPart4);
 
@@ -56,7 +55,7 @@ void load_config(void)
         coleco.vsyncsound=0;
         coleco.cardcrc=-1;
         coleco.cardsize=0;
-        coleco.romCartridge = ROMCARTRIDGEDISK;
+        coleco.romCartridge = ROMCARTRIDGENONE;
         coleco.typebackup=NOBACKUP;
 
         machine.clockspeed=CLOCK_NTSC;

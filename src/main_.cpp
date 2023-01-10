@@ -656,8 +656,13 @@ void __fastcall TForm1::FormKeyUp(TObject *Sender, WORD &Key,
 
 void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 {
+        int stopped=coleco.stop;
+
+        SoundSuspend();
         try
         {
+                coleco.stop=1;
+
                 // Check save dialog to save effectively to disk
                 SaveDialog->DefaultExt="png";
                 SaveDialog->FileName="*.png";
@@ -676,7 +681,10 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
                 // occured, but also quits the message handler
                 Application->ShowException(&exception);
         }
+        SoundResume();
+        coleco.stop=stopped;
 }
+
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::Cartprofile1Click(TObject *Sender)
@@ -852,24 +860,18 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
 void __fastcall TForm1::Open1Click(TObject *Sender)
 {
         AnsiString Extension, Filename;
-        int stopped;
+        int stopped=coleco.stop;
 
         SoundSuspend();
         try
         {
-                stopped=coleco.stop;
                 coleco.stop=1;
 
                 OpenDialog->DefaultExt="rom";
                 OpenDialog->FileName="*.rom";
                 OpenDialog->Filter="All Files (*.COL,*.ROM,*.BIN,*.SG)|*.col;*.rom;*.bin;*.sg|BIN Files (*.BIN)|*.bin|COL Files (*.COL)|*.col|ROM FIles (*.ROM)|*.rom|SG Files (*.SG)|*.sg";
-                if (!OpenDialog->Execute())
+                if (OpenDialog->Execute())
                 {
-                        coleco.stop=stopped;
-                }
-                else
-                {
-                        coleco.stop=stopped;
                         Filename=OpenDialog->FileName;
                         Extension=FileNameGetExt(Filename);
                         LoadProgram(Filename);
@@ -881,7 +883,7 @@ void __fastcall TForm1::Open1Click(TObject *Sender)
                 // occured, but also quits the message handler
                 Application->ShowException(&exception);
         }
-
+        coleco.stop=stopped;
         SoundResume();
 }
 
@@ -943,14 +945,42 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
 
 void __fastcall TForm1::LoadState1Click(TObject *Sender)
 {
-//
+        int stopped=coleco.stop;
+
+        SoundSuspend();
+        try
+        {
+                coleco.stop=1;
+
+                // Check save dialog to save effectively current emulator state to disk
+                OpenDialog->DefaultExt="sta";
+                OpenDialog->FileName="*.sta";
+                OpenDialog->Filter="Save State (.sta)|*.sta";
+                if(OpenDialog->Execute())
+                {
+                        coleco_loadstate(OpenDialog->FileName.c_str());
+                }
+        }
+        catch (Exception &exception)
+        {
+                // The default exception handler not only shows the exception that
+                // occured, but also quits the message handler
+                Application->ShowException(&exception);
+        }
+        coleco.stop=stopped;
+        SoundResume();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::SaveState1Click(TObject *Sender)
 {
+        int stopped=coleco.stop;
+
+        SoundSuspend();
         try
         {
+                coleco.stop=1;
+
                 // Check save dialog to save effectively current emulator state to disk
                 SaveDialog->DefaultExt="sta";
                 SaveDialog->FileName="*.sta";
@@ -966,6 +996,8 @@ void __fastcall TForm1::SaveState1Click(TObject *Sender)
                 // occured, but also quits the message handler
                 Application->ShowException(&exception);
         }
+        coleco.stop=stopped;
+        SoundResume();
 }
 //---------------------------------------------------------------------------
 

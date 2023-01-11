@@ -36,6 +36,7 @@ __published:	// Composants gérés par l'EDI
         TStaticText *eVVSprCurTAddr;
         TPaintBox *sprScreen;
         TPaintBox *SpriteAlone;
+        TPaintBox *sprTable;
         void __fastcall SaveasBMP1Click(TObject *Sender);
         void __fastcall ExitClick(TObject *Sender);
         void __fastcall FormClose(TObject *Sender, TCloseAction &Action);

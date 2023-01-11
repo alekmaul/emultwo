@@ -74,7 +74,8 @@ __fastcall Tspriteviewer::Tspriteviewer(TComponent* Owner)
 
 void __fastcall Tspriteviewer::UpdateChanges()
 {
-    CreateSprite();
+        // Display current sprite
+        CreateSprite();
     //sprScreen->Invalidate();
 }
 
@@ -264,10 +265,11 @@ void __fastcall Tspriteviewer::RefreshSprite(int address, TCanvas *Acanvas,int w
 //---------------------------------------------------------------------------
 
 void __fastcall Tspriteviewer::CreateSprite(void) {
-    int ix,iy;
+        int ix,iy;
+        Graphics::TBitmap *bmp;
 
-    // if sprites 8x8, change layout
-    spr8x8 = ( ((tms.VR[1] & 0x3) == 0) || ((tms.VR[1] & 0x3) == 1) ) ? 1 : 0;
+        // if sprites 8x8, change layout
+        spr8x8 = ( ((tms.VR[1] & 0x3) == 0) || ((tms.VR[1] & 0x3) == 1) ) ? 1 : 0;
 /*    if ( spr8x8 )
     {
         SpriteAlone->GridX=8;
@@ -279,57 +281,82 @@ void __fastcall Tspriteviewer::CreateSprite(void) {
         SpriteAlone->GridY=16;
     }*/
 
-    // Refresh table
-    sprdisable=0;
-    for (int i=0;i<32;i++)
-    {
-        iy=coleco_gettmsval(SPRATTR,i*4,0,0);
-        if (iy==0xD0) sprdisable=1;
-        TListItem* newItem = LVSprites->Items->Item[i];
-        newItem->SubItems->Strings[SPXCOR] = IntToHex(coleco_gettmsval(SPRATTR,i*4+1,0,0),2);
-        newItem->SubItems->Strings[SPYCOR] = IntToHex(iy,2);
-        newItem->SubItems->Strings[SPPATR] = IntToHex(coleco_gettmsval(SPRATTR,i*4+2,0,0),2);
-        newItem->SubItems->Strings[SPATTR] = IntToHex(coleco_gettmsval(SPRATTR,i*4+3,0,0),2);
-        if (sprdisable) newItem->SubItems->Strings[SPDESC]="Disable";
-        if (coleco_gettmsval(SPRATTR,i*4+3,0,0) & 0x80)
+        // Refresh table
+        sprdisable=0;
+        for (int i=0;i<32;i++)
         {
-            if (sprdisable) newItem->SubItems->Strings[SPEARL]="Set";
-            else newItem->SubItems->Strings[SPEARL]="Set";
+                iy=coleco_gettmsval(SPRATTR,i*4,0,0);
+                if (iy==0xD0) sprdisable=1;
+                TListItem* newItem = LVSprites->Items->Item[i];
+                newItem->SubItems->Strings[SPXCOR] = IntToHex(coleco_gettmsval(SPRATTR,i*4+1,0,0),2);
+                newItem->SubItems->Strings[SPYCOR] = IntToHex(iy,2);
+                newItem->SubItems->Strings[SPPATR] = IntToHex(coleco_gettmsval(SPRATTR,i*4+2,0,0),2);
+                newItem->SubItems->Strings[SPATTR] = IntToHex(coleco_gettmsval(SPRATTR,i*4+3,0,0),2);
+                if (sprdisable) newItem->SubItems->Strings[SPDESC]="Disable";
+                if (coleco_gettmsval(SPRATTR,i*4+3,0,0) & 0x80)
+                {
+                        if (sprdisable) newItem->SubItems->Strings[SPEARL]="Set";
+                        else newItem->SubItems->Strings[SPEARL]="Set";
+                }
         }
-    }
 
-    // Show screen
-    if (Form1->RenderMode==RENDERDDRAW)
-    {
-        StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
-                    Form1->Canvas->Handle,8,8, Form1->ClientWidth-16,Form1->ClientHeight-16-Form1->StatusBar1->Height,SRCCOPY);
-    }
-    else {
-        StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
+        // Show screen
+        if (Form1->RenderMode==RENDERDDRAW)
+        {
+                StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
+                            Form1->Canvas->Handle,8,8, Form1->ClientWidth-16,Form1->ClientHeight-16-Form1->StatusBar1->Height,SRCCOPY);
+        }
+        else {
+                StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
                     GDIFrame->Canvas->Handle,0,0, TVW,TVH,SRCCOPY);
-    }
-
-    // If sprite is selected and ok, we display where it is on screen
-    if (sprAct!=-1) {
-        ix=coleco_gettmsval(SPRATTR,4*sprAct+1,0,0);
-        iy=coleco_gettmsval(SPRATTR,4*sprAct,0,0);
-        if ( (iy<192) && (ix) && (iy) ) { // y<192 = sprite on screen
-            sprScreen->Canvas->Pen->Width = 2;
-            sprScreen->Canvas->Pen->Color = clRed;
-            sprScreen->Canvas->MoveTo(0,0);
-      	    sprScreen->Canvas->LineTo(ix, iy);
-            sprScreen->Canvas->Brush->Style=bsClear;
-            if (spr8x8)
-                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+8,iy+8);
-            else
-                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+16,iy+16);
         }
-        eVVSprCurSAddr->Caption="$"+IntToHex(coleco_gettmsaddr(SPRATTR,0,0)+4*sprAct,4);
-        eVVSprCurTAddr->Caption="$"+IntToHex(coleco_gettmsaddr(SPRGEN,0,0)+8*(coleco_gettmsval(SPRATTR,4*sprAct+2,0,0)),4);
 
-        RefreshSprite(sprAct*4,SpriteAlone->Canvas,96,96);
-        //SpriteAlone->Invalidate();
-    }
+        // If sprite is selected and ok, we display where it is on screen
+        if (sprAct!=-1) {
+                ix=coleco_gettmsval(SPRATTR,4*sprAct+1,0,0);
+                iy=coleco_gettmsval(SPRATTR,4*sprAct,0,0);
+                if ( (iy<192) && (ix) && (iy) )
+                { // y<192 = sprite on screen
+                        sprScreen->Canvas->Pen->Width = 2;
+                        sprScreen->Canvas->Pen->Color = clRed;
+                        sprScreen->Canvas->MoveTo(0,0);
+      	                sprScreen->Canvas->LineTo(ix, iy);
+                        sprScreen->Canvas->Brush->Style=bsClear;
+                        if (spr8x8)
+                                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+8,iy+8);
+                        else
+                                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+16,iy+16);
+                }
+                eVVSprCurSAddr->Caption="$"+IntToHex(coleco_gettmsaddr(SPRATTR,0,0)+4*sprAct,4);
+                eVVSprCurTAddr->Caption="$"+IntToHex(coleco_gettmsaddr(SPRGEN,0,0)+8*(coleco_gettmsval(SPRATTR,4*sprAct+2,0,0)),4);
+
+                RefreshSprite(sprAct*4,SpriteAlone->Canvas,96,96);
+                //SpriteAlone->Invalidate();
+        }
+
+        // Display current sprite table
+        bmp = new Graphics::TBitmap;
+        bmp->Width = 16;
+        bmp->Height = 16;
+        bmp->PixelFormat = pf32bit;
+        for (int i=0;i<32;i++)
+        {
+                // Draw sprite in table
+                RefreshSprite(i*4,bmp->Canvas,bmp->Width,bmp->Height);
+                sprTable->Canvas->Draw((i*16) % (16*4), (i/4)*16, bmp);
+                // If selected draw rectangle)
+                if ((sprAct!=-1) && (sprAct==i))
+                {
+                        sprTable->Canvas->Pen->Width = 2;
+                        sprTable->Canvas->Pen->Color = clRed;
+                        sprTable->Canvas->Brush->Style=bsClear;
+                        if (spr8x8)
+                                sprTable->Canvas->Rectangle( ((i*16) % (16*4))-1,(i/4)*16-1,((i*16) % (16*4))+8,(i/4)*16+8);
+                        else
+                                sprTable->Canvas->Rectangle( ((i*16) % (16*4))-1,(i/4)*16-1,((i*16) % (16*4))+16,(i/4)*16+16);
+                }
+        }
+        delete bmp;
 }
 
 
@@ -338,7 +365,7 @@ void __fastcall Tspriteviewer::LVSpritesDrawItem(TCustomListView *Sender,
       TListItem *Item, TRect &Rect, TOwnerDrawState State)
 {
     if (sprdisable)
-       Sender->Canvas->Font->Color=clInactiveCaptionText;        
+       Sender->Canvas->Font->Color=clInactiveCaptionText;
 }
 //---------------------------------------------------------------------------
 

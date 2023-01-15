@@ -9,13 +9,13 @@
 #include <Forms.hpp>
 #include <IniFiles.hpp>
 #include <Buttons.hpp>
+#include <ExtCtrls.hpp>
 
 //---------------------------------------------------------------------------
 class Thardware : public TForm
 {
 __published:	// IDE-managed Components
         TButton *OK;
-        TCheckBox *chkNTSC;
         TGroupBox *gSEMachine;
         TSpeedButton *maccol;
         TSpeedButton *macpho;
@@ -24,6 +24,16 @@ __published:	// IDE-managed Components
         TGroupBox *tSCExpMod;
         TSpeedButton *spSGM;
         TSpeedButton *spF18A;
+        TGroupBox *gSEEmul;
+        TLabel *lSEFreq;
+        TCheckBox *cSEStart;
+        TComboBox *cSEPalNtsc;
+        TCheckBox *cSENodelay;
+        TCheckBox *cSEPFreq;
+        TGroupBox *gSEVideo;
+        TLabel *lSEPalette;
+        TPaintBox *pbox;
+        TComboBox *cboPal;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);
@@ -31,6 +41,9 @@ __published:	// IDE-managed Components
         void __fastcall macphoClick(TObject *Sender);
         void __fastcall macadamClick(TObject *Sender);
         void __fastcall spSGMClick(TObject *Sender);
+        void __fastcall cboPalChange(TObject *Sender);
+        void __fastcall pboxPaint(TObject *Sender);
+    void __fastcall bCancelClick(TObject *Sender);
 private:	// User declarations
         int NewMachine;
         AnsiString NewMachineName;

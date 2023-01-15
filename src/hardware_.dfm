@@ -1,6 +1,6 @@
 object hardware: Thardware
-  Left = 479
-  Top = 180
+  Left = 786
+  Top = 231
   Width = 572
   Height = 444
   Caption = 'Hardware'
@@ -25,24 +25,13 @@ object hardware: Thardware
     TabOrder = 0
     OnClick = OKClick
   end
-  object chkNTSC: TCheckBox
-    Left = 432
-    Top = 248
-    Width = 97
-    Height = 17
-    Caption = 'NTSC'
-    Checked = True
-    State = cbChecked
-    TabOrder = 1
-    OnClick = chkNTSCClick
-  end
   object gSEMachine: TGroupBox
     Left = 4
     Top = 4
     Width = 321
     Height = 125
     Caption = 'Machine'
-    TabOrder = 2
+    TabOrder = 1
     object maccol: TSpeedButton
       Left = 8
       Top = 20
@@ -1247,7 +1236,8 @@ object hardware: Thardware
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
-    TabOrder = 3
+    TabOrder = 2
+    OnClick = bCancelClick
   end
   object tSCExpMod: TGroupBox
     Left = 332
@@ -1255,7 +1245,7 @@ object hardware: Thardware
     Width = 218
     Height = 125
     Caption = 'Additionnal Hardware'
-    TabOrder = 4
+    TabOrder = 3
     object spSGM: TSpeedButton
       Left = 8
       Top = 20
@@ -2053,6 +2043,99 @@ object hardware: Thardware
         D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4}
       Layout = blGlyphTop
       Margin = 0
+    end
+  end
+  object gSEEmul: TGroupBox
+    Left = 4
+    Top = 132
+    Width = 191
+    Height = 109
+    Caption = 'Emulation'
+    TabOrder = 4
+    object lSEFreq: TLabel
+      Left = 8
+      Top = 64
+      Width = 50
+      Height = 13
+      Caption = 'Frequency'
+    end
+    object cSEStart: TCheckBox
+      Left = 8
+      Top = 16
+      Width = 169
+      Height = 17
+      Caption = 'Start in debug mode'
+      TabOrder = 0
+    end
+    object cSEPalNtsc: TComboBox
+      Left = 8
+      Top = 80
+      Width = 177
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 1
+      OnChange = spSGMClick
+      Items.Strings = (
+        'NTSC (60 Hz)'
+        'PAL (50 Hz)')
+    end
+    object cSENodelay: TCheckBox
+      Left = 8
+      Top = 32
+      Width = 169
+      Height = 17
+      Caption = 'No delay Coleco Bios'
+      TabOrder = 2
+      OnClick = spSGMClick
+    end
+    object cSEPFreq: TCheckBox
+      Left = 8
+      Top = 48
+      Width = 169
+      Height = 17
+      Caption = 'Patch Coleco Bios for PAL'
+      TabOrder = 3
+      OnClick = spSGMClick
+    end
+  end
+  object gSEVideo: TGroupBox
+    Left = 204
+    Top = 132
+    Width = 201
+    Height = 109
+    Caption = 'Video'
+    TabOrder = 5
+    object lSEPalette: TLabel
+      Left = 8
+      Top = 48
+      Width = 33
+      Height = 13
+      Caption = 'Palette'
+    end
+    object pbox: TPaintBox
+      Left = 4
+      Top = 74
+      Width = 192
+      Height = 25
+      OnPaint = pboxPaint
+    end
+    object cboPal: TComboBox
+      Left = 80
+      Top = 44
+      Width = 113
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 0
+      OnChange = cboPalChange
+      Items.Strings = (
+        'Coleco'
+        'Adam'
+        'TI datasheet'
+        'Black and White'
+        'Green scale'
+        'Amber scale')
     end
   end
 end

@@ -82,78 +82,64 @@ int recentHistoryPos=0;
 //---------------------------------------------------------------------------
 void DebugUpdate(void)
 {
-    static int NMISaveSingleStep=-1, INTSaveSingleStep=-1;
-    static int lastpc;
-    int i;
+        static int NMISaveSingleStep=-1, INTSaveSingleStep=-1;
+        static int lastpc;
+        int i;
 
-    if (lastpc!=z80.pc.w)
-    {
-        recentHistory[recentHistoryPos] = i;
-        recentHistoryPos = (recentHistoryPos + 1) & 3;
-        lastpc=z80.pc.w;
-    }
+        if (lastpc!=z80.pc.w)
+        {
+                recentHistory[recentHistoryPos] = i;
+                recentHistoryPos = (recentHistoryPos + 1) & 3;
+                lastpc=z80.pc.w;
+        }
 
-    i=z80.pc.w;
-    if ( (debug->NMIRetAddr==-1) && (NMISaveSingleStep!=-1) )
-    {
-        coleco.singlestep=NMISaveSingleStep;
-        NMISaveSingleStep=-1;
-    }
-    if ( (debug->INTRetAddr==-1) && (INTSaveSingleStep!=-1) )
-    {
-        coleco.singlestep=INTSaveSingleStep;
-        INTSaveSingleStep=-1;
-    }
-    /*if (z80.pc.w==0x66 && Debug->SkipNMIBtn->Checked
-        && Debug->NMIRetAddr==-1 && Debug->AutoRefresh->Checked)
-    {
-        Debug->NMIRetAddr = getbyte(z80.sp.w) + 256*getbyte(z80.sp.w + 1);
-        NMISaveSingleStep = coleco.singlestep;
-        coleco.singlestep=0;
-    } */
-    if (z80.pc.w == debug->NMIRetAddr)
-    {
-        debug->NMIRetAddr=-1;
-        coleco.singlestep=NMISaveSingleStep;
-    }
-    if (debug->NMIRetAddr!=-1) return;
+        i=z80.pc.w;
+        if ( (debug->NMIRetAddr==-1) && (NMISaveSingleStep!=-1) )
+        {
+                coleco.singlestep=NMISaveSingleStep;
+                NMISaveSingleStep=-1;
+        }
+        if ( (debug->INTRetAddr==-1) && (INTSaveSingleStep!=-1) )
+        {
+                coleco.singlestep=INTSaveSingleStep;
+                INTSaveSingleStep=-1;
+        }
+        if (z80.pc.w == debug->NMIRetAddr)
+        {
+                debug->NMIRetAddr=-1;
+                coleco.singlestep=NMISaveSingleStep;
+        }
+        if (debug->NMIRetAddr!=-1) return;
 
-    /*if (z80.pc.w==0x38 && Debug->SkipINTBtn->Checked
-        && Debug->INTRetAddr==-1 && Debug->AutoRefresh->Checked)
-    {
-        Debug->INTRetAddr = getbyte(z80.sp.w) + 256*getbyte(z80.sp.w + 1);
-        INTSaveSingleStep = coleco.singlestep;
-        coleco.singlestep=0;
-    } */
-    if (z80.pc.w == debug->INTRetAddr)
-    {
-        debug->INTRetAddr=-1;
-        coleco.singlestep=INTSaveSingleStep;
-    }
-    if (debug->INTRetAddr!=-1) return;
+        if (z80.pc.w == debug->INTRetAddr)
+        {
+                debug->INTRetAddr=-1;
+                coleco.singlestep=INTSaveSingleStep;
+        }
+        if (debug->INTRetAddr!=-1) return;
 
-    displayedTStatesCount = tStatesCount;
+        displayedTStatesCount = tStatesCount;
 
-    if (debug->BreakPointHit() || (RetExecuted && StepOutRequested && (StackChange < 0)))
-    {
-        StepOutRequested = 0;
-        debug->DoNext=false;
-        debug->UpdateVals();
-        debug->RunStop1Click(NULL);
-    }
+        if (debug->BreakPointHit() || (RetExecuted && StepOutRequested && (StackChange < 0)))
+        {
+                StepOutRequested = 0;
+                debug->DoNext=false;
+                debug->UpdateVals();
+                debug->RunStop1Click(NULL);
+        }
 
-    if (debug->DoNext)
-    {
-        coleco.stop=1;
-        debug->DoNext=false;
-        debug->UpdateVals();
-        coleco.singlestep = debug->AutoRefresh1->Checked ? 1 : 0;
-    }
+        if (debug->DoNext)
+        {
+                coleco.stop=1;
+                debug->DoNext=false;
+                debug->UpdateVals();
+                coleco.singlestep = debug->AutoRefresh1->Checked ? 1 : 0;
+        }
 #if 0
-    Profiler->DebugTick(&z80);
+        Profiler->DebugTick(&z80);
 #endif
-    if (debug->AutoRefresh1->Checked==true && debug->Visible==true)
-        debug->UpdateVals();
+        if (debug->AutoRefresh1->Checked==true && debug->Visible==true)
+                debug->UpdateVals();
 }
 
 //---------------------------------------------------------------------------
@@ -242,19 +228,18 @@ void Tdebug::EnableValues(bool enable)
     ButtonPrevChange->Enabled = enable;
     ButtonNextChange->Enabled = enable;
     ButtonLastChange->Enabled = enable;
-*/
-
-    TStatesCount->Enabled = enable;
+  */
+        TStatesCount->Enabled = enable;
 }
 
 void Tdebug::DisableVals(void)
 {
-    EnableValues(false);
+        EnableValues(false);
 }
 
 void Tdebug::EnableVals(void)
 {
-    EnableValues(true);
+        EnableValues(true);
 }
 
 //---------------------------------------------------------------------------
@@ -952,105 +937,99 @@ void Tdebug::SetLabelInfo(TLabel* label, int value, int valueWidth)
 //---------------------------------------------------------------------------
 void Tdebug::UpdateVals(void)
 {
-    int i, Stack;
+        int i,j, Stack;
 
-/*
-    RowCount->Caption = rowcounter;
-    Scanline->Caption = RasterY;
-    TStates->Caption = frametstates;
-    NMIGen->Caption = NMI_generator ? "On":"Off";
-    HSYNCGen->Caption = HSYNC_generator ? "On":"Off";
-*/
+        // Update registers
+        SetLabelInfo(HL, z80.hl.w);
+        SetLabelInfo(BC, z80.bc.w);
+        SetLabelInfo(DE, z80.de.w);
+        SetLabelInfo(HL_, z80.hl_.w);
+        SetLabelInfo(BC_, z80.bc_.w);
+        SetLabelInfo(DE_, z80.de_.w);
+        SetLabelInfo(IX, z80.ix.w);
+        SetLabelInfo(IY, z80.iy.w);
+        SetLabelInfo(PC, z80.pc.w);
+        SetLabelInfo(SP, z80.sp.w);
+        SetLabelInfo(IR, (z80.i<<8) | (z80.r7 & 128) | ((z80.r) & 127));
+        SetLabelInfo(A, z80.af.b.h, 2);
+        SetLabelInfo(A_, z80.af_.b.h, 2);
+        F->Caption = Bin8(z80.af.b.l);
+        F_->Caption = Bin8(z80.af_.b.l);
 
-    SetLabelInfo(HL, z80.hl.w);
-    SetLabelInfo(BC, z80.bc.w);
-    SetLabelInfo(DE, z80.de.w);
-    SetLabelInfo(HL_, z80.hl_.w);
-    SetLabelInfo(BC_, z80.bc_.w);
-    SetLabelInfo(DE_, z80.de_.w);
-    SetLabelInfo(IX, z80.ix.w);
-    SetLabelInfo(IY, z80.iy.w);
-    SetLabelInfo(PC, z80.pc.w);
-    SetLabelInfo(SP, z80.sp.w);
-    //TODO SetLabelInfo(IR, (z80.i<<8) | (z80.r7 & 128) | ((z80.r) & 127));
-    SetLabelInfo(A, z80.af.b.h, 2);
-    SetLabelInfo(A_, z80.af_.b.h, 2);
-    F->Caption = Bin8(z80.af.b.l);
-    F_->Caption = Bin8(z80.af_.b.l);
+        // Update stack memory
+        i=z80.sp.w;
+        Stack00->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack01->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack02->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack03->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack04->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack05->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack06->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack07->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack08->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack09->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack10->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack11->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack12->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        Stack13->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
 
-    i=z80.sp.w;
-    Stack00->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack01->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack02->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack03->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack04->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack05->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack06->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack07->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack08->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack09->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack10->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack11->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack12->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack13->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+        // Put history back instructions
+        i = recentHistory[(recentHistoryPos+0)&3]; Disass0->Caption = Disassemble(&i);
+        i = recentHistory[(recentHistoryPos+1)&3]; Disass1->Caption = Disassemble(&i);
+        i = recentHistory[(recentHistoryPos+2)&3]; Disass2->Caption = Disassemble(&i);
 
-    i = recentHistory[(recentHistoryPos+0)&3];
-    Disass0->Caption = Disassemble(&i);
-    i = recentHistory[(recentHistoryPos+1)&3];
-    Disass1->Caption = Disassemble(&i);
-    i = recentHistory[(recentHistoryPos+2)&3];
-    Disass2->Caption = Disassemble(&i);
-    i=z80.pc.w;
-    int stepOverStartAddr=i;
-    StepOverInstruction = IsStepOverInstruction(i);
-    Disass3->Caption = (Disassemble(&i) + "                              ").SetLength(63);
-    StepOverAddr = i;
-    StepOverStack=z80.sp.w;
-    StepOverInstructionSize = StepOverAddr - stepOverStartAddr;
-    StepOutRequested = 0;
-    Disass4->Caption = Disassemble(&i);
-    Disass5->Caption = Disassemble(&i);
-    Disass6->Caption = Disassemble(&i);
-    Disass7->Caption = Disassemble(&i);
-    Disass8->Caption = Disassemble(&i);
-    Disass9->Caption = Disassemble(&i);
-    Disass10->Caption = Disassemble(&i);
-    Disass11->Caption = Disassemble(&i);
+        // Put current disassembly code
+        i=z80.pc.w;
+        int stepOverStartAddr=i;
+        StepOverInstruction = IsStepOverInstruction(i);
+        Disass3->Caption = (Disassemble(&i) + "                              ").SetLength(63);
+        StepOverAddr = i;
+        StepOverStack=z80.sp.w;
+        StepOverInstructionSize = StepOverAddr - stepOverStartAddr;
+        StepOutRequested = 0;
 
-    //TODO Halt->Caption = z80.halted ? "Yes":"No" ;
-    Interrupts->Caption = z80.iff1 ? "Enabled":"Disabled" ;
-    IM->Caption = z80.im;
+        Disass4->Caption = Disassemble(&i);
+        Disass5->Caption = Disassemble(&i);
+        Disass6->Caption = Disassemble(&i);
+        Disass7->Caption = Disassemble(&i);
+        Disass8->Caption = Disassemble(&i);
+        Disass9->Caption = Disassemble(&i);
+        Disass10->Caption = Disassemble(&i);
+        Disass11->Caption = Disassemble(&i);
 
-    if ((displayedTStatesCount >= 0) && (displayedTStatesCount < 1000000))
-    {
-        TStatesCount->Caption = displayedTStatesCount;
-    }
-    else
-    {
-        TStatesCount->Caption = "999999";
-    }
+        // Update flags
+        Halt->Caption = z80.halted ? "Yes":"No" ;
+        Interrupts->Caption = z80.iff1 ? "Enabled":"Disabled" ;
+        IM->Caption = z80.im;
+        if ((displayedTStatesCount >= 0) && (displayedTStatesCount < 1000000))
+        {
+                TStatesCount->Caption = displayedTStatesCount;
+        }
+        else
+        {
+                TStatesCount->Caption = "999999";
+        }
 
-    UpdateChanges();
+        UpdateChanges();
 
-    if (coleco.stop)
-    {
-        RunStop1->Caption = "Run";
-        Step1->Enabled = true;
-        StepOver1->Enabled = true;
-        StepOut1->Enabled = true;
-        EnableVals();
-        DelTempBreakPoints();
-
-        //Profiler->Refresh();
-    }
-    else
-    {
-        RunStop1->Caption = "Stop";
-        Step1->Enabled = false;
-        StepOver1->Enabled = false;
-        StepOut1->Enabled = false;
-        if (!AutoRefresh1->Checked) DisableVals();
-    }
+        if (coleco.stop)
+        {
+                RunStop1->Caption = "Run";
+                Step1->Enabled = true;
+                StepOver1->Enabled = true;
+                StepOut1->Enabled = true;
+                EnableVals();
+                DelTempBreakPoints();
+                //Profiler->Refresh();
+        }
+        else
+        {
+                RunStop1->Caption = "Stop";
+                Step1->Enabled = false;
+                StepOver1->Enabled = false;
+                StepOut1->Enabled = false;
+                if (!AutoRefresh1->Checked) DisableVals();
+        }
 }
 //---------------------------------------------------------------------------
 
@@ -1434,51 +1413,51 @@ void __fastcall Tdebug::PCMouseDown(TObject *Sender, TMouseButton Button,
 
 void __fastcall Tdebug::DoEditReg(WORD& value)
 {
-    EditValue->CentreOn(this);
+        EditValue->CentreOn(this);
 
-    int n = value;
-    if (EditValue->Edit2(n, 2))
-    {
-        value = n;
-        UpdateVals();
-    }
+        int n = value;
+        if (EditValue->Edit2(n, 2))
+        {
+                value = n;
+                UpdateVals();
+        }
 }
 
 void __fastcall Tdebug::DoEditReg(BYTE& value)
 {
         EditValue->CentreOn(this);
 
-    int n = value;
-    if (EditValue->Edit2(n, 1))
-    {
-        value = n;
-        UpdateVals();
-    }
+        int n = value;
+        if (EditValue->Edit2(n, 1))
+        {
+                value = n;
+                UpdateVals();
+        }
 }
 
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::AClick(TObject *Sender)
 {
-    DoEditReg(z80.af.b.h);
+        DoEditReg(z80.af.b.h);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::A_Click(TObject *Sender)
 {
-//    DoEditReg(z80.af_.b.h);
+        DoEditReg(z80.af_.b.h);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::SPClick(TObject *Sender)
 {
-//        DoEditReg(z80.sp.w);
+        DoEditReg(z80.sp.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::PCClick(TObject *Sender)
 {
-//        DoEditReg(z80.pc.w);
+        DoEditReg(z80.pc.w);
 }
 //---------------------------------------------------------------------------
 
@@ -1851,7 +1830,7 @@ void __fastcall Tdebug::FormPaint(TObject *Sender)
         CreateBitmap();
     }
 
-    HDC hdc = (HDC)  ((TPanelCanvasHack*)panMem)->Canvas->Handle; //    HDC hdc = (HDC)  Canvas->Handle;
+    HDC hdc = (HDC)  ((TPanelCanvasHack*)panMem)->Canvas->Handle;
     HDC chdc = CreateCompatibleDC(hdc);
     HGDIOBJ oldbm = SelectObject(chdc, mOffscreenBitmap);
     ::BitBlt(hdc, 0, 0, mBMWidth, mBMHeight, chdc, 0, 0, SRCCOPY);
@@ -2140,32 +2119,34 @@ void __fastcall Tdebug::eMemAdrKeyPress(TObject *Sender, char &Key)
 
 void __fastcall Tdebug::DumpMemory1Click(TObject *Sender)
 {
-    int address;
-    // prise du point de référence de la souris
-    TPoint cpm;
-    GetCursorPos(&cpm);
-    TPoint cp = ScreenToClient(cpm);
+        int address;
 
-    if (mSelectedAddress!=-1)
-    {
-        // dump memory regarding type of memory
-        address=mSelectedAddress;
-        DumpMem->CentreOn(this);
-        switch (cboMemory->ItemIndex) {
-            case 0 : // ROM
-                DumpMem->Dump2(address, 0xFFFF+1,0);
-                break;
-            case 1 : // VRAM
-                DumpMem->Dump2(address, 0x3FFF+1,1);
-                break;
-            case 2 : // RAM
-                DumpMem->Dump2(address, 0x3FF+1,2);
-                break;
-            case 3 : // SGM RAM
-                DumpMem->Dump2(address, 0x7FFF+1,3);
-                break;
+        // Get mouse pointer reference
+        TPoint cpm;
+        GetCursorPos(&cpm);
+        TPoint cp = ScreenToClient(cpm);
+
+        // if got it, dump memory regarding type of memory
+        if (mSelectedAddress!=-1)
+        {
+                address=mSelectedAddress;
+                DumpMem->CentreOn(this);
+                switch (cboMemory->ItemIndex)
+                {
+                        case 0 : // ROM
+                                DumpMem->Dump2(address, 0xFFFF+1,0);
+                                break;
+                        case 1 : // VRAM
+                                DumpMem->Dump2(address, 0x3FFF+1,1);
+                                break;
+                        case 2 : // RAM
+                                DumpMem->Dump2(address, 0x3FF+1,2);
+                                break;
+                        case 3 : // SGM RAM
+                                DumpMem->Dump2(address, 0x7FFF+1,3);
+                                break;
+                }
         }
-    }
 
 }
 //---------------------------------------------------------------------------

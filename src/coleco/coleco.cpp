@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include "coleco.h"
+#include "accdraw_.h"
 #include "accsound_.h"
 #include "utils.h"
 
@@ -72,12 +73,39 @@ int tstates,frametstates;                       // count of instruction  times
 int tStatesCount;                               // count of instruction  times
 
 int coleco_nmigenerate=0;                       // 1 if we need to do a NMI
+int coleco_intpending=0;                        // 1 if we need a IRQ38 interrupt (spinner, and so on ...)
 int coleco_updatetms=0;                         // 1 if TMS is updated
 
 FDIDisk Disks[MAX_DISKS] = { 0 };               // Adam disk drives
-FDIDisk Tapes[MAX_TAPES] = { 0 };               // Adam tape drives          
+FDIDisk Tapes[MAX_TAPES] = { 0 };               // Adam tape drives
 
 static BYTE idleDataBus = 0xFF;
+
+const unsigned char TMS9918A_palette[6*16*3] = {
+        // Coleco palette
+        24,24,24, 0,0,0, 33,200,66, 94,220,120, 84,85,237, 125,118,252, 212,82,77, 66,235,245,
+        252,85,84, 255,121,120, 212,193,84, 230,206,128, 33,176,59, 201,91,186, 204,204,204, 255,255,255,
+
+        // Adam palette
+        0,  0,  0,    0,  0,  0,   71,183, 59,  124,207,111,   93, 78,255,  128,114,255,  182, 98, 71,   93,200,237,
+        215,107, 72,  251,143,108,  195,205, 65,  211,218,118, 62,159, 47,  182,100,199,  204,204,204,  255,255,255,
+
+        // TMS9918 Palette
+        24,24,24, 0,8,0, 0,241,1, 50,251,65, 67,76,255, 112,110,255, 238,75,28, 9,255,255,
+        255,78,31, 255,112,65, 211,213,0, 228,221,52, 0,209,0, 219,79,211, 193,212,190, 244,255,241,
+
+        // black and white
+        0,  0,  0,    0,  0,  0,  136,136,136,  172,172,172, 102,102,102,  134,134,134,  120,120,120,  172,172,172,
+        136,136,136,  172,172,172,  187,187,187,  205,205,205, 118,118,118,  135,135,135,  204,204,204,  255,255,255,
+
+        // Green scales
+        0,  0,  0,    0,  0,  0,    0,118,  0,   43,153, 43, 0, 81,  0,    0,118,  0,   43, 81, 43,   43,153, 43,
+        43, 81, 43,   43,118, 43,   43,153, 43,   43,187, 43, 43, 81, 43,   43,118, 43,   43,221, 43,    0,255,  0,
+
+        // Ambre scale
+        0,  0,  0,    0,  0,  0,  118, 81, 43,  153,118,  0, 81, 43,  0,  118, 81,  0,   81, 43,  0,  187,118, 43,
+        118, 81,  0,  153,118, 43,  187,118, 43,  221,153,  0, 118, 81,  0,  153,118, 43,  221,153,  0,  255,187,  0
+};
 
 //---------------------------------------------------------------------------
 // Get tms vram adress
@@ -206,10 +234,10 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
 /*        case SGMRAM:
             result = cvexpram[addr];
             break;
-        case RAM:
-            result = cartrom[0x6000+addr];
-            break;
             */
+        case RAM:
+            result = RAM_BASE[addr];
+            break;
         case EEPROM:
             result = eepromdata[addr];
             break;
@@ -225,32 +253,28 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
 // Set a value
 void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
 {
-    switch (whichaddr)
-    {
-        case VRAM:
-            tms.ram[addr] = y;
-            break;
+        switch (whichaddr)
+        {
+                case VRAM:
+                        tms.ram[addr] = y;
+                        break;
 /*TODO        case SGMRAM:
             cvexpram[addr] = y;
             break;
-        case RAM:
-            addr&=0x03FF;
-            cartrom[0x6000+addr]=y;
-            cartrom[0x6400+addr]=y;
-            cartrom[0x6800+addr]=y;
-            cartrom[0x6C00+addr]=y;
-            cartrom[0x7000+addr]=y;
-            cartrom[0x7400+addr]=y;
-            cartrom[0x7800+addr]=y;
-            cartrom[0x7C00+addr]=y;
-            break;
-        case ROM:
-            cartrom[addr]=y;
-            break;
             */
-        case EEPROM:
-            eepromdata[addr]=y;
-            break;
+                case RAM:
+                        addr&=0x03FF;
+                        RAM_BASE[addr]       =RAM_BASE[0x0400+addr]=
+                        RAM_BASE[0x0800+addr]=RAM_BASE[0x0C00+addr]=
+                        RAM_BASE[0x1000+addr]=RAM_BASE[0x1400+addr]=
+                        RAM_BASE[0x1800+addr]=RAM_BASE[0x1C00+addr]=y;
+                        break;
+                case ROM:
+                        ROM_CARTRIDGE[addr]=y;
+                        break;
+                case EEPROM:
+                        eepromdata[addr]=y;
+                        break;
 /*        case SRAM:
             addr&=0x07FF;
             cartrom[0xE800+addr]=y;
@@ -330,21 +354,17 @@ BYTE coleco_loadcart(char *filename, unsigned char cardtype)
         // If ROM not recognized, drop out
         if(!P) { fclose(fRomfile);return(retf); }
 
-        // If loading a cartridge...
-        if (P==ROM_CARTRIDGE)
-        {
-                // Pad to the nearest 16kB and find number of 16kB pages
-                size = ((size+0x3FFF)&~0x3FFF)>>14;
+        // Pad to the nearest 16kB and find number of 16kB pages
+        size = ((size+0x3FFF)&~0x3FFF)>>14;
 
-                // Round page number up to the nearest power of two
-                for(j=2;j<size;j<<=1);
+        // Round page number up to the nearest power of two
+        for(j=2;j<size;j<<=1);
 
-                // Set new MegaROM size
-                size = j<<14;
-                coleco_megasize = j;
-                coleco_megacart = i ? j-1:0;
-                coleco.romCartridge = coleco_megacart ? ROMCARTRIDGEMEGA : ROMCARTRIDGESTD;
-        }
+        // Set new MegaROM size
+        size = j<<14;
+        coleco_megasize = j;
+        coleco_megacart = i ? j-1:0;
+        coleco.romCartridge = coleco_megacart ? ROMCARTRIDGEMEGA : ROMCARTRIDGESTD;
 
         // Rewind file to the beginning
         rewind(fRomfile);
@@ -501,11 +521,11 @@ void coleco_reset(void)
 
         // Clear memory (important for NetPlay, to keep states at both sides consistent)
         // Clearing to zeros (Heist)
-        memset(RAM_MAIN_LO,0x00,0x8000);
-        memset(RAM_MAIN_HI,0x00,0x8000);
-        memset(RAM_EXP_LO,0x00,0x8000);
-        memset(RAM_EXP_HI,0x00,0x8000);
-        memset(RAM_OS7,0x00,0x2000);
+        memset(RAM_MAIN_LO,0xFF,0x8000);
+        memset(RAM_MAIN_HI,0xFF,0x8000);
+        memset(RAM_EXP_LO,0xFF,0x8000);
+        memset(RAM_EXP_HI,0xFF,0x8000);
+        memset(RAM_OS7,0xFF,0x2000);
 
         coleco_setmemory(coleco.machine == MACHINEADAM ? 0x00 : 0x0F,0x00,0x00);
 
@@ -571,9 +591,22 @@ void coleco_initialise(void)
         //ResetLastIOAccesses();
 
         coleco_nmigenerate=0;
+        coleco_intpending=0;
+
+        // Init all rom memory
+        memset(ROM_CARTRIDGE,0xFF,MAXRAMSIZE-0x38000);
 
         // Load COLECO.ROM: OS7 (ColecoVision BIOS)
         memcpy(ROM_BIOS,colecobios_rom,0x2000);
+
+        // Hack 50/60 Bios & NO delay Bios
+        ROM_BIOS[0x0069]=coleco.hackbiospal ? 50 : 60;
+        if (coleco.biosnodelay)
+        {
+                cvmemory[0x18000+159*32+17]=0x00;
+                cvmemory[0x18000+159*32+18]=0x00;
+                cvmemory[0x18000+159*32+19]=0x00;
+        }
 
         // Load EOS.ROM: EOS (Adam BIOS)
         memcpy(ROM_EOS,adambios_eos,0x2000);
@@ -585,11 +618,12 @@ void coleco_initialise(void)
         for(i=0;i<MAX_DISKS;i++) EjectFDI(&Disks[i]);
         for(i=0;i<MAX_TAPES;i++) EjectFDI(&Tapes[i]);
 
+
         // Reset coleco
         coleco_reset();
 
         // Prepare Coleco palette
-        coleco_setpalette(0);
+        coleco_setpalette(coleco.palette);
 }
 
 void coleco_WriteByte(int Address, int Data)
@@ -638,7 +672,7 @@ void coleco_WriteByte(int Address, int Data)
                 {
                         if(Address>=0xFFC0)
                         {
-                                // Set new MegaCart ROM page at C000h */
+                                // Set new MegaCart ROM page at C000h
                                 coleco_megapage   = (Address-0xFFC0)&(coleco_megasize-1);
                                 ROMPage[6] = ROM_CARTRIDGE + (coleco_megapage<<14);
                                 ROMPage[7] = ROMPage[6]+0x2000;
@@ -752,10 +786,7 @@ BYTE coleco_readbyte(int Address)
         return byte;
 }
 
-// BYTE opcode_fetch(int Address)
-//
 // Given an address, opcode fetch returns the byte at that memory address
-//
 // Called by Z80 instruction opcode fetches
 BYTE coleco_opcode_fetch(int Address)
 {
@@ -875,6 +906,13 @@ int coleco_do_scanline(void)
                         tStatesCount += ts;
                         CurScanLine_len += ts;
 
+                        if (coleco_intpending)
+                        {
+                                int tsint = z80_interrupt(ts);
+                                ts += tsint;
+                                coleco_intpending=0;
+                        }
+
                         if (coleco_nmigenerate)
                         {
                                 int nmilen;
@@ -897,6 +935,7 @@ int coleco_do_scanline(void)
                                 {
                                         SoundUpdate(tms.CurLine);
                                         CurScanLinesync_valid=1;
+                                        AccurateUpdateDisplay(coleco.singlestep ? false : true); 
                                 }
 
                         }
@@ -904,7 +943,7 @@ int coleco_do_scanline(void)
                         tstotal += ts;
 
                         DebugUpdate();
-                } while(!CurScanLinesync_valid && !coleco.stop);
+                } while(!CurScanLinesync_valid && !coleco.stop && !coleco.singlestep);
         }
         catch (Exception &exception)
         {
@@ -966,6 +1005,7 @@ BYTE coleco_savestate(char *filename)
         statesave[i++] = coleco_spinstep;
         statesave[i++] = coleco_spinstate;
         statesave[i++] = coleco_nmigenerate;
+        statesave[i++] = coleco_intpending;
         statesave[i++] = coleco_updatetms;
         statesave[i++] = tstates;
         statesave[i++] = frametstates;
@@ -1036,7 +1076,8 @@ BYTE coleco_loadstate(char *filename)
                 return(0);
 
         // Open saved state file
-        if( !(fstatefile=fopen(filename,"rb"))) return(0);
+        fstatefile=fopen(filename,"rb");
+        if (fstatefile==NULL) return(0);
 
         // Read and check the header
         if (fread(stateheader,1,24,fstatefile)!=24)
@@ -1078,6 +1119,7 @@ BYTE coleco_loadstate(char *filename)
                 coleco_spinstep=statesave[i++];
                 coleco_spinstate=statesave[i++];
                 coleco_nmigenerate=statesave[i++];
+                coleco_intpending=statesave[i++];
                 coleco_updatetms=statesave[i++];
                 tstates=statesave[i++];
                 frametstates=statesave[i++];

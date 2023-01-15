@@ -49,6 +49,12 @@ int WinL=NoWinL;
 int WinT=NoWinT;
 int WinB=NoWinB;
 
+Graphics::TBitmap *GDIFrame;
+
+TRect rcsource, rcdest;
+
+/* NOT WORKING ON WINDOWS 11
+
 #if 0
 LPDIRECTDRAW        m_pDD=NULL;              // DirectDraw object
 LPDIRECTDRAWSURFACE m_pddsFrontBuffer=NULL;  // DirectDraw primary surface
@@ -66,10 +72,6 @@ DDSURFACEDESC2       DDFrameSurface;
 LPDIRECTDRAWCLIPPER pcClipper=NULL;          // Clipper for windowed mode
 HWND                hWnd;                     // Handle of window
 int BPP,Paletteised;
-
-Graphics::TBitmap *GDIFrame;
-
-TRect rcdest;
 
 // -----------------------------------------------------------------------------
 // DirectDraw Functions
@@ -251,7 +253,7 @@ void DDAccurateUpdateDisplay(bool singlestep)
 {
     static int framecounter=0;
     HRESULT hRet;
-    RECT rDest,rSourc;
+    RECT rDest;
 
     if (++framecounter > coleco.frameskip || singlestep)
         framecounter=0;
@@ -269,14 +271,9 @@ void DDAccurateUpdateDisplay(bool singlestep)
     rDest.right += p.x;
     rDest.bottom += p.y;
 
-    rSourc.right=TVW;
-    rSourc.bottom=TVH;
-    rSourc.left=0;
-    rSourc.top=0;
-
     while(1)
     {
-        hRet = m_pddsFrontBuffer->Blt(&rDest, DDFrame, &rSourc, DDBLT_WAIT, NULL);
+        hRet = m_pddsFrontBuffer->Blt(&rDest, DDFrame, &rcsource, DDBLT_WAIT, NULL);
 
         if (hRet == DD_OK) break;
         else
@@ -287,9 +284,13 @@ void DDAccurateUpdateDisplay(bool singlestep)
         }
         else if(hRet != DDERR_WASSTILLDRAWING) return;
     }
-
-  DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
+#if 0
+        DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT, NULL);
+#else
+        DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
+#endif
 }
+*/
 
 // -----------------------------------------------------------------------------
 // GDI Functions
@@ -374,12 +375,19 @@ void RecalcWinSize(void)
     rcdest.Top=0; rcdest.Bottom=Form1->ClientHeight;
     rcdest.Left=0; rcdest.Right=Form1->ClientWidth;
     rcdest.Bottom -= Form1->StatusBar1->Height;
+
+    rcsource.right=TVW;
+    rcsource.bottom=TVH;
+    rcsource.left=0;
+    rcsource.top=0;
 }
 
 int RenderInit(void)
 {
+#if 0
     if (Form1->RenderMode==RENDERDDRAW)
         return(DDInit());
+#endif
     return(1);
 }
 
@@ -390,42 +398,93 @@ void RenderEnd(void)
         delete GDIFrame;
         GDIFrame=NULL;
     }
+#if 0
     DDEnd();
+#endif
 }
 
 void AccurateInit(int resize)
 {
-        //dest=buffer=NULL;
+#if 0
         if (Form1->RenderMode==RENDERDDRAW)
             DDAccurateInit(resize);
         else
+#endif
             GDIAccurateInit(resize);
 }
 
 void AccurateUpdateDisplay(bool singlestep)
 {
+#if 0
     if (Form1->RenderMode==RENDERDDRAW)
         DDAccurateUpdateDisplay(singlestep);
     else
+#endif
         GDIAccurateUpdateDisplay(singlestep);
 }
 
-void AccurateBGDisplay(HWND hWnd, int w, int h)
+/*
+int AccurateDraw(SCANLINE *Line)
 {
-    int ret;
+        static int FrameNo=0;
+        static int LastVSyncLen=0, Shade=0;
+        register int i,c;
 
-    SetStretchBltMode(Form1->Canvas->Handle, COLORONCOLOR);
-    ret = StretchBlt(Form1->Canvas->Handle,
-                        rcdest.Left, rcdest.Top,
-                        (rcdest.Right-rcdest.Left),
-                        (rcdest.Bottom-rcdest.Top),
-                        hWnd, 0, 0, w, h,SRCCOPY);
+        for(i=0; i<Line->scanline_len; i++)
+        {
+                c=Line->scanline[i];
 
-    if (!ret) ShowMessage(SysErrorMessage(GetLastError()));
+                Plot(FrameNo*TVP, c); -> #define Plot(x,c) { *(DWORD *)(dest+RasterX+(x)) = Colours[(c)]; }
+
+        LinePtr=cv_screen[iy];
+                            unsigned char colour = *(pcv_display+TVW*iy+ix);
+            *(LinePtr++)=cv_pal32[colour];
+
+
+                RasterX += BPP;
+
+                if (RasterX > ScanLen)
+                {
+                        RasterX=0;
+                        RasterY += 1;
+                        if (RasterY>=TVH)
+                        {
+                                i=Line->scanline_len+1;
+                                Line->sync_valid=true;
+                        }
+                }
+        }
+        if (Line->sync_len<HSYNC_MINLEN) Line->sync_valid=0;
+        if (Line->sync_valid)
+        {
+                if (RasterX>(HSYNC_TOLLERANCE*BPP))
+                {
+                        RasterX=0;
+                        RasterY+= 1;
+                        dest += TVP;
+                }
+                if (RasterY>=TVH ||  RasterY>=VSYNC_TOLLERANCEMAX
+                                      ||  (Line->sync_len>VSYNC_MINLEN
+                                          && RasterY>VSYNC_TOLLERANCEMIN))
+                {
+                        RasterX=RasterY=0;
+                        FrameNo=0;
+                        AccurateUpdateDisplay(false);
+                }
+        }
+
+        if (zx81.single_step)
+        {
+                int i;
+
+                for(i=0;i<8;i++) *(DWORD *)(dest+RasterX+i*BPP) = Colours[15];
+                AccurateUpdateDisplay(true);
+        }
+        return(0);
 }
-
-
+*/
 // -----------------------------------------------------------------------------
+
 void RenderSaveScreenBMP(AnsiString filename)
 {
     FILE *f;
@@ -465,6 +524,7 @@ void RenderSaveScreenBMP(AnsiString filename)
 
     for(i=h-1;i>=0;i--)
     {
+#if 0
         if (Form1->RenderMode==RENDERDDRAW) {
           unsigned int *pixel = (unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4;
           for(j=0;j<w;j++)
@@ -479,6 +539,7 @@ void RenderSaveScreenBMP(AnsiString filename)
           }
         }
         else {
+#endif
             unsigned int *pixel = (unsigned int *) GDIFrame->ScanLine[i];
             for(j=0;j<w;j++) {
               int val = *pixel++;
@@ -489,11 +550,14 @@ void RenderSaveScreenBMP(AnsiString filename)
               fwrite(&g, 1,1, f);
               fwrite(&r, 1,1, f);
             }
+#if 0
         }
+#endif
         for(k=0;k<pad;k++) fwrite("\0", 1,1, f);
     }
     fclose(f);
 }
+// -----------------------------------------------------------------------------
 
 void RenderSaveScreenPNG(AnsiString filename)
 {
@@ -506,6 +570,7 @@ void RenderSaveScreenPNG(AnsiString filename)
 
         try
         {
+#if 0
                 if (Form1->RenderMode==RENDERDDRAW)
                 {
                         StretchBlt(bmp->Canvas->Handle, 0,0, TVW, TVH,
@@ -513,9 +578,12 @@ void RenderSaveScreenPNG(AnsiString filename)
                 }
                 else
                 {
+#endif
                         StretchBlt(bmp->Canvas->Handle, 0,0, TVW, TVH,
                                 GDIFrame->Canvas->Handle, 0, 0, TVW,TVH,SRCCOPY);
+#if 0
                 }
+#endif
                 ImageToPNG( filename, bmp);
         }
         __finally

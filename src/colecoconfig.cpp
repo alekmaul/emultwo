@@ -26,7 +26,6 @@
 
 COLECO coleco;
 MACHINE machine;
-MOUSE mouse;
 
 int lastMemoryReadAddrLo, lastMemoryWriteAddrLo;
 int lastMemoryReadValueLo, lastMemoryWriteValueLo;
@@ -55,23 +54,22 @@ void load_config(void)
         coleco.vsyncsound=0;
         coleco.cardcrc=-1;
         coleco.cardsize=0;
+        coleco.startdebug=0;
         coleco.romCartridge = ROMCARTRIDGENONE;
         coleco.typebackup=NOBACKUP;
+        coleco.palette=0;
+        coleco.hackbiospal;
+        coleco.biosnodelay;
 
         machine.clockspeed=CLOCK_NTSC;
         machine.tperscanline=207;
         machine.tperframe=312*207;
+        machine.fps=50;
         machine.intposition=0;
 
         coleco.singlestep=0;
         coleco.stop=0;
 
         strcpy(coleco.machinename, "E.mul T.wo");
-
-        mouse.x=0;
-        mouse.y=0;
-        mouse.buttons=0;
-        mouse.lastx=0;
-        mouse.lasty=0;
 }
 

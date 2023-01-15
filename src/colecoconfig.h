@@ -54,8 +54,11 @@
 #define EEP24C256               2
 #define EEPSRAM                 3
 
-#define TVW                     (256+0) // 16)     // Screen buffer width
-#define TVH                     (192+0) // 16)     // Screen buffer height
+#define BDW                     16                  // Screen border width
+#define BDH                     16                  // Screen border height
+
+#define TVW                     (256+BDW)           // Screen buffer width
+#define TVH                     (192+BDH)           // Screen buffer height
 
 typedef struct
 {
@@ -64,11 +67,15 @@ typedef struct
         CFGBYTE NTSC;
         CFGBYTE SGM;
         CFGBYTE F18A;
-        CFGBYTE singlestep;                      // (1) if debug mode on and doing single step
-        CFGBYTE stop;                            // to stop (1) or not (0) emulation
+        CFGBYTE singlestep;                         // (1) if debug mode on and doing single step
+        CFGBYTE startdebug;                         // (1) if start debug mode on 
+        CFGBYTE stop;                               // to stop (1) or not (0) emulation
         CFGBYTE vsyncsound;
-        CFGBYTE romCartridge;
+        CFGBYTE palette;
+        CFGBYTE hackbiospal;
+        CFGBYTE biosnodelay;
 
+        CFGBYTE romCartridge;
         CFGBYTE typebackup;
 
         int cardcrc;
@@ -82,6 +89,8 @@ typedef struct
         char configpath[256];
         char mydocs[256];
         char machinename[256];
+
+        char CurRom[256];
 } COLECO;
 
 typedef struct
@@ -107,21 +116,14 @@ typedef struct
         int tperframe;
         int intposition;
         int scanlines;
-        char CurRom[256];
+        int fps;
 
         void* cset;
 
 } MACHINE;
 
-typedef struct
-{
-        int x,y, lastx, lasty;
-        int buttons;
-} MOUSE;
-
 extern COLECO coleco;
 extern MACHINE machine;
-extern MOUSE mouse;
 
 extern int lastMemoryReadAddrLo, lastMemoryWriteAddrLo;
 extern int lastMemoryReadValueLo, lastMemoryWriteValueLo;

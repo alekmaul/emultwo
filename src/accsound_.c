@@ -27,7 +27,7 @@
 //---------------------------------------------------------------------------
 #include <windows.h>
 #include <mmsystem.h>
-#define DIRECTSOUND_VERSION 0x0500
+//#define DIRECTSOUND_VERSION 0x0500
 #include <dsound.h>
 
 #include "tms9928a.h"
@@ -545,14 +545,12 @@ void SoundUpdate(unsigned int lineupdate )
 
         if(!sound_enabled) return;
 
-        ptr=sound_buf+sound_fillpos; // SN buffer
-        ptr1=sound_buf1+sound_fillpos; // AY buffer
+        ptr=sound_buf+done_so_far;
+        ptr1=sound_buf1+done_so_far;
 
         // Finish buffers at end of frame
         if(lineupdate == (smptab_len - 1) )
         {
-                ptr=sound_buf+done_so_far;
-
                 // Generate SN76489 sample data
                 sn76489_update(ptr, sound_framesiz - done_so_far);
 
@@ -571,9 +569,6 @@ void SoundUpdate(unsigned int lineupdate )
                 unsigned int tinybit;
                 if (lineupdate==0) done_so_far=0;
                 tinybit = smptab[lineupdate] - done_so_far;
-
-                // Do a tiny bit
-                ptr=sound_buf+done_so_far;
 
                 // Generate SN76489 sample data
                 sn76489_update(ptr, tinybit);

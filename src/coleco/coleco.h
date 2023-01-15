@@ -47,7 +47,7 @@
 #define MAX_DISKS     4       /* Maximal number of disks     */
 #define MAX_TAPES     4       /* Maximal number of tapes     */
 
-enum
+enum                   
 {
     CHRMAP=0,CHRGEN,SPRATTR,SPRGEN,CHRCOL,VRAM, SGMRAM, RAM, ROM, EEPROM, SRAM,
 };
@@ -68,6 +68,12 @@ extern BYTE coleco_megapage;                           // selected page for mega
 extern BYTE coleco_megasize;                           // mega cart rom size in 16kB pages
 
 extern unsigned int coleco_joystat;                     // Joystick / Paddle management
+
+extern unsigned int coleco_spincount;                  // Spinner counters
+extern unsigned int coleco_spinstep;                   // Spinner steps
+extern unsigned int coleco_spinstate;                  // Spinner bit states
+
+extern int coleco_intpending;                           // 1 if we need a IRQ38 interrupt (spinner, and so on ...)
 
 extern FDIDisk Disks[MAX_DISKS];                        // Adam disk drives
 extern FDIDisk Tapes[MAX_TAPES];                        // Adam tape drives
@@ -91,6 +97,8 @@ extern int coleco_contend(int Address, int states, int time);
 extern int coleco_do_scanline(void);
 
 extern void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y);
+
+extern void coleco_setpalette(int palette);
 
 extern BYTE coleco_loadcart(char *filename, unsigned char cardtype);
 extern void coleco_reset(void);

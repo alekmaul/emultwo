@@ -111,7 +111,7 @@ typedef struct
 
 #ifdef __cplusplus
 extern "C" sn76496 sn;
-extern  "C" void sn76489_update(short *buffer, unsigned int length);
+extern "C" void sn76489_update(short *buffer, unsigned int length);
 extern "C" void sn76489_write(int data);
 extern "C" void sn76489_reset(int clock, int sample_rate);
 extern "C" void sn76489_init(int clock, int sample_rate);

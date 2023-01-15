@@ -9,4 +9,6 @@
         Application->CreateForm(__classid(Tspriteviewer), &spriteviewer);
         Application->CreateForm(__classid(Tdebug), &debug);
         Application->CreateForm(__classid(Tprintviewer), &printviewer);
+        Application->CreateForm(__classid(Tpaletteviewer), &paletteviewer);
+
 

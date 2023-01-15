@@ -269,17 +269,8 @@ void __fastcall Tspriteviewer::CreateSprite(void) {
         Graphics::TBitmap *bmp;
 
         // if sprites 8x8, change layout
-        spr8x8 = ( ((tms.VR[1] & 0x3) == 0) || ((tms.VR[1] & 0x3) == 1) ) ? 1 : 0;
-/*    if ( spr8x8 )
-    {
-        SpriteAlone->GridX=8;
-        SpriteAlone->GridY=8;
-    }
-    else
-    {
-        SpriteAlone->GridX=16;
-        SpriteAlone->GridY=16;
-    }*/
+        spr8x8 =( ((tms.VR[1] & 0x3) == 0) || ((tms.VR[1] & 0x3) == 1) ) ? 1 : 0;
+        sprzoom=( ((tms.VR[1] & 0x3) == 3) || ((tms.VR[1] & 0x3) == 1) ) ? 1 : 0;
 
         // Refresh table
         sprdisable=0;
@@ -300,17 +291,29 @@ void __fastcall Tspriteviewer::CreateSprite(void) {
                 }
         }
 
+        // Add sprite info
+        switch (tms.VR[1] & 0x3)
+        {
+        case 0:sprSize->Caption="8x8 not zoomed"; break;
+        case 1:sprSize->Caption="8x8 zoomed";break;
+        case 2:sprSize->Caption="16x16 not zoomed"; break;
+        case 3:sprSize->Caption="16x16 zoomed"; break;
+        }
+
         // Show screen
+#if 0
         if (Form1->RenderMode==RENDERDDRAW)
         {
                 StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
                             Form1->Canvas->Handle,8,8, Form1->ClientWidth-16,Form1->ClientHeight-16-Form1->StatusBar1->Height,SRCCOPY);
         }
         else {
-                StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
-                    GDIFrame->Canvas->Handle,0,0, TVW,TVH,SRCCOPY);
+#endif
+            StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
+                GDIFrame->Canvas->Handle,BDW/2,BDH/2, TVW-BDW,TVH-BDH,SRCCOPY); // BDW,BDH because of border
+#if 0
         }
-
+#endif
         // If sprite is selected and ok, we display where it is on screen
         if (sprAct!=-1) {
                 ix=coleco_gettmsval(SPRATTR,4*sprAct+1,0,0);
@@ -323,9 +326,9 @@ void __fastcall Tspriteviewer::CreateSprite(void) {
       	                sprScreen->Canvas->LineTo(ix, iy);
                         sprScreen->Canvas->Brush->Style=bsClear;
                         if (spr8x8)
-                                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+8,iy+8);
+                                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+8+sprzoom*8,iy+8+sprzoom*8);
                         else
-                                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+16,iy+16);
+                                sprScreen->Canvas->Rectangle(ix-1,iy-1,ix+16+sprzoom*16,iy+16+sprzoom*16);
                 }
                 eVVSprCurSAddr->Caption="$"+IntToHex(coleco_gettmsaddr(SPRATTR,0,0)+4*sprAct,4);
                 eVVSprCurTAddr->Caption="$"+IntToHex(coleco_gettmsaddr(SPRGEN,0,0)+8*(coleco_gettmsval(SPRATTR,4*sprAct+2,0,0)),4);

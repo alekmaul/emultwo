@@ -37,6 +37,8 @@ __published:	// Composants gérés par l'EDI
         TPaintBox *sprScreen;
         TPaintBox *SpriteAlone;
         TPaintBox *sprTable;
+    TStaticText *sprSize;
+    TLabel *lSize;
         void __fastcall SaveasBMP1Click(TObject *Sender);
         void __fastcall ExitClick(TObject *Sender);
         void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
@@ -50,7 +52,7 @@ __published:	// Composants gérés par l'EDI
         void __fastcall Copytoclipboard1Click(TObject *Sender);
 private:	// Déclarations de l'utilisateur
     int sprAct;
-    int spr8x8;
+    int spr8x8,sprzoom;
     int sprdisable;
     int spract;
     void __fastcall RefreshSprite(int address, TCanvas *Acanvas,int w, int h);

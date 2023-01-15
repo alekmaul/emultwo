@@ -1,4 +1,27 @@
-#ifndef _TMS9928A_H_
+/* EmulTwo  - A Windows ColecoVision emulator.
+ * Copyright (C) 2014-2023 Alekmaul
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * TMS9928A.H
+ *
+ * Based on   tms emulation (C) Marat Fayzullin 1994-2021
+ *
+ */
+
+ #ifndef _TMS9928A_H_
 #define _TMS9928A_H_
 
 #include "coleco.h"
@@ -12,6 +35,8 @@
 #define TMS9918_REG1_IRQ        0x20 // 1: IRQs on VBlanks
 #define TMS9918_REG1_SPR16      0x02 // 1: 16x16 sprites (0=8x8)
 #define TMS9918_REG1_BIGSPR     0x01 // 1: Magnify sprites x2
+
+#define TMS9918_MAXSPRITES      4    // Max number of sprites
 
 #define TMS9918_STAT_VBLANK     0x80 // 1: VBlank has occured
 #define TMS9918_STAT_5THSPR     0x40 // 1: 5th sprite detected
@@ -59,9 +84,11 @@ typedef struct {
     unsigned char FGColor,BGColor;                          // Colors ForeGroudn and BackGround
     unsigned char *ChrGen,*ChrTab,*ColTab;                  // VDP tables (screens)
     unsigned char *SprGen,*SprTab;                          // VDP tables (sprites)
+    unsigned int ColTabM,ChrGenM;                           // VDP tables mask
     unsigned char ram[0x4000];                              // VDP video memory
     unsigned short CurLine;                                 // Current scanline
     unsigned short ScanLines;                               // Scanlines per frame
+    unsigned char MaxSprites;                               // Number of sprites/line
     unsigned char IdxPal[16];                               // Palette color index
     unsigned char UCount;                                   // Screen update counter
 } tTMS9981A;

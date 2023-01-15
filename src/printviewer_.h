@@ -10,6 +10,8 @@
 #include <IniFiles.hpp>
 #include <Clipbrd.hpp>
 #include <Menus.hpp>
+#include <ExtCtrls.hpp>
+#include <Graphics.hpp>
 
 //---------------------------------------------------------------------------
 class Tprintviewer : public TForm
@@ -23,6 +25,7 @@ __published:	// IDE-managed Components
     TMenuItem *Exit;
     TMenuItem *Edit1;
     TMenuItem *clearprint;
+    TImage *Image1;
     void __fastcall clearprintClick(TObject *Sender);
     void __fastcall Copytoclipboard1Click(TObject *Sender);
 private:	// User declarations

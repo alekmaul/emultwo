@@ -249,8 +249,7 @@ object Form1: TForm1
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnKeyUp = FormKeyUp
-  OnMouseDown = FormMouseDown
-  OnMouseUp = FormMouseUp
+  OnMouseMove = FormMouseMove
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -284,12 +283,6 @@ object Form1: TForm1
     Enabled = False
     OnTimer = Timer2Timer
     Left = 56
-    Top = 8
-  end
-  object AnimTimer1: TAnimTimer
-    Enabled = False
-    OnTimer = AnimTimer1Timer
-    Left = 96
     Top = 8
   end
   object OpenDialog: TOpenDialog
@@ -330,6 +323,7 @@ object Form1: TForm1
           OnClick = mRU1Click
         end
         object mRU4: TMenuItem
+          OnClick = mRU1Click
         end
         object mRU5: TMenuItem
           Caption = ' '
@@ -468,6 +462,7 @@ object Form1: TForm1
       object PaletteViewer1: TMenuItem
         Caption = 'Palette Viewer'
         ShortCut = 24693
+        OnClick = PaletteViewer1Click
       end
       object N16: TMenuItem
         Caption = '-'
@@ -563,5 +558,11 @@ object Form1: TForm1
       'g'
     Left = 40
     Top = 96
+  end
+  object AnimTimer1: TAnimTimer
+    Enabled = False
+    OnTimer = AnimTimer1Timer
+    Left = 104
+    Top = 8
   end
 end

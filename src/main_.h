@@ -45,7 +45,6 @@ class TForm1 : public TForm
 {
 __published:	// IDE-managed Components
         TTimer *Timer2;
-        TAnimTimer *AnimTimer1;
         TStatusBar *StatusBar1;
         TOpenDialog *OpenDialog;
         TMainMenu *MainMenu;
@@ -114,12 +113,9 @@ __published:	// IDE-managed Components
         TMenuItem *Reportabug1;
         TMenuItem *Chatwithcommunity1;
         TMenuItem *N1;
+        TAnimTimer *AnimTimer1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
-        void __fastcall FormMouseUp(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y);
-        void __fastcall FormMouseDown(TObject *Sender, TMouseButton Button,
-          TShiftState Shift, int X, int Y);
         void __fastcall Exit1Click(TObject *Sender);
         void __fastcall About1Click(TObject *Sender);
         void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
@@ -154,6 +150,9 @@ __published:	// IDE-managed Components
         void __fastcall Chatwithcommunity1Click(TObject *Sender);
         void __fastcall LoadState1Click(TObject *Sender);
         void __fastcall SaveState1Click(TObject *Sender);
+        void __fastcall FormMouseMove(TObject *Sender, TShiftState Shift,
+          int X, int Y);
+    void __fastcall PaletteViewer1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;
@@ -176,6 +175,7 @@ public:		// User declarations
         void LoadSettings(TIniFile *ini);
         void SaveSettings(TIniFile *ini);
         void GatherWindowsIfRequired();
+        void __fastcall RunFrame();
 
         BEGIN_MESSAGE_MAP
                 MESSAGE_HANDLER(MM_JOY1MOVE,TMessage,OnJoyMove);

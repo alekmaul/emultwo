@@ -43,6 +43,7 @@
 #include "nametabviewer_.h"
 #include "patternviewer_.h"
 #include "spriteviewer_.h"
+#include "palviewer_.h"
 #include "printviewer_.h"
 
 //---------------------------------------------------------------------------
@@ -70,8 +71,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         strcpy(coleco.cwd, (FileNameGetPath(Application->ExeName)).c_str());
         if (coleco.cwd[strlen(coleco.cwd)-1]!='\\')
         {
-                coleco.cwd[strlen(coleco.cwd)-1]='\\';
-                coleco.cwd[strlen(coleco.cwd)]='\0';
+            coleco.cwd[strlen(coleco.cwd)-1]='\\';
+            coleco.cwd[strlen(coleco.cwd)]='\0';
         }
 
         IniPath=ChangeFileExt(Application->ExeName, ".ini" );
@@ -82,21 +83,21 @@ __fastcall TForm1::TForm1(TComponent* Owner)
 
         for(i=0; CommandLine[i]!=NULL; i++)
         {
-                if (FileNameGetExt(CommandLine[i]) == ".INI")
-                {
-                        IniPath=CommandLine[i];
-                        if (IniPath.Pos("\\")==0)
-                                IniPath=coleco.configpath + IniPath;
-                        strcpy(coleco.inipath, IniPath.c_str());
-                }
+            if (FileNameGetExt(CommandLine[i]) == ".INI")
+            {
+                IniPath=CommandLine[i];
+                if (IniPath.Pos("\\")==0)
+                    IniPath=coleco.configpath + IniPath;
+                strcpy(coleco.inipath, IniPath.c_str());
+            }
         }
 
         MruList = new TStringList;
 
         RenderMode=RENDERGDI;
 //    Application->OnDeactivate=FormDeactivate;
-//        BuildLine=&Video[0];
-//        DisplayLine=&Video[1];
+//    BuildLine=&Video[0];
+//    DisplayLine=&Video[1];
 
 }
 //---------------------------------------------------------------------------
@@ -105,7 +106,7 @@ void TForm1::GatherWindowsIfRequired()
 {
         if (!iniFileExists)
         {
-                Form1->GatherWindows1Click(this);
+            Form1->GatherWindows1Click(this);
         }
 }
 
@@ -145,32 +146,6 @@ void __fastcall TForm1::FormShow(TObject *Sender)
         StatusBar1->Refresh();
         StatusBar1->Invalidate();
 }
-
-//---------------------------------------------------------------------------
-
-
-void __fastcall TForm1::FormMouseUp(TObject *Sender, TMouseButton Button,
-      TShiftState Shift, int X, int Y)
-{
-        switch(Button)
-        {
-                case mbLeft: mouse.buttons |= 2; break;
-                case mbRight: mouse.buttons |= 1; break;
-                case mbMiddle: mouse.buttons |= 4; break;
-        }
-}
-//---------------------------------------------------------------------------
-
-void __fastcall TForm1::FormMouseDown(TObject *Sender, TMouseButton Button,
-      TShiftState Shift, int X, int Y)
-{
-        switch(Button)
-        {
-                case mbLeft: mouse.buttons &= ~2; break;
-                case mbRight: mouse.buttons &= ~1; break;
-                case mbMiddle: mouse.buttons &= ~4; break;
-        }
-}
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::Exit1Click(TObject *Sender)
@@ -200,6 +175,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
         // stop properly the current machine
         if (machine.exit) machine.exit();
         coleco.stop=1;
+
         AnimTimer1->Enabled=false;
 
         // Eject all disks and tapes
@@ -213,7 +189,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 
         // Release video, sound and input
         RenderEnd();
-        SoundEnd();
+        //SoundEnd();
         JoystickEnd();
 
         delete MruList;
@@ -260,23 +236,23 @@ void __fastcall TForm1::AppMessage(TMsg &Msg, bool &Handled)
 
         if (Msg.message == WM_DROPFILES)
         {
-                QtyDroppedFiles = DragQueryFile((void *)Msg.wParam, -1,
-                                                pDroppedFilename, BufferLength);
+            QtyDroppedFiles = DragQueryFile((void *)Msg.wParam, -1,
+                            pDroppedFilename, BufferLength);
 
-                for(FileIndex=0; FileIndex<=(QtyDroppedFiles - 1); FileIndex++)
+            for(FileIndex=0; FileIndex<=(QtyDroppedFiles - 1); FileIndex++)
+            {
+                DragQueryFile((void *)Msg.wParam, FileIndex, pDroppedFilename, BufferLength);
+
+                Filename = pDroppedFilename;
+                Ext = GetExt(Filename);
+                if (Ext==".COL" || Ext==".BIN" || Ext==".ROM")
                 {
-                        DragQueryFile((void *)Msg.wParam, FileIndex, pDroppedFilename, BufferLength);
-
-                        Filename = pDroppedFilename;
-                        Ext = GetExt(Filename);
-                        if (Ext==".COL" || Ext==".BIN" || Ext==".ROM")
-                        {
-                                LoadProgram(Filename);
-                        }
+                    LoadProgram(Filename);
                 }
+            }
 
-                DragFinish((void *)Msg.wParam);
-                Handled = true;
+            DragFinish((void *)Msg.wParam);
+            Handled = true;
         }
 }
 //---------------------------------------------------------------------------
@@ -287,13 +263,13 @@ void TForm1::UpdateMruMenu(void)
     // in the MRU list and show the associated MRU menu item if the string is not empty.
     for (int i=0;i< MRFUCOUNT; i++) {
         if (strlen(MruList->Strings[i].c_str()) != 0) {
-            OpenRecent1->Enabled = true;
-            int j=mRU1->MenuIndex + i;
-            String buff=(i + 1)+": "+MruList->Strings[i];
-            OpenRecent1->Items[j]->Caption = MruList->Strings[i];
-            if (i==0)
-                OpenRecent1->Items[j]->ShortCut=ShortCut(Word('R'), TShiftState() << ssCtrl);
-            OpenRecent1->Items[j]->Visible = true;
+        OpenRecent1->Enabled = true;
+        int j=mRU1->MenuIndex + i;
+        String buff=(i + 1)+": "+MruList->Strings[i];
+        OpenRecent1->Items[j]->Caption = MruList->Strings[i];
+        if (i==0)
+            OpenRecent1->Items[j]->ShortCut=ShortCut(Word('R'), TShiftState() << ssCtrl);
+        OpenRecent1->Items[j]->Visible = true;
         }
     }
 }
@@ -301,11 +277,11 @@ void TForm1::UpdateMruMenu(void)
 
 void TForm1::LoadSettings(TIniFile *ini)
 {
-        RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI);
+        RenderMode=RENDERGDI; //RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI); DDraw bugs with W11
         if (!RenderInit())
         {
-                RenderEnd();
-                exit(0);
+            RenderEnd();
+            exit(0);
         }
         AccurateInit(true);
 
@@ -325,11 +301,11 @@ void TForm1::LoadSettings(TIniFile *ini)
 
         if (!SoundInit(44100,60))
         {
-                Application->MessageBox("Count not initialise DirectSound.\nPlease ensure DirectX 5 or greater is installed.",
+            Application->MessageBox("Count not initialise Direct\nPlease ensure DirectX 5 or greater is installed.",
 				"Error",
-	                        MB_OK | MB_ICONERROR);
-                SoundEnd();
-                nosound = true;
+	            MB_OK | MB_ICONERROR);
+            SoundEnd();
+            nosound = true;
         }
 
         // Most recent files management
@@ -369,10 +345,13 @@ void TForm1::SaveSettings(TIniFile *ini)
 
         KeysWrite(ini);
 
-        cartprofile->SaveSettings(ini);
         hardware->SaveSettings(ini);
+        cartprofile->SaveSettings(ini);
         patternviewer->SaveSettings(ini);
         spriteviewer->SaveSettings(ini);
+        paletteviewer->SaveSettings(ini);
+        printviewer->SaveSettings(ini);
+        debug->SaveSettings(ini);
 }
 //---------------------------------------------------------------------------
 void TForm1::UpdateStatusBar(void)
@@ -382,27 +361,27 @@ void TForm1::UpdateStatusBar(void)
         // Update status bar
         text="Coleco";
         if (coleco.machine == MACHINEPHOENIX)
-                text = "Phoenix";
+            text = "Phoenix";
         else if (coleco.machine == MACHINEADAM)
-                text = "Adam";
+            text = "Adam";
         StatusBar1->Panels->Items[0]->Text = text;
 
         text="No cart";
         if (coleco.romCartridge == ROMCARTRIDGESTD)
-                text="Standard Cart";
+            text="Standard Cart";
         if (coleco.romCartridge == ROMCARTRIDGEMEGA)
-                text = "MegaCart";
+            text = "MegaCart";
         else if (coleco.romCartridge == ROMCARTRIDGEZX81)
-                text = "ZX81 31In1";
+            text = "ZX81 31In1";
         else if (coleco.romCartridge == ROMCARTRIDGEDTAPE)
-                text = "Disk Image";
+            text = "Disk Image";
         else if (coleco.romCartridge == ROMCARTRIDGEDTAPE)
-                text = "Digital Data Pack";
+            text = "Digital Data Pack";
         StatusBar1->Panels->Items[2]->Text = text;
 
         text="";
         if (coleco.SGM == 1)
-                text = "SGM";
+            text = "SGM";
         StatusBar1->Panels->Items[3]->Text = text;
 }
 
@@ -417,32 +396,33 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
 
         // Manage startup for size & load command line rom
         if (startup<=2) startup++;
-        switch(startup) {
-                case 1:
-                        if ( (StartUpWidth==0) || (StartUpHeight==0)) OVS1xClick(NULL);
-                        else
-                        {
-                                Width=StartUpWidth;
-                                Height=StartUpHeight;
-                        }
-                        break;
-                case 2:
-                        startup++;
-                        while(CommandLine[i])
-                        {
-                                Filename=CommandLine[i];
-                                Ext = FileNameGetExt(Filename);
+        switch(startup)
+        {
+        case 1:
+            if ( (StartUpWidth==0) || (StartUpHeight==0)) OVS1xClick(NULL);
+            else
+            {
+                Width=StartUpWidth;
+                Height=StartUpHeight;
+            }
+            break;
+        case 2:
+            startup++;
+            while(CommandLine[i])
+            {
+                Filename=CommandLine[i];
+                Ext = FileNameGetExt(Filename);
 
-                                if (Ext==".COL" || Ext==".BIN" || Ext==".ROM")
-                                {
-                                        LoadProgram(Filename);
-                                        break;
-                                }
-                                i++;
-                        }
-                        break;
-                default:
-                break;
+                if (Ext==".COL" || Ext==".BIN" || Ext==".ROM")
+                {
+                    LoadProgram(Filename);
+                    break;
+                }
+                i++;
+            }
+            break;
+        default:
+            break;
         }
 
         // Compute current fps
@@ -455,21 +435,21 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         // Add Fps and current state
         AnsiString text="";
         if (coleco.stop) text +="Paused";
-         else
+     else
         {
-                if (coleco.singlestep)
-                        text +="Debug Mode";
-                else
+            if (coleco.singlestep)
+                text +="Debug Mode";
+            else
+            {
+                text += coleco.NTSC ? "NTSC " : "PAL ";
+                text += fps;
+                text += "fps";
+                if (coleco.frameskip>0)
                 {
-                        text += coleco.NTSC ? "NTSC " : "PAL ";
-                        text += fps;
-                        text += "fps";
-                        if (coleco.frameskip>0)
-                        {
-                                text += " FS ";
-                                text += coleco.frameskip;
-                        }
+                    text += " FS ";
+                    text += coleco.frameskip;
                 }
+            }
         }
         fps=0;
 
@@ -480,6 +460,7 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         if (patternviewer->Visible) patternviewer->do_refresh();
         if (nametabviewer->Visible) nametabviewer->do_refresh();
         if (spriteviewer->Visible) spriteviewer->do_refresh();
+        if (paletteviewer->Visible) paletteviewer->do_refresh();
 }
 
 //---------------------------------------------------------------------------
@@ -551,29 +532,22 @@ void __fastcall TForm1::Emulation1Click(TObject *Sender)
         UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
-
 void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 {
-        static int j, borrow;
-
         if (coleco.stop)
         {
-                AccurateUpdateDisplay(false);
-                return;
+            AccurateUpdateDisplay(false);
+            return;
         }
 
         fps++;
         frametstates=0;
 
-        //j=coleco.single_step?1:(machine.tperframe + borrow);
+        // Update Joystick, spinner
+        KeybJoyUpdate();
 
-        //while (j>0 && !coleco.stop)
-        //{
-                j-= machine.do_scanline();
-        //}
-        AccurateUpdateDisplay(coleco.singlestep ? false : true); //AccurateDraw(BuildLine);
-
-        //if (!coleco.stop) borrow=j;
+        // Update emulation
+        machine.do_scanline();
 }
 //---------------------------------------------------------------------------
 
@@ -581,23 +555,22 @@ void __fastcall TForm1::SoftReset1Click(TObject *Sender)
 {
         // do a reset with the current rom
         coleco.stop=1;
-        machine.reset();
+        if (machine.reset) machine.reset();
         coleco.stop=0;
+        //DebugUpdate();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::HardReset1Click(TObject *Sender)
 {
-        int initialStopState = coleco.stop;
-
         coleco.stop=1;
         AccurateInit(false);
         machine.initialise();
-        coleco.stop=initialStopState;
+        coleco.stop=coleco.startdebug ? 1 : 0;
 
-//        DebugUpdate();
-//        LiveMemoryWindow->Reset();
-//        BasicLister->Clear();
+//    DebugUpdate();
+//    LiveMemoryWindow->Reset();
+//    BasicLister->Clear();
 }
 
 //---------------------------------------------------------------------------
@@ -609,10 +582,10 @@ void __fastcall TForm1::FormResize(TObject *Sender)
         RecalcWinSize();
 
         StatusBar1->Panels->Items[3]->Width =
-                StatusBar1->ClientWidth -
-                        (StatusBar1->Panels->Items[0]->Width
-                         +StatusBar1->Panels->Items[1]->Width
-                         +StatusBar1->Panels->Items[2]->Width);
+            StatusBar1->ClientWidth -
+                (StatusBar1->Panels->Items[0]->Width
+             +StatusBar1->Panels->Items[1]->Width
+             +StatusBar1->Panels->Items[2]->Width);
 
         StatusBar1->Refresh();
         StatusBar1->Invalidate();
@@ -627,15 +600,15 @@ void __fastcall TForm1::mRU1Click(TObject *Sender)
         TMenuItem* itemClicked = dynamic_cast < TMenuItem * > (Sender);
         try
         {
-                Filename=MruList->Strings[itemClicked->MenuIndex - mRU1->MenuIndex];
-                Extension=FileNameGetExt(Filename);
-                LoadProgram(Filename);
+            Filename=MruList->Strings[itemClicked->MenuIndex - mRU1->MenuIndex];
+            Extension=FileNameGetExt(Filename);
+            LoadProgram(Filename);
         }
         catch (Exception &exception)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // The default exception handler not only shows the exception that
+            // occured, but also quits the message handler
+            Application->ShowException(&exception);
         }
 }
 //---------------------------------------------------------------------------
@@ -661,25 +634,25 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
         SoundSuspend();
         try
         {
-                coleco.stop=1;
+            coleco.stop=1;
 
-                // Check save dialog to save effectively to disk
-                SaveDialog->DefaultExt="png";
-                SaveDialog->FileName="*.png";
-                SaveDialog->Filter="Portable Network Graphic (.png)|*.png|Windows Bitmap (.bmp)|*.bmp";
-                if(SaveDialog->Execute())
-                {
-                        if (SaveDialog->FilterIndex==1)
-                                RenderSaveScreenPNG(SaveDialog->FileName);
-                        else
-                                RenderSaveScreenBMP(SaveDialog->FileName);
-                }
+            // Check save dialog to save effectively to disk
+            SaveDialog->DefaultExt="png";
+            SaveDialog->FileName="*.png";
+            SaveDialog->Filter="Portable Network Graphic (.png)|*.png|Windows Bitmap (.bmp)|*.bmp";
+            if(SaveDialog->Execute())
+            {
+                if (SaveDialog->FilterIndex==1)
+                    RenderSaveScreenPNG(SaveDialog->FileName);
+                else
+                    RenderSaveScreenBMP(SaveDialog->FileName);
+            }
         }
         catch (Exception &exception)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // The default exception handler not only shows the exception that
+            // occured, but also quits the message handler
+            Application->ShowException(&exception);
         }
         SoundResume();
         coleco.stop=stopped;
@@ -697,9 +670,9 @@ void __fastcall TForm1::Cartprofile1Click(TObject *Sender)
 
 void __fastcall TForm1::TilemapViewer1Click(TObject *Sender)
 {
-    TilemapViewer1->Checked = !TilemapViewer1->Checked;
-    if (TilemapViewer1->Checked) nametabviewer->Show();
-    else nametabviewer->Close();
+        TilemapViewer1->Checked = !TilemapViewer1->Checked;
+        if (TilemapViewer1->Checked) nametabviewer->Show();
+        else nametabviewer->Close();
 }
 //---------------------------------------------------------------------------
 
@@ -720,6 +693,15 @@ void __fastcall TForm1::TilesViewer1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TForm1::PaletteViewer1Click(TObject *Sender)
+{
+    PaletteViewer1->Checked = !PaletteViewer1->Checked;
+    if (PaletteViewer1->Checked) paletteviewer->Show();
+    else paletteviewer->Close();
+}
+
+//---------------------------------------------------------------------------
+
 void __fastcall TForm1::PrinterViewer1Click(TObject *Sender)
 {
     PrinterViewer1->Checked = !PrinterViewer1->Checked;
@@ -734,11 +716,11 @@ void __fastcall TForm1::Debugger1Click(TObject *Sender)
         Debugger1->Checked = !Debugger1->Checked;
         if (Debugger1->Checked)
         {
-                debug->Show();
+            debug->Show();
         }
         else
         {
-                debug->Close();
+            debug->Close();
         }
 }
 //---------------------------------------------------------------------------
@@ -751,108 +733,107 @@ void __fastcall TForm1::Run1Click(TObject *Sender)
 
 void __fastcall TForm1::LoadProgram(AnsiString FileName)
 {
-        BYTE retload;
+    BYTE retload;
 
-        try
+    try
+    {
+        coleco.stop=1;
+        retload=coleco_loadcart(FileName.c_str(),0);
+
+        if (retload == ROM_LOAD_PASS)
         {
-                coleco.stop=1;
-                retload=coleco_loadcart(FileName.c_str(),0);
+            // Reset engine
+            coleco_reset();
 
-                if (retload == ROM_LOAD_PASS)
-                {
-                        // Reset engine
-                        coleco_reset();
+            // add to MUR list
+            MruList->Insert(0, FileName);
+            if (MruList->Count > MRFUCOUNT)
+            MruList->Delete(MRFUCOUNT);
+            UpdateMruMenu();
 
-                        // add to MUR list
-                        MruList->Insert(0, FileName);
-                        if (MruList->Count > MRFUCOUNT)
-                            MruList->Delete(MRFUCOUNT);
-                        UpdateMruMenu();
+            // Update StatusBar if needed
+            UpdateStatusBar();
 
-                        // Update StatusBar if needed
-                        UpdateStatusBar();
+            coleco.stop=coleco.startdebug ? 1 : 0;
 
-                        coleco.stop=0;//machine.StartDebug ? 1 : 0;
-
-                        // if stop, well, show debug Window
-                        if (coleco.stop)
-                        {
-                            //Debugger1->Checked=true;
-                            //Debug->Show();
-                        }
-                }
-                else if (retload == ROM_VERIFY_FAIL)
-                {
-                        // Show error
-                        Application->MessageBox("Can't verify the rom file","Error",
-        	                    MB_OK | MB_ICONERROR);
-                }
-                // Show error
-                else
-                {
-                        Application->MessageBox("Can't open the rom file","Error",
-        	        MB_OK | MB_ICONERROR);
-                }
+            // if stop, well, show debug Window
+            if (coleco.stop)
+            {
+                Debugger1->Checked=true;
+                debug->Show();
+            }
         }
-        catch (Exception &exception)
+        else if (retload == ROM_VERIFY_FAIL)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // Show error
+            Application->MessageBox("Can't verify the rom file","Error",
+        	            MB_OK | MB_ICONERROR);
         }
+        // Show error
+        else
+        {
+            Application->MessageBox("Can't open the rom file","Error",
+        	MB_OK | MB_ICONERROR);
+        }
+    }
+    catch (Exception &exception)
+    {
+        // The default exception handler not only shows the exception that
+        // occured, but also quits the message handler
+        Application->ShowException(&exception);
+    }
 }
 
 //---------------------------------------------------------------------------
 void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString FileName)
 {
-        BYTE retload;
+    BYTE retload;
 
-        try
+    try
+    {
+        coleco.stop=1;
+        if (TypeMedia==0) // Disk
+            retload=LoadFDI(&Disks[DiskTapeNum],FileName.c_str(),FMT_ADMDSK);
+        else
+            retload=LoadFDI(&Tapes[DiskTapeNum],FileName.c_str(),FMT_DDP);
+
+        if (retload && !DiskTapeNum) // only for 1st disk
         {
-                coleco.stop=1;
-                if (TypeMedia==0) // Disk
-                        retload=LoadFDI(&Disks[DiskTapeNum],FileName.c_str(),FMT_ADMDSK);
-                else
-                        retload=LoadFDI(&Tapes[DiskTapeNum],FileName.c_str(),FMT_DDP);
+            // Change media type  and eject disk if on a tape
+            coleco.romCartridge = TypeMedia ? ROMCARTRIDGEDTAPE : ROMCARTRIDGEDISK;
+            if (TypeMedia)
+                EjectFDI(&Disks[0]);
 
-                if (retload && !DiskTapeNum) // only for 1st disk
-                {
 
-                        // Change media type  and eject disk if on a tape
-                        coleco.romCartridge = TypeMedia ? ROMCARTRIDGEDTAPE : ROMCARTRIDGEDISK;
-                        if (TypeMedia)
-                                EjectFDI(&Disks[0]);
-                                
+            // Reset engine in Adam mode
+            coleco.machine=MACHINEADAM;
+            coleco_reset();
 
-                        // Reset engine in Adam mode
-                        coleco.machine=MACHINEADAM;
-                        coleco_reset();
+            // Update StatusBar if needed
+            UpdateStatusBar();
 
-                        // Update StatusBar if needed
-                        UpdateStatusBar();
+            coleco.stop=coleco.startdebug ? 1 : 0;
 
-                        coleco.stop=0;//machine.StartDebug ? 1 : 0;
-
-                        // if stop, well, show debug Window
-                        if (coleco.stop)
-                        {
-                            //Debugger1->Checked=true;
-                            //Debug->Show();
-                        }
-                }
-                // Show error
-                else
-                {
-                        Application->MessageBox(TypeMedia ? "Can't open the .DDP tape file" : "Can't open the .DSK disk file","Error",
-        	        MB_OK | MB_ICONERROR);
-                }
+            // if stop, well, show debug Window
+            if (coleco.stop)
+            {
+                Debugger1->Checked=true;
+                debug->Show();
+            }
         }
-        catch (Exception &exception)
+        // Show error
+        else
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            Application->MessageBox(TypeMedia ? "Can't open the .DDP tape file" : "Can't open the .DSK disk file","Error",
+        	    MB_OK | MB_ICONERROR);
         }
+    }
+    catch (Exception &exception)
+    {
+        // The default exception handler not only shows the exception that
+        // occured, but also quits the message handler
+        Application->ShowException(&exception);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -865,23 +846,23 @@ void __fastcall TForm1::Open1Click(TObject *Sender)
         SoundSuspend();
         try
         {
-                coleco.stop=1;
+            coleco.stop=1;
 
-                OpenDialog->DefaultExt="rom";
-                OpenDialog->FileName="*.rom";
-                OpenDialog->Filter="All Files (*.COL,*.ROM,*.BIN,*.SG)|*.col;*.rom;*.bin;*.sg|BIN Files (*.BIN)|*.bin|COL Files (*.COL)|*.col|ROM FIles (*.ROM)|*.rom|SG Files (*.SG)|*.sg";
-                if (OpenDialog->Execute())
-                {
-                        Filename=OpenDialog->FileName;
-                        Extension=FileNameGetExt(Filename);
-                        LoadProgram(Filename);
-                }
+            OpenDialog->DefaultExt="rom";
+            OpenDialog->FileName="*.rom";
+            OpenDialog->Filter="All Files (*.COL,*.ROM,*.BIN,*.SG)|*.col;*.rom;*.bin;*.sg|BIN Files (*.BIN)|*.bin|COL Files (*.COL)|*.col|ROM FIles (*.ROM)|*.rom|SG Files (*.SG)|*.sg";
+            if (OpenDialog->Execute())
+            {
+                Filename=OpenDialog->FileName;
+                Extension=FileNameGetExt(Filename);
+                LoadProgram(Filename);
+            }
         }
         catch (Exception &exception)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // The default exception handler not only shows the exception that
+            // occured, but also quits the message handler
+            Application->ShowException(&exception);
         }
         coleco.stop=stopped;
         SoundResume();
@@ -898,44 +879,44 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
         SoundSuspend();
         try
         {
-                stopped=coleco.stop;
-                coleco.stop=1;
+            stopped=coleco.stop;
+            coleco.stop=1;
 
-                m = (TMenuItem *) Sender;
-                if ((m->Tag == 0) || (m->Tag == 1))
-                {
-                        OpenDialog->FileName="*.dsk";
-                        OpenDialog->Filter="Disk Files (*.DSK)|*.dsk";
-                        OpenDialog->DefaultExt="dsk";
-                }
-                else
-                {
-                        OpenDialog->FileName="*.ddp";
-                        OpenDialog->Filter="Tape Files (*.DDP)|*.ddp";
-                        OpenDialog->DefaultExt="ddp";
-                }
-                if (!OpenDialog->Execute())
-                {
-                        coleco.stop=stopped;
-                }
-                else
-                {
-                        coleco.stop=stopped;
-                        Filename=OpenDialog->FileName;
-                        Extension=FileNameGetExt(Filename);
-                        if (m->Tag == 0)
-                                LoadDiskTape(0, 0,Filename);
-                        else if (m->Tag == 1)
-                                LoadDiskTape(0, 1,Filename);
-                        else if (m->Tag == 2)
-                                LoadDiskTape(1, 0,Filename);
-                }
+            m = (TMenuItem *) Sender;
+            if ((m->Tag == 0) || (m->Tag == 1))
+            {
+                OpenDialog->FileName="*.dsk";
+                OpenDialog->Filter="Disk Files (*.DSK)|*.dsk";
+                OpenDialog->DefaultExt="dsk";
+            }
+            else
+            {
+                OpenDialog->FileName="*.ddp";
+                OpenDialog->Filter="Tape Files (*.DDP)|*.ddp";
+                OpenDialog->DefaultExt="ddp";
+            }
+            if (!OpenDialog->Execute())
+            {
+                coleco.stop=stopped;
+            }
+            else
+            {
+                coleco.stop=stopped;
+                Filename=OpenDialog->FileName;
+                Extension=FileNameGetExt(Filename);
+                if (m->Tag == 0)
+                    LoadDiskTape(0, 0,Filename);
+                else if (m->Tag == 1)
+                    LoadDiskTape(0, 1,Filename);
+                else if (m->Tag == 2)
+                    LoadDiskTape(1, 0,Filename);
+            }
         }
         catch (Exception &exception)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // The default exception handler not only shows the exception that
+            // occured, but also quits the message handler
+            Application->ShowException(&exception);
         }
 
         SoundResume();
@@ -950,22 +931,22 @@ void __fastcall TForm1::LoadState1Click(TObject *Sender)
         SoundSuspend();
         try
         {
-                coleco.stop=1;
+            coleco.stop=1;
 
-                // Check save dialog to save effectively current emulator state to disk
-                OpenDialog->DefaultExt="sta";
-                OpenDialog->FileName="*.sta";
-                OpenDialog->Filter="Save State (.sta)|*.sta";
-                if(OpenDialog->Execute())
-                {
-                        coleco_loadstate(OpenDialog->FileName.c_str());
-                }
+            // Check save dialog to save effectively current emulator state to disk
+            OpenDialog->DefaultExt="sta";
+            OpenDialog->FileName="*.sta";
+            OpenDialog->Filter="Save State (.sta)|*.sta";
+            if(OpenDialog->Execute())
+            {
+                coleco_loadstate(OpenDialog->FileName.c_str());
+            }
         }
         catch (Exception &exception)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // The default exception handler not only shows the exception that
+            // occured, but also quits the message handler
+            Application->ShowException(&exception);
         }
         coleco.stop=stopped;
         SoundResume();
@@ -979,22 +960,22 @@ void __fastcall TForm1::SaveState1Click(TObject *Sender)
         SoundSuspend();
         try
         {
-                coleco.stop=1;
+            coleco.stop=1;
 
-                // Check save dialog to save effectively current emulator state to disk
-                SaveDialog->DefaultExt="sta";
-                SaveDialog->FileName="*.sta";
-                SaveDialog->Filter="Save State (.sta)|*.sta";
-                if(SaveDialog->Execute())
-                {
-                        coleco_savestate(SaveDialog->FileName.c_str());
-                }
+            // Check save dialog to save effectively current emulator state to disk
+            SaveDialog->DefaultExt="sta";
+            SaveDialog->FileName="*.sta";
+            SaveDialog->Filter="Save State (.sta)|*.sta";
+            if(SaveDialog->Execute())
+            {
+                coleco_savestate(SaveDialog->FileName.c_str());
+            }
         }
         catch (Exception &exception)
         {
-                // The default exception handler not only shows the exception that
-                // occured, but also quits the message handler
-                Application->ShowException(&exception);
+            // The default exception handler not only shows the exception that
+            // occured, but also quits the message handler
+            Application->ShowException(&exception);
         }
         coleco.stop=stopped;
         SoundResume();
@@ -1007,11 +988,11 @@ void __fastcall TForm1::DDAEjectClick(TObject *Sender)
 
         m = (TMenuItem *) Sender;
         if (m->Tag == 0)
-                EjectFDI(&Disks[0]);
+            EjectFDI(&Disks[0]);
         else if (m->Tag == 1)
-                EjectFDI(&Disks[1]);
+            EjectFDI(&Disks[1]);
         else if (m->Tag == 2)
-                EjectFDI(&Tapes[0]);
+            EjectFDI(&Tapes[0]);
 }
 //---------------------------------------------------------------------------
 
@@ -1056,4 +1037,12 @@ void __fastcall TForm1::Chatwithcommunity1Click(TObject *Sender)
         ShellExecute(NULL, "open", "https://discord.gg/2qxH6FAgzW", "", NULL, SW_RESTORE);
 }
 
+
+void __fastcall TForm1::FormMouseMove(TObject *Sender, TShiftState Shift,
+      int X, int Y)
+{
+        CheckMouseMove(X,Y);    
+}
+
+//---------------------------------------------------------------------------
 

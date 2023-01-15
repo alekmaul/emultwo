@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *
- * tilemapviewer_.cpp
+ * nametabviewer_.cpp
  *
  */
 #include <vcl.h>
@@ -24,6 +24,7 @@
 
 #include "nametabviewer_.h"
 
+#include "accdraw_.h"
 #include "main_.h"
 #include "coleco.h"
 #include "colecoconfig.h"
@@ -167,99 +168,64 @@ void Tnametabviewer::CreateTile(void)
 //---------------------------------------------------------------------------
 void Tnametabviewer::CreateMap(TCanvas *Acanvas, int w, int h)
 {
-    int ix,iy,it,value,fgcol,bgcol;
-    byte ic;
-    unsigned int *LinePtr;
-    int Offset;
+    int ix,iy,it;
     byte memtile[32*24];
 
-    // Prepare a 8x8 bitmap for the tile (no need of border)
-    Graphics::TBitmap *bmpTile = new Graphics::TBitmap;
-    bmpTile->Width = 256;
-    bmpTile->Height = 192;
-	bmpTile->PixelFormat = pf32bit;
-	bmpTile->IgnorePalette = true;
-
     // Scan all lines
-    for (iy=0;iy<192;iy++) {
-        LinePtr = (unsigned int *) bmpTile->ScanLine[iy];
-        Offset = (iy&7);
-        for (ix=0;ix<32;ix++) {
+    for (iy=0;iy<192;iy++)
+    {
+        for (ix=0;ix<32;ix++)
+        {
             // Get Pattern
             it=coleco_gettmsval(CHRMAP,ix+((iy & 0xF8)<<2),0,0);
             memtile[ix+(iy>>3)*32]=it;
-            it=it*8+Offset;
-
-            if (tms.Mode==1) {
-                ic=coleco_gettmsval(CHRCOL,it,0,0);
-                //it=it*8+Offset;
-            }
-            else
-            {
-                //it=it*8+Offset;
-                ic=coleco_gettmsval(CHRCOL,it,tms.Mode,iy);
-            }
-
-            // Get fg and bg color
-            fgcol=cv_pal32[(ic>>4) & 0x0f];
-            bgcol=cv_pal32[(ic & 0x0f)];
-
-            // Draw bitmap
-            value=coleco_gettmsval(CHRGEN,it,tms.Mode,iy);
-            *(LinePtr++)= (value & 0x80) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x40) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x20) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x10) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x08) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x04) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x02) ? fgcol : bgcol;
-            *(LinePtr++)= (value & 0x01) ? fgcol : bgcol;
         }
     }
-        StretchBlt(Acanvas->Handle, 0,0, w, h,bmpTile->Canvas->Handle, 0, 0, 256, 192,SRCCOPY);
-        delete bmpTile;
+    StretchBlt(Acanvas->Handle, 0, 0, w, h, GDIFrame->Canvas->Handle,BDW/2,BDH/2, TVW-BDW,TVH-BDH,SRCCOPY); // BDW,BDH because of border
 
-        // Draw a grid of 16x16 pix if needed
-        if (chkGrid->Checked)
+    // Draw a grid of 16x16 pix if needed
+    if (chkGrid->Checked)
+    {
+        Acanvas->Brush->Style = bsClear;
+        Acanvas->Pen->Style = psSolid;
+        Acanvas->Pen->Color = cl3DDkShadow;
+        for (ix=0;ix<Width;ix+=16)
         {
-                Acanvas->Brush->Style = bsClear;
-                Acanvas->Pen->Style = psSolid;
-                Acanvas->Pen->Color = cl3DDkShadow;
-                for (ix=0;ix<Width;ix+=16) {
-                        Acanvas->MoveTo(ix,0);
-                        Acanvas->LineTo(ix,h);
-                }
-                for (ix=0;ix<Height;ix+=16) {
-                        Acanvas->MoveTo(0,ix);
-                        Acanvas->LineTo(w,ix);
-                }
+            Acanvas->MoveTo(ix,0);
+            Acanvas->LineTo(ix,h);
         }
+        for (ix=0;ix<Height;ix+=16)
+        {
+            Acanvas->MoveTo(0,ix);
+            Acanvas->LineTo(w,ix);
+        }
+    }
 
-        // if tile number, draw them
-        if (chkTiles->Checked)
+    // if tile number, draw them
+    if (chkTiles->Checked)
+    {
+        LOGFONT lf;
+        ZeroMemory(&lf, sizeof(LOGFONT));
+        lf.lfHeight = 12;
+        //lf.lfWidth = 5;
+        //lf.lfEscapement = 1;
+        lf.lfCharSet = DEFAULT_CHARSET;
+        lf.lfQuality = NONANTIALIASED_QUALITY;
+        strcpy(lf.lfFaceName, "Courier New");
+        Acanvas->Font->Handle = CreateFontIndirect(&lf);
+        Acanvas->Font->Color = (TColor) RGB(64,255,0); //clRed;
+        //Abitmap->Canvas->Font->Size = 7;
+        Acanvas->Brush->Style = bsClear;
+        int stepX=w/32;
+        int stepY=h/24;
+        for (iy=0;iy<24;iy++)
         {
-                LOGFONT lf;
-                ZeroMemory(&lf, sizeof(LOGFONT));
-                lf.lfHeight = 12;
-                //lf.lfWidth = 5;
-                //lf.lfEscapement = 1;
-                lf.lfCharSet = DEFAULT_CHARSET;
-                lf.lfQuality = NONANTIALIASED_QUALITY;
-                strcpy(lf.lfFaceName, "Courier New");
-                Acanvas->Font->Handle = CreateFontIndirect(&lf);
-                Acanvas->Font->Color = (TColor) RGB(64,255,0); //clRed;
-                //Abitmap->Canvas->Font->Size = 7;
-                Acanvas->Brush->Style = bsClear;
-                int stepX=w/32;
-                int stepY=h/24;
-                for (iy=0;iy<24;iy++)
-                {
-                        for (ix=0;ix<32;ix++)
-                        {
-                                Acanvas->TextOut(stepX*ix, stepY*iy, IntToHex(memtile[ix+iy*32],2));
-                        }
-                }
+            for (ix=0;ix<32;ix++)
+            {
+                Acanvas->TextOut(stepX*ix, stepY*iy, IntToHex(memtile[ix+iy*32],2));
+            }
         }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -282,7 +248,6 @@ void __fastcall Tnametabviewer::ExitClick(TObject *Sender)
 {
     Close();
 }
-
 //---------------------------------------------------------------------------
 
 void __fastcall Tnametabviewer::SmallUpdateChanges()
@@ -296,6 +261,7 @@ void __fastcall Tnametabviewer::SmallUpdateChanges()
     CreateTile();
     //TileAlone->Paint();
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tnametabviewer::UpdateChanges()
 {
@@ -350,6 +316,7 @@ void __fastcall Tnametabviewer::UpdateChanges()
     texS=IntToStr(tms.VR[1]>>4)+" " +IntToStr(tms.VR[1]>>3)+" " +IntToStr(tms.VR[0]>>1);
     eVDPValMod->Caption=texS;
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tnametabviewer::do_refresh()
 {

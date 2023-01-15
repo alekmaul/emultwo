@@ -53,24 +53,12 @@
 #include "coleco.h"
 
 //---------------------------------------------------------------------------
-struct kb
-{
-        WORD WinKey;
-};
-
 JOYINFO JoyInfo;
-JOYCAPS JoyCaps;
+JOYCAPS JoyCaps;
+unsigned short JoystickState;
 
-unsigned int JoystickState;
-
-BYTE KeyState[256];
-
-unsigned short JoyP1[NBKEYCV],JoyP2[NBKEYCV];
-unsigned int key_shift=0;
-
-/*
-
-*/
+unsigned short JoyP1[NBKEYCV],JoyP2[NBKEYCV];
+unsigned int key_shift=0;
 
 const unsigned short keyCoresp[NBKEYCV] = {
       JST_UP,
@@ -200,73 +188,7 @@ void KeysWrite(TIniFile *ini)
     ini->WriteInteger("JOYCFG","J2BUTPUR",JoyP2[18]);        // E (for Purple , Blue (red and yellow = butr and butl) )
     ini->WriteInteger("JOYCFG","J2BUTBLU",JoyP2[19]);        // R
 }
-
 //---------------------------------------------------------------------------
-
-/*
-/** GetMouse() ***********************************************/
-/** Get mouse position and button states in the following   **/
-/** format: RMB.LMB.Y[29-16].X[15-0].                       
-
-GetMouse
-    /* Scale mouse position 
-    X = VideoW*(X<0? 0:X>=XSize? XSize-1:X)/XSize;
-    Y = VideoH*(Y<0? 0:Y>=YSize? YSize-1:Y)/YSize;
-
-
-/** Mouse() **************************************************/
-/** This function is called to poll mouse. It should return **/
-/** the X coordinate (-512..+512) in the lower 16 bits, the **/
-/** Y coordinate (-512..+512) in the next 14 bits, and the  **/
-/** mouse buttons in the upper 2 bits. All values should be **/
-/** counted from the screen center!                         **/
-/************************************************************
-
-  unsigned int X,Y;
-
-  X = GetMouse();
-  Y = ((((X>>16)&0x0FFF)<<10)/200-512)&0x3FFF;
-  Y = (Y<<16)|((((X&0x0FFF)<<10)/320-512)&0xFFFF);
-  return(Y|(X&MSE_BUTTONS));
-
-  YYYYYYYYYYYYYYYYXXXXXXXXXXXXXXXX
-
-#define MSE_RIGHT    0x80000000
-#define MSE_LEFT     0x40000000
-#define MSE_BUTTONS  (MSE_RIGHT|MSE_LEFT)
-#define MSE_YPOS     0x3FFF0000
-#define MSE_XPOS     0x0000FFFF
-
-
-
-  /* If emulating spinners...
-  if(Mode&CV_SPINNERS)
-  {
-    int I,K;
-
-    /* Get mouse position relative to the window center,
-    /* normalized to -512..+512 range
-    I = Mouse();
-    /* First spinner 
-    K = (Mode&CV_SPINNER1Y? (I<<2):Mode&CV_SPINNER1X? (I<<16):0)>>16;
-    K = K<-512? -512:K>512? 512:K;
-    SpinStep  = K>=0? (K>32? K:0):(K<-32? -K:0);
-    SpinState = K>0? 0x00003000:K<0? 0x00001000:0;
-    /* Second spinner
-    K = (Mode&CV_SPINNER2Y? (I<<2):Mode&CV_SPINNER2X? (I<<16):0)>>16;
-    K = K<-512? -512:K>512? 512:K;
-    SpinStep |= (K>=0? (K>32? K:0):(K<-32? -K:0))<<16;
-    SpinState|= K>0? 0x10000000:K<0? 0x30000000:0;
-    /* Fire buttons
-    if(I&0x80000000)
-      JoyState |= (Mode&CV_SPINNER2? (JST_FIRER<<16):0)
-               |  (Mode&CV_SPINNER1? JST_FIRER:0);
-    if(I&0x40000000)
-      JoyState |= (Mode&CV_SPINNER2? (JST_FIREL<<16):0)
-               |  (Mode&CV_SPINNER1? JST_FIREL:0);
-  }
-
-*/
 
 void CheckKeyDown(WORD key)
 {
@@ -285,25 +207,6 @@ void CheckKeyDown(WORD key)
         if(coleco_joystat&JST_DOWN)        coleco_joystat&=~JST_UP;
         if(coleco_joystat&(JST_RIGHT<<16)) coleco_joystat&=~(JST_LEFT<<16);
         if(coleco_joystat&(JST_DOWN<<16))  coleco_joystat&=~(JST_UP<<16);
-
-        // Get joystick values if possible
-        if ((JoyCaps.wMid != 0) && JoystickState)
-        {
-                if (JoystickState & JOY_BUTTON_1) coleco_joystat |=  keyCoresp[4]; // but #1
-                if (JoystickState & JOY_BUTTON_2) coleco_joystat |=  keyCoresp[5]; // but #2
-
-/*        if (JoystickState & JOY_BUTTON_3) valTche |=  keyCoresp[6]; // but ##
-        if (JoystickState & JOY_BUTTON_4) valTche |=  keyCoresp[7]; // but #*
-
-        if (JoystickState & JOY_BUTTON_5) valTche |=  keyCoresp[8]; // 0
-        if (JoystickState & JOY_BUTTON_6) valTche |=  keyCoresp[9]; // 1
-        if (JoystickState & JOY_BUTTON_7) valTche |=  keyCoresp[10]; // 2
-        if (JoystickState & JOY_BUTTON_8) valTche |=  keyCoresp[11]; // 3
-        if (JoystickState & JOY_BUTTON_9) valTche |=  keyCoresp[12]; // 4
-        if (JoystickState & JOY_BUTTON_10) valTche |=  keyCoresp[13]; // 5
-        if (JoystickState & JOY_BUTTON_11) valTche |=  keyCoresp[14]; // 6
-        if (JoystickState & JOY_BUTTON_12) valTche |=  keyCoresp[15]; // 7*/
-        }
 
         // Check now keyboard if we are in ADAM mode
         if (coleco.machine==MACHINEADAM)
@@ -334,7 +237,6 @@ void CheckKeyDown(WORD key)
                         PutKBD(adamkey | ( (key_shift) ? CON_SHIFT:0) );
         }
 }
-
 //---------------------------------------------------------------------------
 
 void CheckKeyUp(WORD key)
@@ -365,21 +267,11 @@ void CheckJoyMove(TMessage &msg)
 
         PosX=msg.LParamLo;
         PosY=msg.LParamHi;
-        JoystickState &= 0xFFFFFF00;
+        JoystickState =0;
         if (PosX<10000) JoystickState |= JOY_PAD_LEFT;
         else if (PosX>55000) JoystickState |= JOY_PAD_RIGHT;
         if (PosY<10000) JoystickState |= JOY_PAD_UP;
         else if (PosY>55000) JoystickState |= JOY_PAD_DOWN;
-/*
-        if (JoystickState & JOY_PAD_UP) coleco_joystat |=  keyCoresp[0]; // UP
-        else coleco_joystat &= ~keyCoresp[0];
-        if (JoystickState & JOY_PAD_DOWN) coleco_joystat |=  keyCoresp[1]; // DOWN
-        else coleco_joystat &= ~keyCoresp[1];
-        if (JoystickState & JOY_PAD_LEFT) coleco_joystat |=  keyCoresp[2]; // LEFT
-        else coleco_joystat &= ~keyCoresp[2];
-        if (JoystickState & JOY_PAD_RIGHT) coleco_joystat |=  keyCoresp[3]; // RIGHT
-        else coleco_joystat &= ~keyCoresp[3];
-*/
 }
 
 //---------------------------------------------------------------------------
@@ -423,12 +315,94 @@ void JoystickInit(HWND hWnd, HINSTANCE hInst)
     joyGetDevCaps(JOYSTICKID1,&JoyCaps,sizeof(JOYCAPS));
     joySetCapture(hWnd,JOYSTICKID1,2*JoyCaps.wPeriodMin,false);
 }
-
 //---------------------------------------------------------------------------
+
 void JoystickEnd(void)
 {
-    if (JoyCaps.wMid != 0) {
-        joyReleaseCapture(JOYSTICKID1);
-    }
+        // Disconnect joystick
+        if (JoyCaps.wMid != 0) {
+                joyReleaseCapture(JOYSTICKID1);
+        }
+}
+//---------------------------------------------------------------------------
+
+void CheckMouseMove(int X, int Y)
+{
+        int x,y,y2,x1,y1,i,j;
+        float ScaleW, ScaleH;
+        signed short valSpin;
+
+        AnsiString text="";
+
+        // Get mouse position and button states in the following  format: RMB.LMB.Y[29-16].X[15-0]
+        ScaleW=Form1->ClientWidth/Form1->BaseWidth; ScaleH=((Form1->ClientHeight-Form1->StatusBar1->Height)/Form1->BaseHeight);
+        x=(X/ScaleW); y=(Y/ScaleH);
+        j=(y<<16) | x;
+
+        /*
+        
+  X = GetMouse();
+  Y = ((((X>>16)&0x0FFF)<<10)/200-512)&0x3FFF;
+  Y = (Y<<16)|((((X&0x0FFF)<<10)/320-512)&0xFFFF);
+  return(Y|(X&MSE_BUTTONS));
+*/
+
+        x1 = ((((j>>16)&0x0FFF)<<10)/Form1->BaseHeight-512)&0x3FFF;
+        y1 = (x1<<16)|((((j&0x0FFF)<<10)/Form1->BaseWidth-512)&0xFFFF);
+        i=y1;
+
+        // Adapt to spinner
+    //valSpin = (Mode&CV_SPINNER1Y? (I<<2):Mode&CV_SPINNER1X? (I<<16):0)>>16;
+        valSpin = (i<<16)>>16;
+        valSpin = valSpin<-512? -512:valSpin>512? 512:valSpin;
+        coleco_spinstep  = valSpin>=0? (valSpin>32? valSpin:0):(valSpin<-32? -valSpin:0);
+        coleco_spinstate = valSpin>0? 0x00003000:valSpin<0? 0x00001000:0;
+}
+
+//---------------------------------------------------------------------------
+
+void KeybJoyUpdate(void)
+{
+        // Get joystick values if possible
+        if ((JoyCaps.wMid != 0) && JoystickState)
+        {
+                if (JoystickState & JOY_BUTTON_1) coleco_joystat |=  keyCoresp[4]; // but #1
+                if (JoystickState & JOY_BUTTON_2) coleco_joystat |=  keyCoresp[5]; // but #2
+                if (JoystickState & JOY_BUTTON_3) coleco_joystat |=  keyCoresp[6]; // but ##
+                if (JoystickState & JOY_BUTTON_4) coleco_joystat |=  keyCoresp[7]; // but #*
+
+                if (JoystickState & JOY_BUTTON_5) coleco_joystat |=  keyCoresp[8]; // 0
+                if (JoystickState & JOY_BUTTON_6) coleco_joystat |=  keyCoresp[9]; // 1
+                if (JoystickState & JOY_BUTTON_7) coleco_joystat |=  keyCoresp[10]; // 2
+                if (JoystickState & JOY_BUTTON_8) coleco_joystat |=  keyCoresp[11]; // 3
+                if (JoystickState & JOY_BUTTON_9) coleco_joystat |=  keyCoresp[12]; // 4
+                if (JoystickState & JOY_BUTTON_10) coleco_joystat |=  keyCoresp[13]; // 5
+                if (JoystickState & JOY_BUTTON_11) coleco_joystat |=  keyCoresp[14]; // 6
+                if (JoystickState & JOY_BUTTON_12) coleco_joystat |=  keyCoresp[15]; // 7*/
+
+                if (JoystickState & JOY_PAD_UP) coleco_joystat |=  keyCoresp[0]; // UP
+                else coleco_joystat &= ~keyCoresp[0];
+                if (JoystickState & JOY_PAD_DOWN) coleco_joystat |=  keyCoresp[1]; // DOWN
+                else coleco_joystat &= ~keyCoresp[1];
+                if (JoystickState & JOY_PAD_LEFT) coleco_joystat |=  keyCoresp[2]; // LEFT
+                else coleco_joystat &= ~keyCoresp[2];
+                if (JoystickState & JOY_PAD_RIGHT) coleco_joystat |=  keyCoresp[3]; // RIGHT
+                else coleco_joystat &= ~keyCoresp[3];
+        }
+
+
+        // Reset spinner bits
+        coleco_joystat&=~0x30003000;
+
+        // Count ticks for spinners
+        coleco_spincount+=coleco_spinstep;
+
+        // Process spinner
+        if (coleco_spincount&0x00008000)
+        {
+                coleco_spincount&=~0x00008000;
+                coleco_joystat |= coleco_spinstate&0x00003000;
+                coleco_intpending=1;
+        }
 }
 

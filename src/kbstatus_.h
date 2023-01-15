@@ -100,4 +100,7 @@ extern void CheckJoyUp(TMessage &msg);
 extern void JoystickInit(HWND hWnd, HINSTANCE hInst);
 extern void JoystickEnd(void);
 
+extern void CheckMouseMove(int X, int Y);
+extern void KeybJoyUpdate(void);
+
 #endif

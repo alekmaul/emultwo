@@ -7,12 +7,12 @@
     <OBJFILES value="emultwo.obj src\z80\z80.obj src\z80\z80_ops.obj src\colecoconfig.obj 
       src\coleco\coleco.obj src\main_.obj src\about_.obj src\utils.obj 
       src\accdraw_.obj src\hardware_.obj src\debug_.obj src\sn76489\sn76489.obj 
-      src\tms9928a\tms9928a.obj src\accsound_.obj src\ay8910\ay8910.obj 
-      src\kbstatus_.obj src\eeprom\c24xx.obj src\adam\adamnet.obj 
-      src\patternviewer_.obj src\adam\fdidisk.obj src\cartprofile_.obj 
-      src\nametabviewer_.obj src\spriteviewer_.obj src\symbolstore.obj 
-      src\editvalue_.obj src\symbbrows_.obj src\setbreakpoint_.obj 
-      src\searchsequence_.obj src\dumpmem_.obj src\printviewer_.obj"/>
+      src\tms9928a\tms9928a.obj src\ay8910\ay8910.obj src\kbstatus_.obj 
+      src\eeprom\c24xx.obj src\adam\adamnet.obj src\patternviewer_.obj 
+      src\adam\fdidisk.obj src\cartprofile_.obj src\nametabviewer_.obj 
+      src\spriteviewer_.obj src\symbolstore.obj src\editvalue_.obj 
+      src\symbbrows_.obj src\setbreakpoint_.obj src\searchsequence_.obj 
+      src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -21,7 +21,7 @@
       src\patternviewer_.dfm src\cartprofile_.dfm src\nametabviewer_.dfm 
       src\spriteviewer_.dfm src\editvalue_.dfm src\symbbrows_.dfm 
       src\setbreakpoint_.dfm src\searchsequence_.dfm src\dumpmem_.dfm 
-      src\printviewer_.dfm"/>
+      src\printviewer_.dfm src\palviewer_.dfm"/>
     <LIBFILES value="libs\directdraw\ddraw.lib libs\libpngstat\libpngstat.lib 
       libs\libpngstat\zlib.lib"/>
     <LIBRARIES value="etcomp.lib AnimTimer.lib Vcl50.lib"/>

@@ -39,7 +39,6 @@ USEFORM("src\hardware_.cpp", hardware);
 USEFORM("src\debug_.cpp", debug);
 USEUNIT("src\sn76489\sn76489.c");
 USEUNIT("src\tms9928a\tms9928a.c");
-USEUNIT("src\accsound_.c");
 USEUNIT("src\ay8910\ay8910.c");
 USEUNIT("src\kbstatus_.cpp");
 USEUNIT("src\eeprom\c24xx.c");
@@ -58,6 +57,8 @@ USEFORM("src\setbreakpoint_.cpp", SetBreakpoint);
 USEFORM("src\searchsequence_.cpp", SearchSequence);
 USEFORM("src\dumpmem_.cpp", DumpMem);
 USEFORM("src\printviewer_.cpp", printviewer);
+USEUNIT("src\accsound_.c");
+USEFORM("src\palviewer_.cpp", paletteviewer);
 //---------------------------------------------------------------------------
 #include "main_.h"
 

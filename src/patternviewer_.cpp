@@ -217,8 +217,8 @@ void Tpatternviewer::CreateTile(void)
                         vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
                 }
                 // Get fg and bg color
-                fgcol=cv_pal32[vcol>>4];
-                bgcol=cv_pal32[vcol & 0xf];
+                fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
+                bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
                 if (mVramTile >=0x1000)
                     value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
                 else if (mVramTile >=0x800)
@@ -300,9 +300,9 @@ void Tpatternviewer::CreateBitmap(TCanvas *Acanvas, int w, int h)
                                         else
                                                 vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x00);
                                 }
-                                // Get fg and bg color
-                                fgcol=cv_pal32[vcol>>4];
-                                bgcol=cv_pal32[vcol & 0xf];
+                                // Get fg and bg color (and register 7 index)
+                                fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
+                                bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
                                 if (it >=0x1000)
                                         value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x80);
                                 else if (it >=0x800)
@@ -310,7 +310,8 @@ void Tpatternviewer::CreateBitmap(TCanvas *Acanvas, int w, int h)
                                 else
                                         value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x00);
                                 // if B&W mode choosen, just change colors
-                                if (rBW->Checked==true) {
+                                if (rBW->Checked==true)
+                                {
                                         fgcol=cv_pal32[15];
                                         bgcol=cv_pal32[0];
                                 }
@@ -461,8 +462,14 @@ void __fastcall Tpatternviewer::Copytoclipboard1Click(TObject *Sender)
 
 void __fastcall Tpatternviewer::rColClick(TObject *Sender)
 {
-    UpdateChanges();
+        UpdateChanges();
 }
 //---------------------------------------------------------------------------
 
+
+void __fastcall Tpatternviewer::FormActivate(TObject *Sender)
+{
+        UpdateChanges();
+}
+//---------------------------------------------------------------------------
 

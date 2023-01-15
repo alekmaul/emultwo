@@ -53,6 +53,7 @@ __published:	// Composants gérés par l'EDI
     void __fastcall ExitClick(TObject *Sender);
         void __fastcall Copytoclipboard1Click(TObject *Sender);
     void __fastcall rColClick(TObject *Sender);
+        void __fastcall FormActivate(TObject *Sender);
 private:	// Déclarations de l'utilisateur
     Graphics::TBitmap *mOffscreenBitmap;
     Graphics::TBitmap *mOfftileBitmap;

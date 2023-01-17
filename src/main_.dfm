@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 1017
-  Top = 278
+  Left = 663
+  Top = 291
   BorderStyle = bsSingle
   Caption = 'E.mul T.wo'
   ClientHeight = 255
@@ -262,7 +262,7 @@ object Form1: TForm1
     Panels = <
       item
         Text = 'Machine'
-        Width = 100
+        Width = 60
       end
       item
         Alignment = taCenter
@@ -526,6 +526,7 @@ object Form1: TForm1
       Caption = 'Help'
       object Content1: TMenuItem
         Caption = 'Content'
+        OnClick = Content1Click
       end
       object Reportabug1: TMenuItem
         Caption = 'Report a bug'

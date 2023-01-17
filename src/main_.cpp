@@ -277,8 +277,8 @@ void TForm1::UpdateMruMenu(void)
 
 void TForm1::LoadSettings(TIniFile *ini)
 {
-        RenderMode=RENDERGDI; //RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI); DDraw bugs with W11
-        if (!RenderInit())
+    RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI); // DDraw bugs with W11
+    if (!RenderInit())
         {
             RenderEnd();
             exit(0);
@@ -742,7 +742,8 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
 
         if (retload == ROM_LOAD_PASS)
         {
-            // Reset engine
+            // Reset engine in coleco mode
+            coleco.machine=MACHINECOLECO;
             coleco_reset();
 
             // add to MUR list
@@ -849,8 +850,8 @@ void __fastcall TForm1::Open1Click(TObject *Sender)
             coleco.stop=1;
 
             OpenDialog->DefaultExt="rom";
-            OpenDialog->FileName="*.rom";
-            OpenDialog->Filter="All Files (*.COL,*.ROM,*.BIN,*.SG)|*.col;*.rom;*.bin;*.sg|BIN Files (*.BIN)|*.bin|COL Files (*.COL)|*.col|ROM FIles (*.ROM)|*.rom|SG Files (*.SG)|*.sg";
+            OpenDialog->FileName="*";
+            OpenDialog->Filter="All Files (*.COL,*.ROM,*.BIN)|*.col;*.rom;*.bin|BIN Files (*.BIN)|*.bin|COL Files (*.COL)|*.col|ROM Files (*.ROM)|*.rom";
             if (OpenDialog->Execute())
             {
                 Filename=OpenDialog->FileName;
@@ -1044,5 +1045,19 @@ void __fastcall TForm1::FormMouseMove(TObject *Sender, TShiftState Shift,
         CheckMouseMove(X,Y);    
 }
 
+//---------------------------------------------------------------------------
+
+
+void __fastcall TForm1::Content1Click(TObject *Sender)
+{
+    if (help->Visible)
+    {
+        help->Show();
+    }
+    else
+    {
+        help->Close();
+    }
+}
 //---------------------------------------------------------------------------
 

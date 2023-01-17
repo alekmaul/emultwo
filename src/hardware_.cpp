@@ -26,6 +26,7 @@ __fastcall Thardware::Thardware(TComponent* Owner)
     maccol->Down=true;
     cSEPalNtsc->ItemIndex=0;
     cboPal->ItemIndex=0;
+    cboSEDispD->ItemIndex=0;
 
     cSEStart->Checked=false;
     cSENodelay->Checked=false;
@@ -123,6 +124,7 @@ void Thardware::SaveSettings(TIniFile *ini)
     ini->WriteInteger("HWARE","NTSC",cSEPalNtsc->ItemIndex);
 
     ini->WriteInteger("HWARE","PALETTE",cboPal->ItemIndex);
+    ini->WriteInteger("HWARE","DSPDRV",cboSEDispD->ItemIndex);
 
     ini->WriteInteger("HWARE","HACKPAL",cSEPFreq->Checked);
     ini->WriteInteger("HWARE","HACKDLAY",cSENodelay->Checked);
@@ -149,6 +151,7 @@ void Thardware::LoadSettings(TIniFile *ini)
 
     cSEPalNtsc->ItemIndex=ini->ReadInteger("HWARE","NTSC",cSEPalNtsc->ItemIndex);
     cboPal->ItemIndex=ini->ReadInteger("HWARE","PALETTE",cboPal->ItemIndex);
+    cboSEDispD->ItemIndex=ini->ReadInteger("HWARE","DSPDRV",cboSEDispD->ItemIndex);
 
     cSEPFreq->Checked=ini->ReadInteger("HWARE","HACKPAL",cSEPFreq->Checked);
     cSENodelay->Checked=ini->ReadInteger("HWARE","HACKPAL",cSENodelay->Checked);
@@ -232,6 +235,23 @@ void __fastcall Thardware::pboxPaint(TObject *Sender)
 void __fastcall Thardware::bCancelClick(TObject *Sender)
 {
     Close();    
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Thardware::cboSEDispDChange(TObject *Sender)
+{
+    int NewRenderMode;
+
+    if (cboSEDispD->ItemIndex==0) NewRenderMode=RENDERGDI;
+    else NewRenderMode=RENDERDDRAW;
+
+    if (Form1->RenderMode!=NewRenderMode)
+    {
+        RenderEnd();
+        Form1->RenderMode=NewRenderMode;
+        RenderInit();
+        AccurateInit(true);
+    }
 }
 //---------------------------------------------------------------------------
 

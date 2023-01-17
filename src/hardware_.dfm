@@ -2120,6 +2120,13 @@ object hardware: Thardware
       Height = 25
       OnPaint = pboxPaint
     end
+    object lSEDispD: TLabel
+      Left = 8
+      Top = 16
+      Width = 65
+      Height = 13
+      Caption = 'Display Driver'
+    end
     object cboPal: TComboBox
       Left = 80
       Top = 44
@@ -2136,6 +2143,19 @@ object hardware: Thardware
         'Black and White'
         'Green scale'
         'Amber scale')
+    end
+    object cboSEDispD: TComboBox
+      Left = 80
+      Top = 12
+      Width = 113
+      Height = 21
+      Style = csDropDownList
+      ItemHeight = 13
+      TabOrder = 1
+      OnChange = cboSEDispDChange
+      Items.Strings = (
+        'GDI'
+        'DirectDraw')
     end
   end
 end

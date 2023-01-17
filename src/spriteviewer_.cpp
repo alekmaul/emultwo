@@ -301,19 +301,16 @@ void __fastcall Tspriteviewer::CreateSprite(void) {
         }
 
         // Show screen
-#if 0
         if (Form1->RenderMode==RENDERDDRAW)
         {
-                StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
+            StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
                             Form1->Canvas->Handle,8,8, Form1->ClientWidth-16,Form1->ClientHeight-16-Form1->StatusBar1->Height,SRCCOPY);
         }
         else {
-#endif
             StretchBlt(sprScreen->Canvas->Handle, 0, 0, sprScreen->Width, sprScreen->Height,
                 GDIFrame->Canvas->Handle,BDW/2,BDH/2, TVW-BDW,TVH-BDH,SRCCOPY); // BDW,BDH because of border
-#if 0
         }
-#endif
+
         // If sprite is selected and ok, we display where it is on screen
         if (sprAct!=-1) {
                 ix=coleco_gettmsval(SPRATTR,4*sprAct+1,0,0);

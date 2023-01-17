@@ -181,7 +181,15 @@ void Tnametabviewer::CreateMap(TCanvas *Acanvas, int w, int h)
             memtile[ix+(iy>>3)*32]=it;
         }
     }
-    StretchBlt(Acanvas->Handle, 0, 0, w, h, GDIFrame->Canvas->Handle,BDW/2,BDH/2, TVW-BDW,TVH-BDH,SRCCOPY); // BDW,BDH because of border
+    if (Form1->RenderMode==RENDERDDRAW)
+    {
+        StretchBlt(Acanvas->Handle, 0, 0, w, h,
+            Form1->Canvas->Handle,8,8, Form1->ClientWidth-16,Form1->ClientHeight-16-Form1->StatusBar1->Height,SRCCOPY);
+    }
+    else
+    {
+        StretchBlt(Acanvas->Handle, 0, 0, w, h, GDIFrame->Canvas->Handle,BDW/2,BDH/2, TVW-BDW,TVH-BDH,SRCCOPY); // BDW,BDH because of border
+    }
 
     // Draw a grid of 16x16 pix if needed
     if (chkGrid->Checked)

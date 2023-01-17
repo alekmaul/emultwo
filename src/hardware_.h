@@ -34,6 +34,8 @@ __published:	// IDE-managed Components
         TLabel *lSEPalette;
         TPaintBox *pbox;
         TComboBox *cboPal;
+    TComboBox *cboSEDispD;
+    TLabel *lSEDispD;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);
@@ -44,6 +46,7 @@ __published:	// IDE-managed Components
         void __fastcall cboPalChange(TObject *Sender);
         void __fastcall pboxPaint(TObject *Sender);
     void __fastcall bCancelClick(TObject *Sender);
+    void __fastcall cboSEDispDChange(TObject *Sender);
 private:	// User declarations
         int NewMachine;
         AnsiString NewMachineName;

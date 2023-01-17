@@ -10,7 +10,7 @@
 #include <Clipbrd.hpp>
 
 //---------------------------------------------------------------------------
-class TDumpMem : public TForm
+class Tdumpmem : public TForm
 {
 __published:	// IDE-managed Components
     TButton *OK;
@@ -25,13 +25,13 @@ __published:	// IDE-managed Components
 private:	// User declarations
     int maxValue, curAddress,typememory;
     bool Translate(AnsiString str, int& value);
-    int TDumpMem::get_memvalue(int adrmemory);
+    int Tdumpmem::get_memvalue(int adrmemory);
 public:		// User declarations
-    __fastcall TDumpMem(TComponent* Owner);
+    __fastcall Tdumpmem(TComponent* Owner);
     void Dump2(int address, int maxval, int typmem);
     void CentreOn(TForm* parent);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TDumpMem *DumpMem;
+extern PACKAGE Tdumpmem *dumpmem;
 //---------------------------------------------------------------------------
 #endif

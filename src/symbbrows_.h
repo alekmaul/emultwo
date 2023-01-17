@@ -7,7 +7,7 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 //---------------------------------------------------------------------------
-class TSymbBrows : public TForm
+class Tsymbbrows : public TForm
 {
 __published:	// Composants gérés par l'EDI
     TListBox *ListBox1;
@@ -16,10 +16,10 @@ __published:	// Composants gérés par l'EDI
         void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 private:	// Déclarations de l'utilisateur
 public:		// Déclarations de l'utilisateur
-    __fastcall TSymbBrows(TComponent* Owner);
+    __fastcall Tsymbbrows(TComponent* Owner);
     void __fastcall RefreshContent(void);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TSymbBrows *SymbBrows;
+extern PACKAGE Tsymbbrows *symbbrows;
 //---------------------------------------------------------------------------
 #endif

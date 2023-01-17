@@ -10,15 +10,15 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TDumpMem *DumpMem;
+Tdumpmem *dumpmem;
 //---------------------------------------------------------------------------
-__fastcall TDumpMem::TDumpMem(TComponent* Owner)
+__fastcall Tdumpmem::Tdumpmem(TComponent* Owner)
     : TForm(Owner)
 {
 }
 
 //---------------------------------------------------------------------------
-int TDumpMem::get_memvalue(int adrmemory)
+int Tdumpmem::get_memvalue(int adrmemory)
 {
     int by=0;
     switch (typememory) {
@@ -36,7 +36,7 @@ int TDumpMem::get_memvalue(int adrmemory)
 // succesful. The data is both passed in and returned in value. This is
 // unchanged in the case when gathering fails.
 //
-void TDumpMem::Dump2(int address, int maxval, int typmem)
+void Tdumpmem::Dump2(int address, int maxval, int typmem)
 {
         AnsiString NewVal;
 
@@ -49,7 +49,7 @@ void TDumpMem::Dump2(int address, int maxval, int typmem)
         ShowModal();
 }
 
-bool TDumpMem::Translate(AnsiString text, int& value)
+bool Tdumpmem::Translate(AnsiString text, int& value)
 {
     AnsiString result = text.Trim();
 
@@ -74,7 +74,7 @@ bool TDumpMem::Translate(AnsiString text, int& value)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TDumpMem::EditValKeyPress(TObject *Sender, char &Key)
+void __fastcall Tdumpmem::EditValKeyPress(TObject *Sender, char &Key)
 {
     if (Key == VK_ESCAPE)
     {
@@ -83,7 +83,7 @@ void __fastcall TDumpMem::EditValKeyPress(TObject *Sender, char &Key)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TDumpMem::EditValChange(TObject *Sender)
+void __fastcall Tdumpmem::EditValChange(TObject *Sender)
 {
     AnsiString bytesn;
     int value,i,j;
@@ -106,17 +106,17 @@ void __fastcall TDumpMem::EditValChange(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void TDumpMem::CentreOn(TForm* parent)
+void Tdumpmem::CentreOn(TForm* parent)
 {
     Top = parent->Top + (parent->Height - Height) /2;
     Left = parent->Left + (parent->Width - Width) /2;
 }
-void __fastcall TDumpMem::OKClick(TObject *Sender)
+void __fastcall Tdumpmem::OKClick(TObject *Sender)
 {
     Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TDumpMem::SaveClick(TObject *Sender)
+void __fastcall Tdumpmem::SaveClick(TObject *Sender)
 {
     memdump->SelectAll();
     memdump->CopyToClipboard();

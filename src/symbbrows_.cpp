@@ -37,20 +37,20 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TSymbBrows *SymbBrows;
+Tsymbbrows *symbbrows;
 //---------------------------------------------------------------------------
-__fastcall TSymbBrows::TSymbBrows(TComponent* Owner)
+__fastcall Tsymbbrows::Tsymbbrows(TComponent* Owner)
     : TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
-void __fastcall TSymbBrows::FormShow(TObject *Sender)
+void __fastcall Tsymbbrows::FormShow(TObject *Sender)
 {
     RefreshContent();
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TSymbBrows::RefreshContent(void)
+void __fastcall Tsymbbrows::RefreshContent(void)
 {
     ListBox1->Items->Clear();
 
@@ -71,7 +71,7 @@ void __fastcall TSymbBrows::RefreshContent(void)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TSymbBrows::ListBox1DblClick(TObject *Sender)
+void __fastcall Tsymbbrows::ListBox1DblClick(TObject *Sender)
 {
     int addr, item = ListBox1->ItemIndex;
     AnsiString sym(ListBox1->Items->Strings[item].SubString(5,24));
@@ -80,7 +80,7 @@ void __fastcall TSymbBrows::ListBox1DblClick(TObject *Sender)
     debug->AddBreakPoint(bp);
 }
 //---------------------------------------------------------------------------
-void __fastcall TSymbBrows::FormClose(TObject *Sender,
+void __fastcall Tsymbbrows::FormClose(TObject *Sender,
       TCloseAction &Action)
 {
     debug->ShowSymbols1->Caption="Show Symbols";

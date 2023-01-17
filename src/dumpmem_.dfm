@@ -1,6 +1,6 @@
-object DumpMem: TDumpMem
-  Left = 477
-  Top = 286
+object dumpmem: Tdumpmem
+  Left = 1028
+  Top = 165
   BorderIcons = [biSystemMenu]
   BorderStyle = bsToolWindow
   Caption = 'Dump Memory'

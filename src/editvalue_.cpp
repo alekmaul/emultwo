@@ -34,26 +34,26 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TEditValue *EditValue;
+Teditvalue *editvalue;
 //---------------------------------------------------------------------------
-__fastcall TEditValue::TEditValue(TComponent* Owner)
+__fastcall Teditvalue::Teditvalue(TComponent* Owner)
     : TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
-void __fastcall TEditValue::CancelClick(TObject *Sender)
+void __fastcall Teditvalue::CancelClick(TObject *Sender)
 {
     cancelled=true;
     Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TEditValue::OKClick(TObject *Sender)
+void __fastcall Teditvalue::OKClick(TObject *Sender)
 {
     Close();
 }
 //---------------------------------------------------------------------------
 
-void TEditValue::CentreOn(TForm* parent)
+void Teditvalue::CentreOn(TForm* parent)
 {
     Top = parent->Top + (parent->Height - Height) /2;
     Left = parent->Left + (parent->Width - Width) /2;
@@ -63,7 +63,7 @@ void TEditValue::CentreOn(TForm* parent)
 // succesful. The data is both passed in and returned in value. This is
 // unchanged in the case when gathering fails.
 //
-bool TEditValue::Edit2(int& value, int len)
+bool Teditvalue::Edit2(int& value, int len)
 {
         AnsiString NewVal;
 
@@ -79,7 +79,7 @@ bool TEditValue::Edit2(int& value, int len)
         return Translate(EditVal->Text, value);
 }
 
-bool TEditValue::Translate(AnsiString text, int& value)
+bool Teditvalue::Translate(AnsiString text, int& value)
 {
     AnsiString result = text.Trim();
 
@@ -110,7 +110,7 @@ bool TEditValue::Translate(AnsiString text, int& value)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TEditValue::FormKeyPress(TObject *Sender, char &Key)
+void __fastcall Teditvalue::FormKeyPress(TObject *Sender, char &Key)
 {
     if (Key == VK_ESCAPE)
     {
@@ -119,7 +119,7 @@ void __fastcall TEditValue::FormKeyPress(TObject *Sender, char &Key)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TEditValue::EditValChange(TObject *Sender)
+void __fastcall Teditvalue::EditValChange(TObject *Sender)
 {
     int value;
     bool valid = Translate(EditVal->Text, value);

@@ -7,7 +7,7 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 //---------------------------------------------------------------------------
-class TEditValue : public TForm
+class Teditvalue : public TForm
 {
 __published:	// Composants gérés par l'EDI
     TLabel *Label1;
@@ -25,11 +25,11 @@ private:	// Déclarations de l'utilisateur
     AnsiString IntToDec(int value);
     int maxValue;
 public:		// Déclarations de l'utilisateur
-    __fastcall TEditValue(TComponent* Owner);
+    __fastcall Teditvalue(TComponent* Owner);
     bool Edit2(int& value, int len);
     void CentreOn(TForm* parent);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TEditValue *EditValue;
+extern PACKAGE Teditvalue *editvalue;
 //---------------------------------------------------------------------------
 #endif

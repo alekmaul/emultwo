@@ -396,8 +396,8 @@ void coleco_setpalette(int palette) {
                 cv_palette[index] = TMS9918A_palette[idxpal+index];
                 cv_palette[index+1] = TMS9918A_palette[idxpal+index+1];
                 cv_palette[index+2] = TMS9918A_palette[idxpal+index+2];
-                cv_pal32[index/3]=_mRGB32(cv_palette[index],cv_palette[index+1],cv_palette[index+2]);
         }
+        RenderCalcPalette(cv_palette);
 }
 
 //---------------------------------------------------------------------------

@@ -347,9 +347,9 @@ void CheckMouseMove(int X, int Y)
   return(Y|(X&MSE_BUTTONS));
 */
 
-        x1 = ((((j>>16)&0x0FFF)<<10)/Form1->BaseHeight-512)&0x3FFF;
-        y1 = (x1<<16)|((((j&0x0FFF)<<10)/Form1->BaseWidth-512)&0xFFFF);
-        i=y1;
+        x1 = (((x<<10)/Form1->BaseWidth-512)&0xFFFF);
+        y1 = (((y&0x0FFF)<<10)/Form1->BaseHeight-512)&0xFFFF;
+        i=x1;
 
         // Adapt to spinner
     //valSpin = (Mode&CV_SPINNER1Y? (I<<2):Mode&CV_SPINNER1X? (I<<16):0)>>16;
@@ -357,6 +357,8 @@ void CheckMouseMove(int X, int Y)
         valSpin = valSpin<-512? -512:valSpin>512? 512:valSpin;
         coleco_spinstep  = valSpin>=0? (valSpin>32? valSpin:0):(valSpin<-32? -valSpin:0);
         coleco_spinstate = valSpin>0? 0x00003000:valSpin<0? 0x00001000:0;
+
+        Form1->StatusBar1->Panels->Items[3]->Text = IntToStr(x1)+","+IntToStr(y1)+" "+IntToHex((int) coleco_spinstate,4)+" "+IntToHex((int) coleco_spinstep,4);
 }
 
 //---------------------------------------------------------------------------

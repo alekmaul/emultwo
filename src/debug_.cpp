@@ -1211,13 +1211,13 @@ void __fastcall Tdebug::Exit1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall Tdebug::ShowSymbols1Click(TObject *Sender)
 {
-    if (SymbBrows->Visible)
+    if (symbbrows->Visible)
     {
         ShowSymbols1->Caption="Show Symbols";
-        SymbBrows->Close();
+        symbbrows->Close();
         return;
     }
-    SymbBrows->Show();
+    symbbrows->Show();
     ShowSymbols1->Caption="Hide Symbols";
 }
 //---------------------------------------------------------------------------
@@ -1236,7 +1236,7 @@ void __fastcall Tdebug::LoadSymbolFile1Click(TObject *Sender)
 
         symbolstore::loadFileSymbols(Filename.c_str());
         // hmm there really should be an event here.
-        SymbBrows->RefreshContent();
+        symbbrows->RefreshContent();
     }
     catch (Exception &exception)
     {
@@ -1248,11 +1248,11 @@ void __fastcall Tdebug::LoadSymbolFile1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall Tdebug::DoEditStack(int offs)
 {
-    EditValue->CentreOn(this);
+    editvalue->CentreOn(this);
 
     int i = 2 * offs + z80.sp.w;
     int v = getbyte(i)+256*getbyte(i+1);
-    if (EditValue->Edit2(v, 2))
+    if (editvalue->Edit2(v, 2))
     {
         setbyte(i, v&255);
         setbyte(i+1, v>>8);
@@ -1413,10 +1413,10 @@ void __fastcall Tdebug::PCMouseDown(TObject *Sender, TMouseButton Button,
 
 void __fastcall Tdebug::DoEditReg(WORD& value)
 {
-        EditValue->CentreOn(this);
+        editvalue->CentreOn(this);
 
         int n = value;
-        if (EditValue->Edit2(n, 2))
+        if (editvalue->Edit2(n, 2))
         {
                 value = n;
                 UpdateVals();
@@ -1425,10 +1425,10 @@ void __fastcall Tdebug::DoEditReg(WORD& value)
 
 void __fastcall Tdebug::DoEditReg(BYTE& value)
 {
-        EditValue->CentreOn(this);
+        editvalue->CentreOn(this);
 
         int n = value;
-        if (EditValue->Edit2(n, 1))
+        if (editvalue->Edit2(n, 1))
         {
                 value = n;
                 UpdateVals();
@@ -1457,55 +1457,55 @@ void __fastcall Tdebug::SPClick(TObject *Sender)
 
 void __fastcall Tdebug::PCClick(TObject *Sender)
 {
-        DoEditReg(z80.pc.w);
+    DoEditReg(z80.pc.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::BCClick(TObject *Sender)
 {
-//    DoEditReg(z80.bc.w);
+    DoEditReg(z80.bc.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DEClick(TObject *Sender)
 {
-//    DoEditReg(z80.de.w);
+    DoEditReg(z80.de.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HLClick(TObject *Sender)
 {
-//    DoEditReg(z80.hl.w);
+    DoEditReg(z80.hl.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::BC_Click(TObject *Sender)
 {
-//    DoEditReg(z80.bc_.w);
+    DoEditReg(z80.bc_.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DE_Click(TObject *Sender)
 {
-//    DoEditReg(z80.de_.w);
+    DoEditReg(z80.de_.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HL_Click(TObject *Sender)
 {
-//    DoEditReg(z80.hl_.w);
+    DoEditReg(z80.hl_.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IXClick(TObject *Sender)
 {
-//    DoEditReg(z80.ix.w);
+    DoEditReg(z80.ix.w);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IYClick(TObject *Sender)
 {
-//    DoEditReg(z80.iy.w);
+    DoEditReg(z80.iy.w);
 }
 //---------------------------------------------------------------------------
 
@@ -1529,12 +1529,12 @@ void __fastcall Tdebug::InterruptsClick(TObject *Sender)
 
 void __fastcall Tdebug::IRClick(TObject *Sender)
 {
-    EditValue->CentreOn(this);
+    editvalue->CentreOn(this);
 
     int v;
 #if 0
     v = (z80.i << 8) | (z80.r7 & 128) | z80.r;
-    if (EditValue->Edit2(v, 2))
+    if (editvalue->Edit2(v, 2))
     {
         z80.r = v&127;
         z80.r7 = v&128;
@@ -1547,10 +1547,10 @@ void __fastcall Tdebug::IRClick(TObject *Sender)
 
 void __fastcall Tdebug::AddBrkBtnClick(TObject *Sender)
 {
-    SetBreakpoint->CentreOn(this);
+    setbreakpoint->CentreOn(this);
 
     breakpoint bp(0, BP_EXE);
-    if (SetBreakpoint->EditBreakpoint(bp))
+    if (setbreakpoint->EditBreakpoint(bp))
     {
         AddBreakPoint(bp);
     }
@@ -1577,12 +1577,12 @@ void __fastcall Tdebug::DelBrkBtnClick(TObject *Sender)
 
 void __fastcall Tdebug::EditBrkBtnClick(TObject *Sender)
 {
-    SetBreakpoint->CentreOn(this);
+    setbreakpoint->CentreOn(this);
 
     int idx = BPList->Row;
     breakpoint bp = Breakpoint[idx];
 
-    if (SetBreakpoint->EditBreakpoint(bp))
+    if (setbreakpoint->EditBreakpoint(bp))
     {
         Breakpoint[idx] = bp;
 
@@ -1939,11 +1939,11 @@ void __fastcall Tdebug::panMemClick(TObject *Sender)
 
     if (xyToAddress(cp.x-gBoxMemory->Left-panMem->Left, cp.y-gBoxMemory->Top-panMem->Top, address))
     {
-        EditValue->Top = cpm.y;//Mouse->CursorPos.y;
-        EditValue->Left = cpm.x;//Mouse->CursorPos.x;
+        editvalue->Top = cpm.y;//Mouse->CursorPos.y;
+        editvalue->Left = cpm.x;//Mouse->CursorPos.x;
 
         int n = get_memoryvalue(address);
-        if (EditValue->Edit2(n, 1))
+        if (editvalue->Edit2(n, 1))
         {
             set_memoryvalue(address,n);
             UpdateChanges();  // CR  refresh after edit
@@ -1978,14 +1978,12 @@ void __fastcall Tdebug::Refresh1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-
-
 void __fastcall Tdebug::SetAddress1Click(TObject *Sender)
 {
-    EditValue->CentreOn(this);
+    editvalue->CentreOn(this);
 
     int v = SetAddress1->Tag;
-    if (EditValue->Edit2(v, 2))
+    if (editvalue->Edit2(v, 2))
     {
         SetBaseAddress(v);
     }
@@ -2039,10 +2037,10 @@ bool Tdebug::FindMatch(int& addr, std::vector<int>& bytes)
 //---------------------------------------------------------------------------
 void Tdebug::DoSearch()
 {
-    SearchSequence->CentreOn(this);
+    searchsequence->CentreOn(this);
 
     std::vector<int> bytes;
-    bool performSearch = SearchSequence->EditSequenceBytes(mSearchText, bytes);
+    bool performSearch = searchsequence->EditSequenceBytes(mSearchText, bytes);
     if (performSearch)
     {
         if (!PerformSearch(bytes))
@@ -2130,20 +2128,20 @@ void __fastcall Tdebug::DumpMemory1Click(TObject *Sender)
         if (mSelectedAddress!=-1)
         {
                 address=mSelectedAddress;
-                DumpMem->CentreOn(this);
+                dumpmem->CentreOn(this);
                 switch (cboMemory->ItemIndex)
                 {
                         case 0 : // ROM
-                                DumpMem->Dump2(address, 0xFFFF+1,0);
+                                dumpmem->Dump2(address, 0xFFFF+1,0);
                                 break;
                         case 1 : // VRAM
-                                DumpMem->Dump2(address, 0x3FFF+1,1);
+                                dumpmem->Dump2(address, 0x3FFF+1,1);
                                 break;
                         case 2 : // RAM
-                                DumpMem->Dump2(address, 0x3FF+1,2);
+                                dumpmem->Dump2(address, 0x3FF+1,2);
                                 break;
                         case 3 : // SGM RAM
-                                DumpMem->Dump2(address, 0x7FFF+1,3);
+                                dumpmem->Dump2(address, 0x7FFF+1,3);
                                 break;
                 }
         }

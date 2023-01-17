@@ -35,6 +35,8 @@ extern void AccurateInit(int resize);
 extern void AccurateUpdateDisplay(bool singlestep);
 extern void AccurateBGDisplay(HWND hWnd, int w, int h);
 
+extern void RenderCalcPalette(unsigned char *palette);
+
 extern void RenderSaveScreenBMP(AnsiString filename);
 extern void RenderSaveScreenPNG(AnsiString filename);
 

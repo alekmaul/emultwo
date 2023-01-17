@@ -12,7 +12,8 @@
       src\adam\fdidisk.obj src\cartprofile_.obj src\nametabviewer_.obj 
       src\spriteviewer_.obj src\symbolstore.obj src\editvalue_.obj 
       src\symbbrows_.obj src\setbreakpoint_.obj src\searchsequence_.obj 
-      src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj"/>
+      src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj 
+      src\help_.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -21,7 +22,7 @@
       src\patternviewer_.dfm src\cartprofile_.dfm src\nametabviewer_.dfm 
       src\spriteviewer_.dfm src\editvalue_.dfm src\symbbrows_.dfm 
       src\setbreakpoint_.dfm src\searchsequence_.dfm src\dumpmem_.dfm 
-      src\printviewer_.dfm src\palviewer_.dfm"/>
+      src\printviewer_.dfm src\palviewer_.dfm src\help_.dfm"/>
     <LIBFILES value="libs\directdraw\ddraw.lib libs\libpngstat\libpngstat.lib 
       libs\libpngstat\zlib.lib"/>
     <LIBRARIES value="etcomp.lib AnimTimer.lib Vcl50.lib"/>

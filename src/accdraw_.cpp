@@ -39,10 +39,10 @@
 
 #pragma package(smart_init)
 
-#define NoWinT  32
-#define NoWinB  (NoWinT+192/*240*/)
-#define NoWinL  42
-#define NoWinR  (NoWinL+256/*320*/)
+#define NoWinT  0  /*32*/
+#define NoWinB  (NoWinT+TVH/*240*/)
+#define NoWinL  0 /*42*/
+#define NoWinR  (NoWinL+TVW/*320*/)
 
 int WinR=NoWinR;
 int WinL=NoWinL;
@@ -53,24 +53,17 @@ Graphics::TBitmap *GDIFrame;
 
 TRect rcsource, rcdest;
 
-/* NOT WORKING ON WINDOWS 11
+/* DirectDraw NOT WORKING ON WINDOWS 11    */
 
-#if 0
-LPDIRECTDRAW        m_pDD=NULL;              // DirectDraw object
-LPDIRECTDRAWSURFACE m_pddsFrontBuffer=NULL;  // DirectDraw primary surface
-LPDIRECTDRAWSURFACE m_pddsFrame=NULL;        // DirectDraw back surface
-LPDIRECTDRAWSURFACE DDFrame;
-DDSURFACEDESC       DDFrameSurface;
-#else
 LPDIRECTDRAW7        m_pDD=NULL;              // DirectDraw object
 LPDIRECTDRAWSURFACE7 m_pddsFrontBuffer=NULL;  // DirectDraw primary surface
 LPDIRECTDRAWSURFACE7 m_pddsFrame=NULL;        // DirectDraw back surface
 LPDIRECTDRAWSURFACE7 DDFrame;
 DDSURFACEDESC2       DDFrameSurface;
-#endif
 
 LPDIRECTDRAWCLIPPER pcClipper=NULL;          // Clipper for windowed mode
 HWND                hWnd;                     // Handle of window
+
 int BPP,Paletteised;
 
 // -----------------------------------------------------------------------------
@@ -114,24 +107,15 @@ int DDInit(void)
     hWnd = Form1->Handle;
 
     DDEnd();
-#if 0
-    hRet = DirectDrawCreate(NULL,&m_pDD,NULL);
-    if(DDError(hRet != DD_OK,"DDCreate")) return(false);
-#else
     hRet = DirectDrawCreateEx(NULL, (VOID**)&m_pDD, IID_IDirectDraw7, NULL);
     if(DDError(hRet != DD_OK,"DDCreateEX")) return(false);
-#endif
 
     hRet = m_pDD->SetCooperativeLevel(hWnd, DDSCL_NORMAL);
     if(DDError(hRet != DD_OK,"DDSetCoop")) return(false);
 
     HRESULT hr;
 
-#if 0
-    DDSURFACEDESC ddsd;
-#else
     DDSURFACEDESC2 ddsd;
-#endif
     ZeroMemory( &ddsd, sizeof( ddsd ) );
     ddsd.dwSize = sizeof( ddsd );
     ddsd.dwFlags = DDSD_CAPS;
@@ -178,11 +162,7 @@ int DDInit(void)
 void DDAccurateInit(int resize)
 {
     DDPIXELFORMAT DDpf;
-#if 0
-    DDSURFACEDESC ddsd;
-#else
     DDSURFACEDESC2 ddsd;
-#endif
 
     float OrigW, OrigH, ScaleW, ScaleH;
 
@@ -237,11 +217,7 @@ void DDAccurateInit(int resize)
 
     ZeroMemory(&DDFrameSurface, sizeof(DDFrameSurface));
     DDFrameSurface.dwSize = sizeof(DDFrameSurface);
-#if 0
-    DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT, NULL);
-#else
     DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
-#endif
 
     for (int i=0;i<TVH;i++)
         cv_screen[i]=(unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4;
@@ -284,13 +260,30 @@ void DDAccurateUpdateDisplay(bool singlestep)
         }
         else if(hRet != DDERR_WASSTILLDRAWING) return;
     }
-#if 0
-        DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT, NULL);
-#else
         DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
-#endif
 }
-*/
+
+int DDGetMaskInfo (DWORD Bitmask, int* lpShift)
+{
+    int Precision, Shift;
+
+    Precision = Shift = 0;
+    //count the zeros on right hand side
+    while (!(Bitmask & 0x01L))
+    {
+        Bitmask >>= 1;
+        Shift++;
+    }
+
+    //count the ones on right hand side
+    while (Bitmask & 0x01L)
+    {
+        Bitmask >>= 1;
+        Precision++;
+    }
+    *lpShift = Shift;
+    return Precision;
+}
 
 // -----------------------------------------------------------------------------
 // GDI Functions
@@ -384,10 +377,8 @@ void RecalcWinSize(void)
 
 int RenderInit(void)
 {
-#if 0
     if (Form1->RenderMode==RENDERDDRAW)
         return(DDInit());
-#endif
     return(1);
 }
 
@@ -398,28 +389,71 @@ void RenderEnd(void)
         delete GDIFrame;
         GDIFrame=NULL;
     }
-#if 0
     DDEnd();
-#endif
 }
 
+void RenderCalcPalette(unsigned char *palette)
+{
+    int rsz, gsz, bsz; 	//bitsize of field
+    int rsh, gsh, bsh;	//0’s on left (the shift value)
+    DWORD CompiledPixel;
+    int i,r,g,b;
+
+    if (Form1->RenderMode==RENDERDDRAW)
+    {
+        DDPIXELFORMAT DDpf;
+        ZeroMemory (&DDpf, sizeof(DDpf));
+        DDpf.dwSize = sizeof(DDpf);
+        m_pddsFrontBuffer->GetPixelFormat(&DDpf);
+
+        rsz = DDGetMaskInfo (DDpf.dwRBitMask, &rsh);
+        gsz = DDGetMaskInfo (DDpf.dwGBitMask, &gsh);
+        bsz = DDGetMaskInfo (DDpf.dwBBitMask, &bsh);
+    }
+    else
+    {
+        rsz=5;
+        gsz=6;
+        bsz=5;
+        rsh=11;
+        gsh=5;
+        bsh=0;
+    }
+
+    for(i=0;i<16*3;i+=3)
+    {
+        r=palette[i];
+        g=palette[i+1];
+        b=palette[i+2];
+
+#if 1
+        cv_pal32[i/3]=(DWORD) ( (r<<16) | (g<<8) | (b));
+#else
+        r >>= (8-rsz);	//keep only the MSB bits of component
+        g >>= (8-gsz);
+        b >>= (8-bsz);
+        r <<= rsh;	//SHIFT THEM INTO PLACE
+        g <<= gsh;
+        b <<= bsh;
+
+        CompiledPixel = (DWORD)(r | g | b);
+        cv_pal32[i/3]=CompiledPixel;
+#endif
+    }
+}
 void AccurateInit(int resize)
 {
-#if 0
         if (Form1->RenderMode==RENDERDDRAW)
             DDAccurateInit(resize);
         else
-#endif
             GDIAccurateInit(resize);
 }
 
 void AccurateUpdateDisplay(bool singlestep)
 {
-#if 0
     if (Form1->RenderMode==RENDERDDRAW)
         DDAccurateUpdateDisplay(singlestep);
     else
-#endif
         GDIAccurateUpdateDisplay(singlestep);
 }
 
@@ -524,7 +558,6 @@ void RenderSaveScreenBMP(AnsiString filename)
 
     for(i=h-1;i>=0;i--)
     {
-#if 0
         if (Form1->RenderMode==RENDERDDRAW) {
           unsigned int *pixel = (unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4;
           for(j=0;j<w;j++)
@@ -539,7 +572,6 @@ void RenderSaveScreenBMP(AnsiString filename)
           }
         }
         else {
-#endif
             unsigned int *pixel = (unsigned int *) GDIFrame->ScanLine[i];
             for(j=0;j<w;j++) {
               int val = *pixel++;
@@ -550,9 +582,7 @@ void RenderSaveScreenBMP(AnsiString filename)
               fwrite(&g, 1,1, f);
               fwrite(&r, 1,1, f);
             }
-#if 0
         }
-#endif
         for(k=0;k<pad;k++) fwrite("\0", 1,1, f);
     }
     fclose(f);
@@ -570,7 +600,6 @@ void RenderSaveScreenPNG(AnsiString filename)
 
         try
         {
-#if 0
                 if (Form1->RenderMode==RENDERDDRAW)
                 {
                         StretchBlt(bmp->Canvas->Handle, 0,0, TVW, TVH,
@@ -578,17 +607,14 @@ void RenderSaveScreenPNG(AnsiString filename)
                 }
                 else
                 {
-#endif
                         StretchBlt(bmp->Canvas->Handle, 0,0, TVW, TVH,
                                 GDIFrame->Canvas->Handle, 0, 0, TVW,TVH,SRCCOPY);
-#if 0
                 }
-#endif
                 ImageToPNG( filename, bmp);
         }
         __finally
         {
-                delete bmp; 
+                delete bmp;
         }
 
 }

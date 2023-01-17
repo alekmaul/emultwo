@@ -51,14 +51,15 @@ USEFORM("src\spriteviewer_.cpp", spriteviewer);
 USELIB("libs\libpngstat\libpngstat.lib");
 USELIB("libs\libpngstat\zlib.lib");
 USEUNIT("src\symbolstore.cpp");
-USEFORM("src\editvalue_.cpp", EditValue);
-USEFORM("src\symbbrows_.cpp", SymbBrows);
-USEFORM("src\setbreakpoint_.cpp", SetBreakpoint);
-USEFORM("src\searchsequence_.cpp", SearchSequence);
-USEFORM("src\dumpmem_.cpp", DumpMem);
+USEFORM("src\editvalue_.cpp", editvalue);
+USEFORM("src\symbbrows_.cpp", symbbrows);
+USEFORM("src\setbreakpoint_.cpp", setbreakpoint);
+USEFORM("src\searchsequence_.cpp", searchsequence);
+USEFORM("src\dumpmem_.cpp", dumpmem);
 USEFORM("src\printviewer_.cpp", printviewer);
 USEUNIT("src\accsound_.c");
 USEFORM("src\palviewer_.cpp", paletteviewer);
+USEFORM("src\help_.cpp", fHelp);
 //---------------------------------------------------------------------------
 #include "main_.h"
 
@@ -125,7 +126,8 @@ WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
 
                 Application->Initialize();
                 Application->Title = "Emul Two";
-                #include "allformsImpl.cpp"
+                Application->CreateForm(__classid(TfHelp), &fHelp);
+         #include "allformsImpl.cpp"
 
                 Application->ProcessMessages();
 

@@ -8,7 +8,7 @@
 #include <Forms.hpp>
 #include <vector>
 //---------------------------------------------------------------------------
-class TSearchSequence : public TForm
+class Tsearchsequence : public TForm
 {
 __published:	// Composants gérés par l'EDI
     TLabel *Label1;
@@ -21,12 +21,12 @@ __published:	// Composants gérés par l'EDI
 private:	// Déclarations de l'utilisateur
     bool cancelled;
 public:		// Déclarations de l'utilisateur
-    __fastcall TSearchSequence(TComponent* Owner);
+    __fastcall Tsearchsequence(TComponent* Owner);
     void CentreOn(TForm* parent);
     bool EditSequenceBytes(AnsiString& searchText, std::vector<int>& bytes);
     bool ValidateSearchSequence(std::vector<int>& bytes);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TSearchSequence *SearchSequence;
+extern PACKAGE Tsearchsequence *searchsequence;
 //---------------------------------------------------------------------------
 #endif

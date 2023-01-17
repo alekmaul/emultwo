@@ -58,7 +58,14 @@ void Tprintviewer::SaveSettings(TIniFile *ini)
 //---------------------------------------------------------------------------
 void Tprintviewer::SendPrint(byte Data)
 {
-        printdump->Text = printdump->Text+"0x"+IntToHex(Data,2)+",";
+    if (Data>=0x20) // acsii SPACE minimum
+    {
+        printdump->Text = printdump->Text+Data;
+    }
+    else
+    {
+        printdump->Text = printdump->Text + " $"+IntToHex(Data,2);
+    }
 }
 //---------------------------------------------------------------------------
 

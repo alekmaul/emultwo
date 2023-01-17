@@ -9,7 +9,7 @@
 #include "debug_.h"
 
 //---------------------------------------------------------------------------
-class TSetBreakpoint : public TForm
+class Tsetbreakpoint : public TForm
 {
 __published:	// Composants gérés par l'EDI
     TLabel *LabelBreakAddress;
@@ -57,12 +57,12 @@ private:	// Déclarations de l'utilisateur
     void SetEditBox(TEdit* const editBox, AnsiString defaultText);
     void SetEditBoxLabels(AnsiString breakAddressLabel, AnsiString breakValueLabel);
 public:		// Déclarations de l'utilisateur
-    __fastcall TSetBreakpoint(TComponent* Owner);
+    __fastcall Tsetbreakpoint(TComponent* Owner);
     void SetTitle(AnsiString& title);
     bool EditBreakpoint(struct breakpoint& bp);
     void CentreOn(TForm* parent);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TSetBreakpoint *SetBreakpoint;
+extern PACKAGE Tsetbreakpoint *setbreakpoint;
 //---------------------------------------------------------------------------
 #endif

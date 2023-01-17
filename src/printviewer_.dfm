@@ -18506,10 +18506,6 @@ object printviewer: Tprintviewer
     Font.Height = -11
     Font.Name = 'Courier New'
     Font.Style = []
-    Lines.Strings = (
-      
-        '0123456789012345678901234567890123456789012345678901234567890123' +
-        '4567890123456789')
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical

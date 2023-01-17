@@ -35,14 +35,14 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TSetBreakpoint *SetBreakpoint;
+Tsetbreakpoint *setbreakpoint;
 //---------------------------------------------------------------------------
-__fastcall TSetBreakpoint::TSetBreakpoint(TComponent* Owner)
+__fastcall Tsetbreakpoint::Tsetbreakpoint(TComponent* Owner)
     : TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::FormKeyPress(TObject *Sender, char &Key)
+void __fastcall Tsetbreakpoint::FormKeyPress(TObject *Sender, char &Key)
 {
     if (Key == VK_ESCAPE)
     {
@@ -53,7 +53,7 @@ void __fastcall TSetBreakpoint::FormKeyPress(TObject *Sender, char &Key)
 
 //---------------------------------------------------------------------------
 
-void TSetBreakpoint::CentreOn(TForm* parent)
+void Tsetbreakpoint::CentreOn(TForm* parent)
 {
         Top = parent->Top + (parent->Height - Height) /2;
         Left = parent->Left + (parent->Width - Width) /2;
@@ -61,7 +61,7 @@ void TSetBreakpoint::CentreOn(TForm* parent)
 
 //---------------------------------------------------------------------------
 
-bool TSetBreakpoint::EditBreakpoint(struct breakpoint& bp)
+bool Tsetbreakpoint::EditBreakpoint(struct breakpoint& bp)
 {
         ConfigureBreakpointFields(bp);
 
@@ -197,7 +197,7 @@ bool SanitiseEditBox(String addressValue, int& addr, int minValue, int maxValue,
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::RegisterListChange(TObject *Sender)
+void __fastcall Tsetbreakpoint::RegisterListChange(TObject *Sender)
 {
     int maxDigits = GetBreakValueMaxDigits((BreakpointType)BreakType->ItemIndex, (BreakpointCondition)BreakConditionAddr->ItemIndex, (RegisterType)RegisterList->ItemIndex);
     if ((BreakValue->MaxLength - 1) > maxDigits)
@@ -210,18 +210,18 @@ void __fastcall TSetBreakpoint::RegisterListChange(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::OKClick(TObject *Sender)
+void __fastcall Tsetbreakpoint::OKClick(TObject *Sender)
 {
     cancelled = false;
     Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::CancelClick(TObject *Sender)
+void __fastcall Tsetbreakpoint::CancelClick(TObject *Sender)
 {
     Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::BreakAddressChange(TObject *Sender)
+void __fastcall Tsetbreakpoint::BreakAddressChange(TObject *Sender)
 {
     ValidateBreakAddress();
 
@@ -237,7 +237,7 @@ void __fastcall TSetBreakpoint::BreakAddressChange(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::BreakValueChange(TObject *Sender)
+void __fastcall Tsetbreakpoint::BreakValueChange(TObject *Sender)
 {
     ValidateBreakValue();
 }
@@ -250,7 +250,7 @@ bool SymbolLookUpRequired(int breakType)
                 (breakType != BP_OUTL) && (breakType != BP_OUTH));
 }
 
-bool TSetBreakpoint::GetBreakpointFields(struct breakpoint& bp)
+bool Tsetbreakpoint::GetBreakpointFields(struct breakpoint& bp)
 {
         AnsiString breakAddress;
         AnsiString breakValue;
@@ -309,7 +309,7 @@ bool TSetBreakpoint::GetBreakpointFields(struct breakpoint& bp)
 
 //---------------------------------------------------------------------------
 
-void TSetBreakpoint::ValidateBreakAddress()
+void Tsetbreakpoint::ValidateBreakAddress()
 {
         int lowerLimit;
         int upperLimit;
@@ -324,7 +324,7 @@ void TSetBreakpoint::ValidateBreakAddress()
 }
 //---------------------------------------------------------------------------
 
-void TSetBreakpoint::ValidateBreakValue()
+void Tsetbreakpoint::ValidateBreakValue()
 {
         int lowerLimit;
         int upperLimit;
@@ -356,7 +356,7 @@ void TSetBreakpoint::ValidateBreakValue()
 }
 //---------------------------------------------------------------------------
 
-int TSetBreakpoint::GetBreakAddressMaxDigits(BreakpointType type)
+int Tsetbreakpoint::GetBreakAddressMaxDigits(BreakpointType type)
 {
         int limit;
 
@@ -378,7 +378,7 @@ int TSetBreakpoint::GetBreakAddressMaxDigits(BreakpointType type)
 }
 //---------------------------------------------------------------------------
 
-int TSetBreakpoint::GetBreakValueMaxDigits(BreakpointType type, BreakpointCondition condition, RegisterType registerIndex)
+int Tsetbreakpoint::GetBreakValueMaxDigits(BreakpointType type, BreakpointCondition condition, RegisterType registerIndex)
 {
         int limit;
 
@@ -437,13 +437,13 @@ int TSetBreakpoint::GetBreakValueMaxDigits(BreakpointType type, BreakpointCondit
 }
 //---------------------------------------------------------------------------
 
-bool TSetBreakpoint::Register16Bit(RegisterType registerIndex)
+bool Tsetbreakpoint::Register16Bit(RegisterType registerIndex)
 {
         return (registerIndex < RegA);
 }
 //---------------------------------------------------------------------------
 
-void TSetBreakpoint::GetBreakAddressLimits(BreakpointType type, int& lowerLimit, int& upperLimit)
+void Tsetbreakpoint::GetBreakAddressLimits(BreakpointType type, int& lowerLimit, int& upperLimit)
 {
         lowerLimit = 0;
 
@@ -464,7 +464,7 @@ void TSetBreakpoint::GetBreakAddressLimits(BreakpointType type, int& lowerLimit,
 
 //---------------------------------------------------------------------------
 
-void TSetBreakpoint::GetBreakValueLimits(BreakpointType type, BreakpointCondition condition, RegisterType registerIndex, int& lowerLimit, int& upperLimit)
+void Tsetbreakpoint::GetBreakValueLimits(BreakpointType type, BreakpointCondition condition, RegisterType registerIndex, int& lowerLimit, int& upperLimit)
 {
         lowerLimit = 0;
         
@@ -517,14 +517,14 @@ void TSetBreakpoint::GetBreakValueLimits(BreakpointType type, BreakpointConditio
         }
 }
 //---------------------------------------------------------------------------
-void TSetBreakpoint::EnableOkButton()
+void Tsetbreakpoint::EnableOkButton()
 {
         OK->Enabled = (BreakAddress->Font->Color == clWindowText) && (BreakValue->Font->Color == clWindowText);
 }
 
 //---------------------------------------------------------------------------
 
-void __fastcall TSetBreakpoint::BreakConditionAddrChange(TObject *Sender)
+void __fastcall Tsetbreakpoint::BreakConditionAddrChange(TObject *Sender)
 {
     BreakConditionValue->ItemIndex = 0;
     BreakValue->Enabled = true;
@@ -595,7 +595,7 @@ void __fastcall TSetBreakpoint::BreakConditionAddrChange(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TSetBreakpoint::BreakTypeChange(TObject *Sender)
+void __fastcall Tsetbreakpoint::BreakTypeChange(TObject *Sender)
 {
     RegisterList->Visible = false;
     FlagList->Visible = false;
@@ -642,7 +642,7 @@ void __fastcall TSetBreakpoint::BreakTypeChange(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void TSetBreakpoint::SetConditionList(TComboBox* const conditionList, AnsiString conditions)
+void Tsetbreakpoint::SetConditionList(TComboBox* const conditionList, AnsiString conditions)
 {
         conditionList->Items->Clear();
 
@@ -666,7 +666,7 @@ void TSetBreakpoint::SetConditionList(TComboBox* const conditionList, AnsiString
         conditionList->Enabled = (conditionList->Items->Count > 1);
 }
 
-void TSetBreakpoint::SetEditBox(TEdit* const editBox, AnsiString defaultText)
+void Tsetbreakpoint::SetEditBox(TEdit* const editBox, AnsiString defaultText)
 {
         editBox->MaxLength = defaultText.Length();
         editBox->Text = defaultText.Trim();
@@ -674,7 +674,7 @@ void TSetBreakpoint::SetEditBox(TEdit* const editBox, AnsiString defaultText)
         editBox->Enabled = true;
 }
 
-void TSetBreakpoint::BreakTypeChangeExe()
+void Tsetbreakpoint::BreakTypeChangeExe()
 {
         SetConditionList(BreakConditionAddr, "=,<>,<=,>=,->");
         SetEditBox(BreakAddress, "$0000");
@@ -683,7 +683,7 @@ void TSetBreakpoint::BreakTypeChangeExe()
         BreakValue->Enabled = false;
 }
 
-void TSetBreakpoint::BreakTypeChangeRdWrInOut()
+void Tsetbreakpoint::BreakTypeChangeRdWrInOut()
 {
         SetConditionList(BreakConditionAddr, "=,<>,<=,>=,->");
         SetEditBox(BreakAddress, "$0000");
@@ -692,7 +692,7 @@ void TSetBreakpoint::BreakTypeChangeRdWrInOut()
         SetEditBox(BreakValue, "$00");
 }
 
-void TSetBreakpoint::BreakTypeChangeInOutByte()
+void Tsetbreakpoint::BreakTypeChangeInOutByte()
 {
         SetConditionList(BreakConditionAddr, "=,<>,<=,>=");
         SetEditBox(BreakAddress, "$00");
@@ -701,7 +701,7 @@ void TSetBreakpoint::BreakTypeChangeInOutByte()
         SetEditBox(BreakValue, "$00");
 }
 
-void TSetBreakpoint::BreakTypeChangeMem()
+void Tsetbreakpoint::BreakTypeChangeMem()
 {
         SetConditionList(BreakConditionAddr, "=");
         SetEditBox(BreakAddress, "$0000");
@@ -709,7 +709,7 @@ void TSetBreakpoint::BreakTypeChangeMem()
         SetEditBox(BreakValue, "$00");
 }
 
-void TSetBreakpoint::BreakTypeChangeRegister()
+void Tsetbreakpoint::BreakTypeChangeRegister()
 {
         SetConditionList(BreakConditionAddr, "=");
         RegisterList->ItemIndex = RegBC;
@@ -718,7 +718,7 @@ void TSetBreakpoint::BreakTypeChangeRegister()
         SetEditBox(BreakValue, "$0000");
 }
 
-void TSetBreakpoint::BreakTypeChangeFlag()
+void Tsetbreakpoint::BreakTypeChangeFlag()
 {
         SetConditionList(BreakConditionAddr, "=");
         FlagList->ItemIndex = Carry;
@@ -727,7 +727,7 @@ void TSetBreakpoint::BreakTypeChangeFlag()
         SetEditBox(BreakValue, "0");
 }
 
-void TSetBreakpoint::BreakTypeChangeTStates()
+void Tsetbreakpoint::BreakTypeChangeTStates()
 {
         SetConditionList(BreakConditionAddr, "=");
         SetEditBox(BreakAddress, "$0000");
@@ -735,7 +735,7 @@ void TSetBreakpoint::BreakTypeChangeTStates()
         SetEditBox(BreakValue, "0    ");
 }
 
-void TSetBreakpoint::ConfigureBreakpointFields(struct breakpoint& bp)
+void Tsetbreakpoint::ConfigureBreakpointFields(struct breakpoint& bp)
 {
         BreakType->ItemIndex = bp.Type;
         BreakTypeChange(NULL);
@@ -793,7 +793,7 @@ void TSetBreakpoint::ConfigureBreakpointFields(struct breakpoint& bp)
 
 //---------------------------------------------------------------------------
 
-void TSetBreakpoint::SetEditBoxLabels(AnsiString breakAddressLabel, AnsiString breakValueLabel)
+void Tsetbreakpoint::SetEditBoxLabels(AnsiString breakAddressLabel, AnsiString breakValueLabel)
 {
         LabelBreakAddress->Caption = breakAddressLabel + ":";
         LabelBreakValue->Caption = breakValueLabel + ":";

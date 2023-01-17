@@ -34,20 +34,20 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TSearchSequence *SearchSequence;
+Tsearchsequence *searchsequence;
 //---------------------------------------------------------------------------
-__fastcall TSearchSequence::TSearchSequence(TComponent* Owner)
+__fastcall Tsearchsequence::Tsearchsequence(TComponent* Owner)
     : TForm(Owner)
 {
 }
 //---------------------------------------------------------------------------
-void TSearchSequence::CentreOn(TForm* parent)
+void Tsearchsequence::CentreOn(TForm* parent)
 {
         Top = parent->Top + (parent->Height - Height) /2;
         Left = parent->Left + (parent->Width - Width) /2;
 }
 //---------------------------------------------------------------------------
-void __fastcall TSearchSequence::FormKeyPress(TObject *Sender, char &Key)
+void __fastcall Tsearchsequence::FormKeyPress(TObject *Sender, char &Key)
 {
     if (Key == VK_ESCAPE)
     {
@@ -56,19 +56,19 @@ void __fastcall TSearchSequence::FormKeyPress(TObject *Sender, char &Key)
     }
 }
 //---------------------------------------------------------------------------
-void __fastcall TSearchSequence::CancelClick(TObject *Sender)
+void __fastcall Tsearchsequence::CancelClick(TObject *Sender)
 {
     cancelled=true;
     Close();
 }
 //---------------------------------------------------------------------------
-void __fastcall TSearchSequence::FindClick(TObject *Sender)
+void __fastcall Tsearchsequence::FindClick(TObject *Sender)
 {
     Close();
 }
 
 //---------------------------------------------------------------------------
-bool TSearchSequence::EditSequenceBytes(AnsiString& searchText, std::vector<int>& bytes)
+bool Tsearchsequence::EditSequenceBytes(AnsiString& searchText, std::vector<int>& bytes)
 {
     cancelled=false;
 
@@ -89,7 +89,7 @@ bool TSearchSequence::EditSequenceBytes(AnsiString& searchText, std::vector<int>
     return ValidateSearchSequence(bytes);
 }
 
-bool TSearchSequence::ValidateSearchSequence(std::vector<int>& bytes)
+bool Tsearchsequence::ValidateSearchSequence(std::vector<int>& bytes)
 {
     AnsiString sequenceValue = EditSequence->Text.Trim();
 

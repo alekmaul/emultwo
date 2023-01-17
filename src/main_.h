@@ -154,6 +154,7 @@ __published:	// IDE-managed Components
           int X, int Y);
     void __fastcall PaletteViewer1Click(TObject *Sender);
     void __fastcall Content1Click(TObject *Sender);
+    void __fastcall JoystickEditor1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;

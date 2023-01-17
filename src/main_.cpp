@@ -38,7 +38,8 @@
 #include "cartprofile_.h"
 #include "debug_.h"
 #include "hardware_.h"
-
+#include "help_.h"
+#include "joyconf_.h"
 
 #include "nametabviewer_.h"
 #include "patternviewer_.h"
@@ -156,7 +157,13 @@ void __fastcall TForm1::Exit1Click(TObject *Sender)
 
 void __fastcall TForm1::About1Click(TObject *Sender)
 {
-        about->ShowModal();
+    int stopped=coleco.stop;
+
+    coleco.stop=1;
+    SoundSuspend();
+    about->ShowModal();
+    SoundResume();
+    coleco.stop=stopped;
 }
 //---------------------------------------------------------------------------
 
@@ -352,6 +359,7 @@ void TForm1::SaveSettings(TIniFile *ini)
         paletteviewer->SaveSettings(ini);
         printviewer->SaveSettings(ini);
         debug->SaveSettings(ini);
+        joyconf->SaveSettings(ini);
 }
 //---------------------------------------------------------------------------
 void TForm1::UpdateStatusBar(void)
@@ -526,10 +534,16 @@ void __fastcall TForm1::OVS3xClick(TObject *Sender)
 
 void __fastcall TForm1::Emulation1Click(TObject *Sender)
 {
-        hardware->ShowModal();
+    int stopped=coleco.stop;
 
-        // Refresh StatusBar if needed
-        UpdateStatusBar();
+    coleco.stop=1;
+    SoundSuspend();
+    hardware->ShowModal();
+    SoundResume();
+    coleco.stop=stopped;
+
+    // Refresh StatusBar if needed
+    UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
@@ -1037,27 +1051,37 @@ void __fastcall TForm1::Chatwithcommunity1Click(TObject *Sender)
 {
         ShellExecute(NULL, "open", "https://discord.gg/2qxH6FAgzW", "", NULL, SW_RESTORE);
 }
-
+//---------------------------------------------------------------------------
 
 void __fastcall TForm1::FormMouseMove(TObject *Sender, TShiftState Shift,
       int X, int Y)
 {
-        CheckMouseMove(X,Y);    
+        CheckMouseMove(X,Y);
 }
-
 //---------------------------------------------------------------------------
-
 
 void __fastcall TForm1::Content1Click(TObject *Sender)
 {
     if (help->Visible)
     {
-        help->Show();
+        help->Close();
     }
     else
     {
-        help->Close();
+        help->Show();
     }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::JoystickEditor1Click(TObject *Sender)
+{
+    int stopped=coleco.stop;
+
+    coleco.stop=1;
+    SoundSuspend();
+    joyconf->ShowModal();
+    SoundResume();
+    coleco.stop=stopped;
 }
 //---------------------------------------------------------------------------
 

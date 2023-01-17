@@ -429,6 +429,7 @@ object Form1: TForm1
       Caption = 'Tools'
       object JoystickEditor1: TMenuItem
         Caption = 'Joystick Editor'
+        OnClick = JoystickEditor1Click
       end
       object N6: TMenuItem
         Caption = '-'

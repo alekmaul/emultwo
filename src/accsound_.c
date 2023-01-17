@@ -158,8 +158,6 @@ int DSinit( int clock_rate , int ticks_per_frame )
         }
 
         // set normal cooperative level
-//        if ( DSError( (IDirectSound_SetCooperativeLevel( lpDS, GetDesktopWindow(),DSSCL_NORMAL ) != DS_OK )
-//                , "Couldn't set DirectSound cooperation level." ) ) {
         result = IDirectSound_SetCooperativeLevel(dxs.directSound, GetDesktopWindow(), DSSCL_EXCLUSIVE); // NORMAL or DSSCL_EXCLUSIVE
         if ( result != DS_OK )
         {
@@ -170,12 +168,13 @@ int DSinit( int clock_rate , int ticks_per_frame )
         memset(&capabilities, 0, sizeof(DSCAPS));
         capabilities.dwSize = sizeof(DSCAPS);
         IDirectSound_GetCaps(dxs.directSound, &capabilities);
-        if ((capabilities.dwFlags & DSCAPS_PRIMARY16BIT) || (capabilities.dwFlags & DSCAPS_SECONDARY16BIT)) {
+/*        if ((capabilities.dwFlags & DSCAPS_PRIMARY16BIT) || (capabilities.dwFlags & DSCAPS_SECONDARY16BIT)) {
                 dxs.bytesPerSample = 2;
         }
         else {
+        */
                 dxs.bytesPerSample = 1;
-        }
+//        }
 
         memset(&pcmwf, 0, sizeof(PCMWAVEFORMAT));
         pcmwf.wf.wFormatTag = WAVE_FORMAT_PCM;

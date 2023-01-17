@@ -1,6 +1,6 @@
 object cartprofile: Tcartprofile
-  Left = 687
-  Top = 148
+  Left = 518
+  Top = 190
   BorderIcons = [biSystemMenu]
   BorderStyle = bsToolWindow
   Caption = 'E.mul T.wo Cartridge Info'

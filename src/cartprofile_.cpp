@@ -279,9 +279,7 @@ void __fastcall Tcartprofile::ShowBanks(void)
         BYTE *romentry;
         int maxx,maxy,off,hgt;
 
-//	int j,k,n,prg,chr,mapper,,off1,fill,hgt,len,prev,max,,tf,bf;
-
-	if (coleco.romCartridge == ROMCARTRIDGENONE)
+    if (coleco.romCartridge == ROMCARTRIDGENONE)
 	{
                 ImageBanks->Canvas->TextOut(10,10,"No rom cartridge");
 		return;

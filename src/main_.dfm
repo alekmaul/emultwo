@@ -524,7 +524,7 @@ object Form1: TForm1
     object MenuItem4: TMenuItem
       Caption = 'Help'
       object Content1: TMenuItem
-        Caption = 'Content'
+        Caption = 'Online Wiki'
         OnClick = Content1Click
       end
       object Reportabug1: TMenuItem

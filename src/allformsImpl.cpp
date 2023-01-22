@@ -6,7 +6,6 @@
     Application->CreateForm(__classid(Tdumpmem),&dumpmem);
     Application->CreateForm(__classid(Tdumpmem), &dumpmem);
     Application->CreateForm(__classid(Teditvalue), &editvalue);
-    Application->CreateForm(__classid(Thelp), &help);
     Application->CreateForm(__classid(Tiomapviewer), &iomapviewer);
     Application->CreateForm(__classid(Tjoyconf), &joyconf);
     Application->CreateForm(__classid(Tnametabviewer), &nametabviewer);

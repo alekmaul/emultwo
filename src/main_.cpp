@@ -38,7 +38,6 @@
 #include "cartprofile_.h"
 #include "debug_.h"
 #include "hardware_.h"
-#include "help_.h"
 #include "joyconf_.h"
 
 #include "ioviewer_.h"
@@ -1086,7 +1085,7 @@ void __fastcall TForm1::FormMouseMove(TObject *Sender, TShiftState Shift,
 
 void __fastcall TForm1::Content1Click(TObject *Sender)
 {
-    ShellExecute(NULL, "open", "https://github.com/alekmaul/emultwo/issues", "", NULL, SW_RESTORE);
+    ShellExecute(NULL, "open", "https://github.com/alekmaul/pvcollib/wiki/Complete-Colecovision-Specs", "", NULL, SW_RESTORE);
 }
 //---------------------------------------------------------------------------
 

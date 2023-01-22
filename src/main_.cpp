@@ -41,6 +41,8 @@
 #include "help_.h"
 #include "joyconf_.h"
 
+#include "ioviewer_.h"
+#include "soundviewer_.h"
 #include "nametabviewer_.h"
 #include "patternviewer_.h"
 #include "spriteviewer_.h"
@@ -69,18 +71,18 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         char path[256];
         int i;
 
-        strcpy(coleco.cwd, (FileNameGetPath(Application->ExeName)).c_str());
-        if (coleco.cwd[strlen(coleco.cwd)-1]!='\\')
+        strcpy(emul2.cwd, (FileNameGetPath(Application->ExeName)).c_str());
+        if (emul2.cwd[strlen(emul2.cwd)-1]!='\\')
         {
-            coleco.cwd[strlen(coleco.cwd)-1]='\\';
-            coleco.cwd[strlen(coleco.cwd)]='\0';
+            emul2.cwd[strlen(emul2.cwd)-1]='\\';
+            emul2.cwd[strlen(emul2.cwd)]='\0';
         }
 
         IniPath=ChangeFileExt(Application->ExeName, ".ini" );
-        strcpy(coleco.inipath, IniPath.c_str());
+        strcpy(emul2.inipath, IniPath.c_str());
         IniPath=FileNameGetPath(Application->ExeName);
-        strcpy(coleco.configpath, IniPath.c_str());
-        strcpy(coleco.mydocs, coleco.cwd);
+        strcpy(emul2.configpath, IniPath.c_str());
+        strcpy(emul2.mydocs, emul2.cwd);
 
         for(i=0; CommandLine[i]!=NULL; i++)
         {
@@ -88,8 +90,8 @@ __fastcall TForm1::TForm1(TComponent* Owner)
             {
                 IniPath=CommandLine[i];
                 if (IniPath.Pos("\\")==0)
-                    IniPath=coleco.configpath + IniPath;
-                strcpy(coleco.inipath, IniPath.c_str());
+                    IniPath=emul2.configpath + IniPath;
+                strcpy(emul2.inipath, IniPath.c_str());
             }
         }
 
@@ -157,13 +159,13 @@ void __fastcall TForm1::Exit1Click(TObject *Sender)
 
 void __fastcall TForm1::About1Click(TObject *Sender)
 {
-    int stopped=coleco.stop;
+    int stopped=emul2.stop;
 
-    coleco.stop=1;
+    emul2.stop=1;
     SoundSuspend();
     about->ShowModal();
     SoundResume();
-    coleco.stop=stopped;
+    emul2.stop=stopped;
 }
 //---------------------------------------------------------------------------
 
@@ -181,7 +183,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 
         // stop properly the current machine
         if (machine.exit) machine.exit();
-        coleco.stop=1;
+        emul2.stop=1;
 
         AnimTimer1->Enabled=false;
 
@@ -190,7 +192,7 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
         for(J=0;J<MAX_TAPES;++J) EjectFDI(&Tapes[J]); 
 
         // Save current settings
-        ini = new TIniFile(coleco.inipath);
+        ini = new TIniFile(emul2.inipath);
         SaveSettings(ini);
         delete ini;
 
@@ -218,16 +220,16 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         load_config();
 
         // Load current ini config
-        ini = new TIniFile(coleco.inipath);
-        iniFileExists = FileExists(coleco.inipath);
+        ini = new TIniFile(emul2.inipath);
+        iniFileExists = FileExists(emul2.inipath);
         LoadSettings(ini);
         delete ini;
 
         // Init joystick if possible
         JoystickInit(Form1->Handle, g_hwndMain);
 
-        // Prepare timer for emulation
-        AnimTimer1->Interval=20;
+        // Prepare timer for emulation: 17=1/60 & 20=1/50
+        AnimTimer1->Interval=17;  
         Timer2->Interval=1000;
 }
 
@@ -352,14 +354,17 @@ void TForm1::SaveSettings(TIniFile *ini)
 
         KeysWrite(ini);
 
-        hardware->SaveSettings(ini);
         cartprofile->SaveSettings(ini);
-        patternviewer->SaveSettings(ini);
-        spriteviewer->SaveSettings(ini);
-        paletteviewer->SaveSettings(ini);
-        printviewer->SaveSettings(ini);
         debug->SaveSettings(ini);
+        hardware->SaveSettings(ini);
+        iomapviewer->SaveSettings(ini);
         joyconf->SaveSettings(ini);
+        nametabviewer->SaveSettings(ini);
+        paletteviewer->SaveSettings(ini);
+        patternviewer->SaveSettings(ini);
+        printviewer->SaveSettings(ini);
+        spriteviewer->SaveSettings(ini);
+        soundviewer->SaveSettings(ini);
 }
 //---------------------------------------------------------------------------
 void TForm1::UpdateStatusBar(void)
@@ -368,27 +373,27 @@ void TForm1::UpdateStatusBar(void)
 
         // Update status bar
         text="Coleco";
-        if (coleco.machine == MACHINEPHOENIX)
+        if (emul2.machine == MACHINEPHOENIX)
             text = "Phoenix";
-        else if (coleco.machine == MACHINEADAM)
+        else if (emul2.machine == MACHINEADAM)
             text = "Adam";
         StatusBar1->Panels->Items[0]->Text = text;
 
         text="No cart";
-        if (coleco.romCartridge == ROMCARTRIDGESTD)
+        if (emul2.romCartridge == ROMCARTRIDGESTD)
             text="Standard Cart";
-        if (coleco.romCartridge == ROMCARTRIDGEMEGA)
+        if (emul2.romCartridge == ROMCARTRIDGEMEGA)
             text = "MegaCart";
-        else if (coleco.romCartridge == ROMCARTRIDGEZX81)
+        else if (emul2.romCartridge == ROMCARTRIDGEZX81)
             text = "ZX81 31In1";
-        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE)
+        else if (emul2.romCartridge == ROMCARTRIDGEDTAPE)
             text = "Disk Image";
-        else if (coleco.romCartridge == ROMCARTRIDGEDTAPE)
+        else if (emul2.romCartridge == ROMCARTRIDGEDTAPE)
             text = "Digital Data Pack";
         StatusBar1->Panels->Items[2]->Text = text;
 
         text="";
-        if (coleco.SGM == 1)
+        if (emul2.SGM == 1)
             text = "SGM";
         StatusBar1->Panels->Items[3]->Text = text;
 }
@@ -434,28 +439,28 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         }
 
         // Compute current fps
-        targetfps = coleco.NTSC ? 60:50;
+        targetfps = emul2.NTSC ? 60:50;
         if (((targetfps-1) == fps) || ((targetfps+1)==fps)) fps=targetfps;
         targetfps = (targetfps  * 9) / 10;
-        if (fps > (targetfps+2) && coleco.frameskip>0) coleco.frameskip--;
-        if (fps < targetfps && coleco.frameskip<10 && coleco.frameskip>=0) coleco.frameskip++;
+        if (fps > (targetfps+2) && emul2.frameskip>0) emul2.frameskip--;
+        if (fps < targetfps && emul2.frameskip<10 && emul2.frameskip>=0) emul2.frameskip++;
 
         // Add Fps and current state
         AnsiString text="";
-        if (coleco.stop) text +="Paused";
+        if (emul2.stop) text +="Paused";
      else
         {
-            if (coleco.singlestep)
+            if (emul2.singlestep)
                 text +="Debug Mode";
             else
             {
-                text += coleco.NTSC ? "NTSC " : "PAL ";
+                text += emul2.NTSC ? "NTSC " : "PAL ";
                 text += fps;
                 text += "fps";
-                if (coleco.frameskip>0)
+                if (emul2.frameskip>0)
                 {
                     text += " FS ";
-                    text += coleco.frameskip;
+                    text += emul2.frameskip;
                 }
             }
         }
@@ -469,6 +474,8 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         if (nametabviewer->Visible) nametabviewer->do_refresh();
         if (spriteviewer->Visible) spriteviewer->do_refresh();
         if (paletteviewer->Visible) paletteviewer->do_refresh();
+        if (iomapviewer->Visible) iomapviewer->do_refresh();
+        if (soundviewer->Visible) soundviewer->do_refresh();
 }
 
 //---------------------------------------------------------------------------
@@ -534,13 +541,13 @@ void __fastcall TForm1::OVS3xClick(TObject *Sender)
 
 void __fastcall TForm1::Emulation1Click(TObject *Sender)
 {
-    int stopped=coleco.stop;
+    int stopped=emul2.stop;
 
-    coleco.stop=1;
+    emul2.stop=1;
     SoundSuspend();
     hardware->ShowModal();
     SoundResume();
-    coleco.stop=stopped;
+    emul2.stop=stopped;
 
     // Refresh StatusBar if needed
     UpdateStatusBar();
@@ -548,7 +555,7 @@ void __fastcall TForm1::Emulation1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 {
-        if (coleco.stop)
+        if (emul2.stop)
         {
             AccurateUpdateDisplay(false);
             return;
@@ -562,25 +569,26 @@ void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 
         // Update emulation
         machine.do_scanline();
+        AccurateUpdateDisplay(emul2.singlestep ? false : true);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::SoftReset1Click(TObject *Sender)
 {
         // do a reset with the current rom
-        coleco.stop=1;
+        emul2.stop=1;
         if (machine.reset) machine.reset();
-        coleco.stop=0;
+        emul2.stop=0;
         //DebugUpdate();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::HardReset1Click(TObject *Sender)
 {
-        coleco.stop=1;
+        emul2.stop=1;
         AccurateInit(false);
         machine.initialise();
-        coleco.stop=coleco.startdebug ? 1 : 0;
+        emul2.stop=emul2.startdebug ? 1 : 0;
 
 //    DebugUpdate();
 //    LiveMemoryWindow->Reset();
@@ -643,12 +651,12 @@ void __fastcall TForm1::FormKeyUp(TObject *Sender, WORD &Key,
 
 void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 {
-        int stopped=coleco.stop;
+        int stopped=emul2.stop;
 
         SoundSuspend();
         try
         {
-            coleco.stop=1;
+            emul2.stop=1;
 
             // Check save dialog to save effectively to disk
             SaveDialog->DefaultExt="png";
@@ -669,7 +677,7 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
             Application->ShowException(&exception);
         }
         SoundResume();
-        coleco.stop=stopped;
+        emul2.stop=stopped;
 }
 
 //---------------------------------------------------------------------------
@@ -713,6 +721,22 @@ void __fastcall TForm1::PaletteViewer1Click(TObject *Sender)
     if (PaletteViewer1->Checked) paletteviewer->Show();
     else paletteviewer->Close();
 }
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::IOMapViewer1Click(TObject *Sender)
+{
+    IOMapViewer1->Checked = !IOMapViewer1->Checked;
+    if (IOMapViewer1->Checked) iomapviewer->Show();
+    else iomapviewer->Close();
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::SoundViewer1Click(TObject *Sender)
+{
+    SoundViewer1->Checked = !SoundViewer1->Checked;
+    if (SoundViewer1->Checked) soundviewer->Show();
+    else soundviewer->Close();
+}
 
 //---------------------------------------------------------------------------
 
@@ -751,13 +775,13 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
 
     try
     {
-        coleco.stop=1;
+        emul2.stop=1;
         retload=coleco_loadcart(FileName.c_str(),0);
 
         if (retload == ROM_LOAD_PASS)
         {
             // Reset engine in coleco mode
-            coleco.machine=MACHINECOLECO;
+            emul2.machine=MACHINECOLECO;
             coleco_reset();
 
             // add to MUR list
@@ -769,10 +793,10 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
             // Update StatusBar if needed
             UpdateStatusBar();
 
-            coleco.stop=coleco.startdebug ? 1 : 0;
+            emul2.stop=emul2.startdebug ? 1 : 0;
 
             // if stop, well, show debug Window
-            if (coleco.stop)
+            if (emul2.stop)
             {
                 Debugger1->Checked=true;
                 debug->Show();
@@ -806,7 +830,7 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
 
     try
     {
-        coleco.stop=1;
+        emul2.stop=1;
         if (TypeMedia==0) // Disk
             retload=LoadFDI(&Disks[DiskTapeNum],FileName.c_str(),FMT_ADMDSK);
         else
@@ -815,22 +839,22 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
         if (retload && !DiskTapeNum) // only for 1st disk
         {
             // Change media type  and eject disk if on a tape
-            coleco.romCartridge = TypeMedia ? ROMCARTRIDGEDTAPE : ROMCARTRIDGEDISK;
+            emul2.romCartridge = TypeMedia ? ROMCARTRIDGEDTAPE : ROMCARTRIDGEDISK;
             if (TypeMedia)
                 EjectFDI(&Disks[0]);
 
 
             // Reset engine in Adam mode
-            coleco.machine=MACHINEADAM;
+            emul2.machine=MACHINEADAM;
             coleco_reset();
 
             // Update StatusBar if needed
             UpdateStatusBar();
 
-            coleco.stop=coleco.startdebug ? 1 : 0;
+            emul2.stop=emul2.startdebug ? 1 : 0;
 
             // if stop, well, show debug Window
-            if (coleco.stop)
+            if (emul2.stop)
             {
                 Debugger1->Checked=true;
                 debug->Show();
@@ -856,12 +880,12 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
 void __fastcall TForm1::Open1Click(TObject *Sender)
 {
         AnsiString Extension, Filename;
-        int stopped=coleco.stop;
+        int stopped=emul2.stop;
 
         SoundSuspend();
         try
         {
-            coleco.stop=1;
+            emul2.stop=1;
 
             OpenDialog->DefaultExt="rom";
             OpenDialog->FileName="*";
@@ -879,7 +903,7 @@ void __fastcall TForm1::Open1Click(TObject *Sender)
             // occured, but also quits the message handler
             Application->ShowException(&exception);
         }
-        coleco.stop=stopped;
+        emul2.stop=stopped;
         SoundResume();
 }
 
@@ -894,8 +918,8 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
         SoundSuspend();
         try
         {
-            stopped=coleco.stop;
-            coleco.stop=1;
+            stopped=emul2.stop;
+            emul2.stop=1;
 
             m = (TMenuItem *) Sender;
             if ((m->Tag == 0) || (m->Tag == 1))
@@ -912,11 +936,11 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
             }
             if (!OpenDialog->Execute())
             {
-                coleco.stop=stopped;
+                emul2.stop=stopped;
             }
             else
             {
-                coleco.stop=stopped;
+                emul2.stop=stopped;
                 Filename=OpenDialog->FileName;
                 Extension=FileNameGetExt(Filename);
                 if (m->Tag == 0)
@@ -941,12 +965,12 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
 
 void __fastcall TForm1::LoadState1Click(TObject *Sender)
 {
-        int stopped=coleco.stop;
+        int stopped=emul2.stop;
 
         SoundSuspend();
         try
         {
-            coleco.stop=1;
+            emul2.stop=1;
 
             // Check save dialog to save effectively current emulator state to disk
             OpenDialog->DefaultExt="sta";
@@ -963,19 +987,19 @@ void __fastcall TForm1::LoadState1Click(TObject *Sender)
             // occured, but also quits the message handler
             Application->ShowException(&exception);
         }
-        coleco.stop=stopped;
+        emul2.stop=stopped;
         SoundResume();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::SaveState1Click(TObject *Sender)
 {
-        int stopped=coleco.stop;
+        int stopped=emul2.stop;
 
         SoundSuspend();
         try
         {
-            coleco.stop=1;
+            emul2.stop=1;
 
             // Check save dialog to save effectively current emulator state to disk
             SaveDialog->DefaultExt="sta";
@@ -992,7 +1016,7 @@ void __fastcall TForm1::SaveState1Click(TObject *Sender)
             // occured, but also quits the message handler
             Application->ShowException(&exception);
         }
-        coleco.stop=stopped;
+        emul2.stop=stopped;
         SoundResume();
 }
 //---------------------------------------------------------------------------
@@ -1062,26 +1086,20 @@ void __fastcall TForm1::FormMouseMove(TObject *Sender, TShiftState Shift,
 
 void __fastcall TForm1::Content1Click(TObject *Sender)
 {
-    if (help->Visible)
-    {
-        help->Close();
-    }
-    else
-    {
-        help->Show();
-    }
+    ShellExecute(NULL, "open", "https://github.com/alekmaul/emultwo/issues", "", NULL, SW_RESTORE);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::JoystickEditor1Click(TObject *Sender)
 {
-    int stopped=coleco.stop;
+    int stopped=emul2.stop;
 
-    coleco.stop=1;
+    emul2.stop=1;
     SoundSuspend();
     joyconf->ShowModal();
     SoundResume();
-    coleco.stop=stopped;
+    emul2.stop=stopped;
 }
+
 //---------------------------------------------------------------------------
 

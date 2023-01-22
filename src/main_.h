@@ -70,8 +70,7 @@ __published:	// IDE-managed Components
         TMenuItem *Tools1;
         TMenuItem *JoystickEditor1;
         TMenuItem *N6;
-        TMenuItem *SoundViewer1;
-        TMenuItem *SoundLogger1;
+    TMenuItem *SoundViewer1;
         TMenuItem *N14;
         TMenuItem *TilemapViewer1;
         TMenuItem *TilesViewer1;
@@ -155,6 +154,8 @@ __published:	// IDE-managed Components
     void __fastcall PaletteViewer1Click(TObject *Sender);
     void __fastcall Content1Click(TObject *Sender);
     void __fastcall JoystickEditor1Click(TObject *Sender);
+    void __fastcall IOMapViewer1Click(TObject *Sender);
+    void __fastcall SoundViewer1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;

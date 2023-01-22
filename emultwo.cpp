@@ -27,7 +27,6 @@
 #pragma hdrstop
 USERES("emultwo.res");
 USEUNIT("src\z80\z80.c");
-USEUNIT("src\z80\z80_ops.c");
 USEUNIT("src\colecoconfig.cpp");
 USEUNIT("src\coleco\coleco.cpp");
 USEFORM("src\main_.cpp", Form1);
@@ -59,7 +58,10 @@ USEFORM("src\dumpmem_.cpp", dumpmem);
 USEFORM("src\printviewer_.cpp", printviewer);
 USEUNIT("src\accsound_.c");
 USEFORM("src\palviewer_.cpp", paletteviewer);
-USEFORM("src\help_.cpp", fHelp);
+USEFORM("src\help_.cpp", help);
+USEFORM("src\joyconf_.cpp", joyconf);
+USEFORM("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.cpp", iomapviewer);
+USEFORM("src\soundviewer_.cpp", soundviewer);
 //---------------------------------------------------------------------------
 #include "main_.h"
 
@@ -126,8 +128,7 @@ WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
 
                 Application->Initialize();
                 Application->Title = "Emul Two";
-                Application->CreateForm(__classid(TfHelp), &fHelp);
-         #include "allformsImpl.cpp"
+                #include "allformsImpl.cpp"
 
                 Application->ProcessMessages();
 

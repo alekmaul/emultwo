@@ -4,16 +4,18 @@
   <MACROS>
     <VERSION value="BCB.05.03"/>
     <PROJECT value="emultwo.exe"/>
-    <OBJFILES value="emultwo.obj src\z80\z80.obj src\z80\z80_ops.obj src\colecoconfig.obj 
-      src\coleco\coleco.obj src\main_.obj src\about_.obj src\utils.obj 
-      src\accdraw_.obj src\hardware_.obj src\debug_.obj src\sn76489\sn76489.obj 
+    <OBJFILES value="emultwo.obj src\z80\z80.obj src\colecoconfig.obj src\coleco\coleco.obj 
+      src\main_.obj src\about_.obj src\utils.obj src\accdraw_.obj 
+      src\hardware_.obj src\debug_.obj src\sn76489\sn76489.obj 
       src\tms9928a\tms9928a.obj src\ay8910\ay8910.obj src\kbstatus_.obj 
       src\eeprom\c24xx.obj src\adam\adamnet.obj src\patternviewer_.obj 
       src\adam\fdidisk.obj src\cartprofile_.obj src\nametabviewer_.obj 
       src\spriteviewer_.obj src\symbolstore.obj src\editvalue_.obj 
       src\symbbrows_.obj src\setbreakpoint_.obj src\searchsequence_.obj 
       src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj 
-      src\help_.obj"/>
+      src\help_.obj src\joyconf_.obj 
+      \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.obj 
+      src\soundviewer_.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -22,7 +24,9 @@
       src\patternviewer_.dfm src\cartprofile_.dfm src\nametabviewer_.dfm 
       src\spriteviewer_.dfm src\editvalue_.dfm src\symbbrows_.dfm 
       src\setbreakpoint_.dfm src\searchsequence_.dfm src\dumpmem_.dfm 
-      src\printviewer_.dfm src\palviewer_.dfm src\help_.dfm"/>
+      src\printviewer_.dfm src\palviewer_.dfm src\help_.dfm src\joyconf_.dfm 
+      \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.dfm 
+      src\soundviewer_.dfm"/>
     <LIBFILES value="libs\directdraw\ddraw.lib libs\libpngstat\libpngstat.lib 
       libs\libpngstat\zlib.lib"/>
     <LIBRARIES value="etcomp.lib AnimTimer.lib Vcl50.lib"/>
@@ -32,7 +36,7 @@
       ibsmp50.bpi vcldbx50.bpi Qrpt50.bpi TeeUI50.bpi TeeDB50.bpi Tee50.bpi 
       Dss50.bpi TeeQR50.bpi VCLIB50.bpi Vclmid50.bpi NMFast50.bpi bcbie50.bpi 
       bcb2kaxserver50.bpi"/>
-    <PATHCPP value=".;src\z80;src;src\coleco;src\sn76489;src\tms9928a;src\ay8910;src\eeprom;src\adam"/>
+    <PATHCPP value=".;src\z80;src;src\coleco;src\sn76489;src\tms9928a;src\ay8910;src\eeprom;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
@@ -42,12 +46,12 @@
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="emultwo.cpp"/>
-    <INCLUDEPATH value="src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat"/>
+    <INCLUDEPATH value="F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat"/>
     <WARNINGS value="-w-par"/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-Isrc\eeprom -Isrc\ay8910 -Isrc\adam 
+    <IDLCFLAGS value="-IF:\src\. -Isrc\eeprom -Isrc\ay8910 -Isrc\adam 
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam 
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom 
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910 
@@ -98,43 +102,47 @@ ProductVersion=2.0.0.0
 Comments=
 
 [HistoryLists\hlIncludePath]
-Count=17
-Item0=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl
-Item1=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item2=src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item3=src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item4=src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item5=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item6=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl;libs\sdl
-Item7=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl;src\lib\sdl
-Item8=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item9=src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item10=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item11=C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item12=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
-Item13=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\include;$(BCB)\include\vcl
-Item14=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\include;$(BCB)\include\vcl
-Item15=src\coleco;src\z80;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\include;$(BCB)\include\vcl
-Item16=$(BCB)\include;$(BCB)\include\vcl
+Count=19
+Item0=F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl
+Item1=F:\src;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl
+Item2=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl
+Item3=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item4=src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item5=src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item6=src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item7=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item8=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl;libs\sdl
+Item9=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl;src\lib\sdl
+Item10=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item11=src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item12=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item13=C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item14=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;src;$(BCB)\include;$(BCB)\include\vcl
+Item15=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\include;$(BCB)\include\vcl
+Item16=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\include;$(BCB)\include\vcl
+Item17=src\coleco;src\z80;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\include;$(BCB)\include\vcl
+Item18=$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=16
-Item0=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat
-Item1=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item2=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item3=src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item4=src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item5=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item6=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item7=src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item8=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item9=C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item10=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item11=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item12=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item13=src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
-Item14=$(BCB)\lib\obj;$(BCB)\lib;
-Item15=$(BCB)\lib\obj;$(BCB)\lib
+Count=18
+Item0=F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat
+Item1=F:\src;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat
+Item2=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat
+Item3=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item4=src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item5=src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;..\emultwob5v2\src\z80\ok16062022;C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item6=src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item7=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item8=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item9=src\sn76489;C:\CBuilder5\Projects\;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item10=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\sn76489;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item11=C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item12=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item13=C:\CBuilder5\Projects;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item14=\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item15=src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\coleco;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\z80;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw
+Item16=$(BCB)\lib\obj;$(BCB)\lib;
+Item17=$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1

@@ -186,7 +186,7 @@ void DDAccurateInit(int resize)
     Paletteised = (BPP==1) ? true:false;
 
     WinL=NoWinL; WinR=NoWinR; WinT=NoWinT; WinB=NoWinB;
-    if (coleco.NTSC) { WinT-=24; WinB-=24; }
+    if (emul2.NTSC) { WinT-=24; WinB-=24; }
 
     ZeroMemory( &ddsd, sizeof( ddsd ) );
     ddsd.dwSize = sizeof( ddsd );
@@ -231,7 +231,7 @@ void DDAccurateUpdateDisplay(bool singlestep)
     HRESULT hRet;
     RECT rDest;
 
-    if (++framecounter > coleco.frameskip || singlestep)
+    if (++framecounter > emul2.frameskip || singlestep)
         framecounter=0;
     else
         return;
@@ -311,7 +311,7 @@ void GDIAccurateInit(int resize)
     ScaleH = OrigH / Form1->BaseHeight;
 
     WinL=NoWinL; WinR=NoWinR; WinT=NoWinT; WinB=NoWinB;
-    if (coleco.NTSC) { WinT-=24; WinB-=24; }
+    if (emul2.NTSC) { WinT-=24; WinB-=24; }
 
     GDIFrame=new Graphics::TBitmap;
 
@@ -343,7 +343,7 @@ void GDIAccurateUpdateDisplay(bool singlestep)
     int ret;
     static int framecounter=0;
 
-    if (++framecounter > coleco.frameskip || singlestep)
+    if (++framecounter > emul2.frameskip || singlestep)
         framecounter=0;
     else
         return;

@@ -57,6 +57,8 @@ JOYINFO JoyInfo;
 JOYCAPS JoyCaps;
 unsigned short JoystickState;
 
+int mouse_xpos=0, mouse_ypos=0;
+
 unsigned short JoyP1[NBKEYCV],JoyP2[NBKEYCV];
 unsigned int key_shift=0;
 
@@ -209,7 +211,7 @@ void CheckKeyDown(WORD key)
         if(coleco_joystat&(JST_DOWN<<16))  coleco_joystat&=~(JST_UP<<16);
 
         // Check now keyboard if we are in ADAM mode
-        if (coleco.machine==MACHINEADAM)
+        if (emul2.machine==MACHINEADAM)
         {
                 if (key==VK_SHIFT)
                 {
@@ -251,7 +253,7 @@ void CheckKeyUp(WORD key)
         }
 
         // Check now keyboard if we are in ADAM mode
-        if (coleco.machine==MACHINEADAM)
+        if (emul2.machine==MACHINEADAM)
         {
                 if (key==VK_SHIFT)
                 {
@@ -328,16 +330,67 @@ void JoystickEnd(void)
 
 void CheckMouseMove(int X, int Y)
 {
-        int x,y,y2,x1,y1,i,j;
-        float ScaleW, ScaleH;
-        signed short valSpin;
+    int x,y,y2,x1,y1,i,j;
+    float ScaleW, ScaleH;
+    signed short valSpin;
+    signed int mouse_x, mouse_y;
+    static int mouse_oldxpos,mouse_oldypos;
 
         AnsiString text="";
 
+            mouse_xpos=x; mouse_ypos=y;
+    mouse_x=mouse_xpos-mouse_oldxpos;
+    mouse_y=mouse_ypos-mouse_oldypos;
+
         // Get mouse position and button states in the following  format: RMB.LMB.Y[29-16].X[15-0]
         ScaleW=Form1->ClientWidth/Form1->BaseWidth; ScaleH=((Form1->ClientHeight-Form1->StatusBar1->Height)/Form1->BaseHeight);
-        x=(X/ScaleW); y=(Y/ScaleH);
+        x=(mouse_x/ScaleW); y=(mouse_y/ScaleH);
         j=(y<<16) | x;
+
+
+
+    if (mouse_x || mouse_y)
+    {
+        mouse_oldxpos=mouse_xpos;mouse_oldypos=mouse_ypos;
+    }
+
+
+    /*
+     switch (expansionmode)
+ {
+  case 4:                         // emulate driving module
+   if (mouse_buttons&7)
+    MouseJoyState[0]&=0xFEFF;
+   mouse_x/=4;
+   mouse_y=0;
+   mouse_buttons=0;
+   break;
+  case 5:                         // emulate SA speed roller on both ports
+   mouse_x=(-mouse_x)/4;
+   mouse_y=-mouse_x;
+   mouse_buttons=0;
+   break;
+  case 6:                         // emulate SA speed roller on port 1
+   mouse_x=(-mouse_x)/4;
+   mouse_y=0;
+   mouse_buttons=0;
+   break;
+  case 7:                         // emulate SA speed roller on port 2
+   mouse_y=mouse_x/4;
+   mouse_x=0;
+   mouse_buttons=0;
+   break;
+ }
+ */
+
+    // emulate Super Action on port 1
+    mouse_x=(mouse_x)/4;
+    mouse_y=0;
+    //mouse_buttons=0;
+    coleco_spinpos=(200*mouse_x*(abs(mouse_x)+200))/(200*200);
+    //SpinnerPosition[1]=(default_mouse_sens*mouse_y*(abs(mouse_y)+mouse_sens))/(mouse_sens*mouse_sens);
+
+
 
         /*
         
@@ -353,12 +406,12 @@ void CheckMouseMove(int X, int Y)
 
         // Adapt to spinner
     //valSpin = (Mode&CV_SPINNER1Y? (I<<2):Mode&CV_SPINNER1X? (I<<16):0)>>16;
-        valSpin = (i<<16)>>16;
+        valSpin = i; //(i<<16)>>16;
         valSpin = valSpin<-512? -512:valSpin>512? 512:valSpin;
         coleco_spinstep  = valSpin>=0? (valSpin>32? valSpin:0):(valSpin<-32? -valSpin:0);
         coleco_spinstate = valSpin>0? 0x00003000:valSpin<0? 0x00001000:0;
 
-        Form1->StatusBar1->Panels->Items[3]->Text = IntToStr(x1)+","+IntToStr(y1)+" "+IntToHex((int) coleco_spinstate,4)+" "+IntToHex((int) coleco_spinstep,4);
+        Form1->StatusBar1->Panels->Items[3]->Text = IntToStr(valSpin)+" "+IntToHex((int) coleco_spinstate,4)+" "+IntToHex((int) coleco_spinstep,4);
 }
 
 //---------------------------------------------------------------------------
@@ -404,7 +457,7 @@ void KeybJoyUpdate(void)
         {
                 coleco_spincount&=~0x00008000;
                 coleco_joystat |= coleco_spinstate&0x00003000;
-                coleco_intpending=1;
+                //coleco_intpending=1;
         }
 }
 

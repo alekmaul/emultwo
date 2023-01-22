@@ -1,4 +1,25 @@
-//---------------------------------------------------------------------------
+/* EmulTwo  - A Windows Colecovision emulator.
+ * Copyright (C) 2018-2023 Alekmaul
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *
+ * joyconf_.cpp
+ *
+ */
+
 #include <vcl.h>
 #pragma hdrstop
 
@@ -10,7 +31,7 @@
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
-TJoyConf *JoyConf;
+Tjoyconf *joyconf;
 
 //---------------------------------------------------------------------------
 #define NBKEYDEF         256
@@ -123,21 +144,21 @@ void initKeyNameTable(void)
 }
 
 //---------------------------------------------------------------------------
-__fastcall TJoyConf::TJoyConf(TComponent* Owner)
+__fastcall Tjoyconf::Tjoyconf(TComponent* Owner)
     : TForm(Owner)
 {
     TIniFile *ini;
 
     initKeyNameTable();
 
-    ini = new TIniFile(machine.inipath);
+    ini = new TIniFile(emul2.inipath);
     LoadSettings(ini);
     delete ini;
 }
 
 //---------------------------------------------------------------------------
 
-void TJoyConf::LoadSettings(TIniFile *ini)
+void Tjoyconf::LoadSettings(TIniFile *ini)
 {
     int typejoy1,typejoy2,valkey;
 
@@ -245,7 +266,7 @@ void TJoyConf::LoadSettings(TIniFile *ini)
     eTN92->Text=(strlen(keydefname[valkey])>0 ? keydefname[valkey] : keydefname[0]);
 }
 
-void TJoyConf::SaveSettings(TIniFile *ini)
+void Tjoyconf::SaveSettings(TIniFile *ini)
 {
     ini->WriteInteger("JOYCFG","Top",Top);
     ini->WriteInteger("JOYCFG","Left",Left);
@@ -263,11 +284,11 @@ void TJoyConf::SaveSettings(TIniFile *ini)
 
 //---------------------------------------------------------------------------
 
-void __fastcall TJoyConf::bOKClick(TObject *Sender)
+void __fastcall Tjoyconf::bOKClick(TObject *Sender)
 {
     TIniFile *ini;
 
-    ini = new TIniFile(machine.inipath);
+    ini = new TIniFile(emul2.inipath);
     SaveSettings(ini);
     delete ini;
 
@@ -275,7 +296,7 @@ void __fastcall TJoyConf::bOKClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-void __fastcall TJoyConf::eTUPKeyDown(TObject *Sender, WORD &Key,
+void __fastcall Tjoyconf::eTUPKeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
     // Assign key if possible
@@ -294,7 +315,7 @@ void __fastcall TJoyConf::eTUPKeyDown(TObject *Sender, WORD &Key,
 }
 //---------------------------------------------------------------------------
 
-void __fastcall TJoyConf::eTUP2KeyDown(TObject *Sender, WORD &Key,
+void __fastcall Tjoyconf::eTUP2KeyDown(TObject *Sender, WORD &Key,
       TShiftState Shift)
 {
     // Assign key if possible

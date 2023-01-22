@@ -33,7 +33,7 @@ __fastcall Thardware::Thardware(TComponent* Owner)
     cSEPFreq->Checked=false;
 
 
-    ini = new TIniFile(coleco.inipath);
+    ini = new TIniFile(emul2.inipath);
     LoadSettings(ini);
     delete ini;
 
@@ -54,28 +54,28 @@ void __fastcall Thardware::OKClick(TObject *Sender)
 {
     AnsiString Name=NewMachineName;
 
-    strcpy(coleco.machinename, Name.c_str());
+    strcpy(emul2.machinename, Name.c_str());
     Form1->StatusBar1->Panels->Items[0]->Text = Name;
 
-    coleco.machine=NewMachine;
+    emul2.machine=NewMachine;
 
-    coleco.NTSC = 1-cSEPalNtsc->ItemIndex;
-    machine.fps = coleco.NTSC ? 60 : 50;
-    if (coleco.NTSC) Form1->AnimTimer1->Interval=17;
+    emul2.NTSC = 1-cSEPalNtsc->ItemIndex;
+    machine.fps = emul2.NTSC ? 60 : 50;
+    if (emul2.NTSC) Form1->AnimTimer1->Interval=17;  // 17=1/60 & 20=1/50
     else Form1->AnimTimer1->Interval=20;
 
-    coleco.palette=cboPal->ItemIndex;
+    emul2.palette=cboPal->ItemIndex;
 
-    coleco.hackbiospal=cSEPFreq->Checked ? 1 : 0;;
-    coleco.biosnodelay=cSENodelay->Checked ? 1 : 0;
-    coleco.startdebug=cSEStart->Checked ? 1 : 0;
+    emul2.hackbiospal=cSEPFreq->Checked ? 1 : 0;;
+    emul2.biosnodelay=cSENodelay->Checked ? 1 : 0;
+    emul2.startdebug=cSEStart->Checked ? 1 : 0;
 
-    coleco.SGM = spSGM->Down ? 1 : 0;
-    coleco.F18A = spF18A->Down ? 1 : 0;
+    emul2.SGM = spSGM->Down ? 1 : 0;
+    emul2.F18A = spF18A->Down ? 1 : 0;
 
-    machine.clockspeed=coleco.NTSC ? CLOCK_NTSC : CLOCK_PAL;
-    machine.tperscanline=coleco.NTSC ? TMS9918_LINE : TMS9929_LINE;
-    machine.scanlines=coleco.NTSC ? TMS9918_LINES : TMS9929_LINES;
+    machine.clockspeed=emul2.NTSC ? CLOCK_NTSC : CLOCK_PAL;
+    machine.tperscanline=emul2.NTSC ? TMS9918_LINE : TMS9929_LINE;
+    machine.scanlines=emul2.NTSC ? TMS9918_LINES : TMS9929_LINES;
     machine.tperframe = machine.tperscanline * machine.scanlines;
 
     machine.initialise = coleco_initialise;

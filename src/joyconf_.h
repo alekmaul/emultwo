@@ -1,5 +1,27 @@
-//---------------------------------------------------------------------------
-#ifndef joyconf_H
+/* EmulTwo  - A Windows Colecovision emulator.
+ * Copyright (C) 2018-2023 Alekmaul
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *
+ * joyconf_.cpp
+ *
+ */
+
+
+ #ifndef joyconf_H
 #define joyconf_H
 //---------------------------------------------------------------------------
 #include <Classes.hpp>
@@ -12,7 +34,7 @@
 #include <Graphics.hpp>
 
 //---------------------------------------------------------------------------
-class TJoyConf : public TForm
+class Tjoyconf : public TForm
 {
 __published:	// Composants gérés par l'EDI
     TButton *bOK;
@@ -104,11 +126,11 @@ __published:	// Composants gérés par l'EDI
           TShiftState Shift);
 private:	// Déclarations de l'utilisateur
 public:		// Déclarations de l'utilisateur
-    __fastcall TJoyConf(TComponent* Owner);
+    __fastcall Tjoyconf(TComponent* Owner);
     void LoadSettings(TIniFile *ini);
     void SaveSettings(TIniFile *ini);
 };
 //---------------------------------------------------------------------------
-extern PACKAGE TJoyConf *JoyConf;
+extern PACKAGE Tjoyconf *joyconf;
 //---------------------------------------------------------------------------
 #endif

@@ -44,7 +44,7 @@ __fastcall Tnametabviewer::Tnametabviewer(TComponent* Owner)
 
     mVramTile = 0x0000;
 
-    ini = new TIniFile(coleco.inipath);
+    ini = new TIniFile(emul2.inipath);
     LoadSettings(ini);
     delete ini;
 

@@ -72,7 +72,7 @@ __fastcall Tpatternviewer::Tpatternviewer(TComponent* Owner)
     mBaseVram = 0x0000;    // default show 0
     mVramTile = 0x0000;
 
-    ini = new TIniFile(coleco.inipath);
+    ini = new TIniFile(emul2.inipath);
     LoadSettings(ini);
     delete ini;
 

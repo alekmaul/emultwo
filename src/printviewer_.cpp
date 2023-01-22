@@ -36,7 +36,7 @@ __fastcall Tprintviewer::Tprintviewer(TComponent* Owner)
 {
         TIniFile *ini;
 
-        ini = new TIniFile(coleco.inipath);
+        ini = new TIniFile(emul2.inipath);
         LoadSettings(ini);
         delete ini;
 }

@@ -58,7 +58,6 @@ USEFORM("src\dumpmem_.cpp", dumpmem);
 USEFORM("src\printviewer_.cpp", printviewer);
 USEUNIT("src\accsound_.c");
 USEFORM("src\palviewer_.cpp", paletteviewer);
-USEFORM("src\help_.cpp", help);
 USEFORM("src\joyconf_.cpp", joyconf);
 USEFORM("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.cpp", iomapviewer);
 USEFORM("src\soundviewer_.cpp", soundviewer);

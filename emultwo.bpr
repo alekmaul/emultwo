@@ -13,9 +13,7 @@
       src\spriteviewer_.obj src\symbolstore.obj src\editvalue_.obj 
       src\symbbrows_.obj src\setbreakpoint_.obj src\searchsequence_.obj 
       src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj 
-      src\joyconf_.obj 
-      \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.obj 
-      src\soundviewer_.obj"/>
+      src\joyconf_.obj src\ioviewer_.obj src\soundviewer_.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -24,8 +22,7 @@
       src\patternviewer_.dfm src\cartprofile_.dfm src\nametabviewer_.dfm 
       src\spriteviewer_.dfm src\editvalue_.dfm src\symbbrows_.dfm 
       src\setbreakpoint_.dfm src\searchsequence_.dfm src\dumpmem_.dfm 
-      src\printviewer_.dfm src\palviewer_.dfm src\joyconf_.dfm 
-      \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.dfm 
+      src\printviewer_.dfm src\palviewer_.dfm src\joyconf_.dfm src\ioviewer_.dfm 
       src\soundviewer_.dfm"/>
     <LIBFILES value="libs\directdraw\ddraw.lib libs\libpngstat\libpngstat.lib 
       libs\libpngstat\zlib.lib"/>
@@ -36,7 +33,7 @@
       ibsmp50.bpi vcldbx50.bpi Qrpt50.bpi TeeUI50.bpi TeeDB50.bpi Tee50.bpi 
       Dss50.bpi TeeQR50.bpi VCLIB50.bpi Vclmid50.bpi NMFast50.bpi bcbie50.bpi 
       bcb2kaxserver50.bpi"/>
-    <PATHCPP value=".;src\z80;src;src\coleco;src\sn76489;src\tms9928a;src\ay8910;src\eeprom;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src"/>
+    <PATHCPP value=".;src\z80;src;src\coleco;src\sn76489;src\tms9928a;src\ay8910;src\eeprom;src\adam"/>
     <PATHPAS value=".;"/>
     <PATHRC value=".;"/>
     <PATHASM value=".;"/>
@@ -46,12 +43,12 @@
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="emultwo.cpp"/>
-    <INCLUDEPATH value="F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl"/>
-    <LIBPATH value="F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat"/>
+    <INCLUDEPATH value="emultwo\src;F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="emultwo\src;F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;src\tms9928a;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat"/>
     <WARNINGS value="-w-par"/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-IF:\src\. -Isrc\eeprom -Isrc\ay8910 -Isrc\adam 
+    <IDLCFLAGS value="-Iemultwo\src -IF:\src\. -Isrc\eeprom -Isrc\ay8910 -Isrc\adam 
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam 
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom 
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910 

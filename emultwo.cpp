@@ -59,7 +59,7 @@ USEFORM("src\printviewer_.cpp", printviewer);
 USEUNIT("src\accsound_.c");
 USEFORM("src\palviewer_.cpp", paletteviewer);
 USEFORM("src\joyconf_.cpp", joyconf);
-USEFORM("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ioviewer_.cpp", iomapviewer);
+USEFORM("src\ioviewer_.cpp", iomapviewer);
 USEFORM("src\soundviewer_.cpp", soundviewer);
 //---------------------------------------------------------------------------
 #include "main_.h"

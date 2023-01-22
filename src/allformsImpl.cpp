@@ -7,12 +7,15 @@
     Application->CreateForm(__classid(Tdumpmem), &dumpmem);
     Application->CreateForm(__classid(Teditvalue), &editvalue);
     Application->CreateForm(__classid(Thelp), &help);
+    Application->CreateForm(__classid(Tiomapviewer), &iomapviewer);
+    Application->CreateForm(__classid(Tjoyconf), &joyconf);
     Application->CreateForm(__classid(Tnametabviewer), &nametabviewer);
     Application->CreateForm(__classid(Tpaletteviewer), &paletteviewer);
     Application->CreateForm(__classid(Tpatternviewer), &patternviewer);
     Application->CreateForm(__classid(Tprintviewer), &printviewer);
     Application->CreateForm(__classid(Tsearchsequence), &searchsequence);
     Application->CreateForm(__classid(Tsetbreakpoint), &setbreakpoint);
+    Application->CreateForm(__classid(Tsoundviewer), &soundviewer);
     Application->CreateForm(__classid(Tspriteviewer), &spriteviewer);
     Application->CreateForm(__classid(Tsymbbrows), &symbbrows);
 

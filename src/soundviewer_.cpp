@@ -54,7 +54,7 @@ void __fastcall Tsoundviewer::ExitClick(TObject *Sender)
 void __fastcall Tsoundviewer::FormClose(TObject *Sender,
       TCloseAction &Action)
 {
-    Form1->SoundLogger1->Checked=false;
+    Form1->SoundViewer1->Checked=false;
 }
 
 //---------------------------------------------------------------------------
@@ -91,8 +91,9 @@ void __fastcall Tsoundviewer::addsnvalue(byte Data)
 void __fastcall Tsoundviewer::addsnplay(byte Data)
 {
     int coleco_sndtable=(RAM_Memory[0x7000+0x20]+256*RAM_Memory[0x7000+0x21]);
-//      mSNPlay->Lines->Add("AddSound "+IntToHex(Data,2)+" "+IntToHex(RAM_Memory[coleco_sndtable+Data*4]+256*RAM_Memory[coleco_sndtable+Data*4+1],4));
-   //TODO mSNPlay->Lines->Add("AddSound "+IntToHex(Data,2)+" "+IntToHex(coleco_readmem(coleco_sndtable+Data*4)+256*coleco_readmem(coleco_sndtable+Data*4+1),4));
+
+    // Add sound in view
+    mSNPlay->Lines->Add("AddSound "+IntToHex(Data,2)+" "+IntToHex(getbyte(coleco_sndtable+Data*4)+256*getbyte(coleco_sndtable+Data*4+1),4));
 }
 
 //---------------------------------------------------------------------------
@@ -174,17 +175,18 @@ void __fastcall Tsoundviewer::Button1Click(TObject *Sender)
     if (coleco_sndtable!=0xFFFF)
     {
         i=0;
-        int firstsndarea=coleco_readmem(coleco_sndtable+2+i*4)+256*coleco_readmem(coleco_sndtable+3+i*4); // RAM_Memory[coleco_sndtable+2+i*4]+256*RAM_Memory[coleco_sndtable+3+i*4];
+        int firstsndarea=getbyte(coleco_sndtable+2+i*4)+256*getbyte(coleco_sndtable+3+i*4);
         while(1)
         {
             // Get curren sound area
-            int sndarea=coleco_readmem(coleco_sndtable+2+i*4)+256*coleco_readmem(coleco_sndtable+3+i*4); // RAM_Memory[coleco_sndtable+2+i*4]+256*RAM_Memory[coleco_sndtable+3+i*4];
-            int sndval=coleco_readmem(coleco_sndtable+i*4)+256*coleco_readmem(coleco_sndtable+1+i*4); // RAM_Memory[coleco_sndtable+i*4]+256*RAM_Memory[coleco_sndtable+1+i*4];
+            int sndarea=getbyte(coleco_sndtable+2+i*4)+256*getbyte(coleco_sndtable+3+i*4);
+            int sndval=getbyte(coleco_sndtable+i*4)+256*getbyte(coleco_sndtable+1+i*4);
             // check if valid soundarea
             if ( (sndarea>0x73b8) || (sndarea<0x702b)) // 0x73b8=stack and 0x702b=beginning of ram
                 break;
             // add entry to list
             mSTContent->Lines->Add(IntToHex(sndval,4)+" , SOUNDAREA"+((sndarea-firstsndarea)/10+1)+" // #"+(i+1) );
+
             // avoid infinite loop
             i++;
             if (i>64) break;

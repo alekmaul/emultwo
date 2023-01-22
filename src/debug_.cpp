@@ -47,6 +47,8 @@
 
 #include <set>
 
+//#define Z80.pc.d Z80.pc.d
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -86,35 +88,35 @@ void DebugUpdate(void)
         static int lastpc;
         int i;
 
-        if (lastpc!=z80.pc.w)
+        if (lastpc!=Z80.pc.d)
         {
                 recentHistory[recentHistoryPos] = i;
                 recentHistoryPos = (recentHistoryPos + 1) & 3;
-                lastpc=z80.pc.w;
+                lastpc=Z80.pc.d;
         }
 
-        i=z80.pc.w;
+        i=Z80.pc.d;
         if ( (debug->NMIRetAddr==-1) && (NMISaveSingleStep!=-1) )
         {
-                coleco.singlestep=NMISaveSingleStep;
+                emul2.singlestep=NMISaveSingleStep;
                 NMISaveSingleStep=-1;
         }
         if ( (debug->INTRetAddr==-1) && (INTSaveSingleStep!=-1) )
         {
-                coleco.singlestep=INTSaveSingleStep;
+                emul2.singlestep=INTSaveSingleStep;
                 INTSaveSingleStep=-1;
         }
-        if (z80.pc.w == debug->NMIRetAddr)
+        if (Z80.pc.d == debug->NMIRetAddr)
         {
                 debug->NMIRetAddr=-1;
-                coleco.singlestep=NMISaveSingleStep;
+                emul2.singlestep=NMISaveSingleStep;
         }
         if (debug->NMIRetAddr!=-1) return;
 
-        if (z80.pc.w == debug->INTRetAddr)
+        if (Z80.pc.d == debug->INTRetAddr)
         {
                 debug->INTRetAddr=-1;
-                coleco.singlestep=INTSaveSingleStep;
+                emul2.singlestep=INTSaveSingleStep;
         }
         if (debug->INTRetAddr!=-1) return;
 
@@ -130,10 +132,10 @@ void DebugUpdate(void)
 
         if (debug->DoNext)
         {
-                coleco.stop=1;
+                emul2.stop=1;
                 debug->DoNext=false;
                 debug->UpdateVals();
-                coleco.singlestep = debug->AutoRefresh1->Checked ? 1 : 0;
+                emul2.singlestep = debug->AutoRefresh1->Checked ? 1 : 0;
         }
 #if 0
         Profiler->DebugTick(&z80);
@@ -556,7 +558,7 @@ bool Tdebug::BreakPointHit()
     {
         breakpoint* bp = &Breakpoint[idx];
 
-	if (debug->BPExeHit(z80.pc.w, bp, idx) ||
+	if (debug->BPExeHit(Z80.pc.d, bp, idx) ||
             debug->BPInOutHit(BP_IN, lpi, lpiv, bp) ||
             debug->BPInOutHit(BP_INL, lpi, lpiv, bp) ||
             debug->BPInOutHit(BP_INH, lpi, lpiv, bp) ||
@@ -570,7 +572,7 @@ bool Tdebug::BreakPointHit()
             debug->BPRegisterValueHit(bp) ||
             debug->BPFlagValueHit(bp) ||
             debug->BPMemoryValueHit(bp) ||
-            debug->BPClockHit(z80.pc.w, bp))
+            debug->BPClockHit(Z80.pc.d, bp))
         {
             if (bp->Permanent)
             {
@@ -599,7 +601,7 @@ bool Tdebug::BPExeHit(int addr, breakpoint* const bp, int idx)
         }
         else
         {
-            if (!bp->Permanent && (StepOverStack == z80.sp.w))
+            if (!bp->Permanent && (StepOverStack == Z80.sp.d))
             {
                 DelBreakPoint(idx);
                 return true;
@@ -675,7 +677,7 @@ bool Tdebug::BPFlagValueHit(breakpoint* const bp)
     {
         return false;
     }
-    BYTE regF = z80.af.b.l;
+    BYTE regF = Z80.af.b.l;
     int mask = (1 << bp->FlagId);
 
     switch (bp->ConditionValue)
@@ -750,123 +752,123 @@ int Tdebug::getRegisterValue(int registerIndex)
     switch (registerIndex)
     {
 	    case RegA:
-            value = z80.af.b.h;
+            value = Z80.af.b.h;
 			break;
 
 		case RegB:
-            value = z80.bc.b.h;
+            value = Z80.bc.b.h;
 			break;
 
 		case RegC:
-            value = z80.bc.b.l;
+            value = Z80.bc.b.l;
 			break;
 
 		case RegD:
-            value = z80.de.b.h;
+            value = Z80.de.b.h;
 			break;
 
 		case RegE:
-            value = z80.de.b.l;
+            value = Z80.de.b.l;
 			break;
 
 		case RegH:
-            value = z80.hl.b.h;
+            value = Z80.hl.b.h;
 			break;
 
 		case RegL:
-            value = z80.hl.b.l;
+            value = Z80.hl.b.l;
 			break;
 
 		case RegI:
-            value = z80.i;
+            value = Z80.i;
 			break;
 
 		case RegR:
-            value = z80.r;
+            value = Z80.r;
 			break;
 
 		case RegIXh:
-            value = z80.ix.b.h;
+            value = Z80.ix.b.h;
 			break;
 
 		case RegIXl:
-            value = z80.ix.b.l;
+            value = Z80.ix.b.l;
 			break;
 
 		case RegIYh:
-            value = z80.iy.b.h;
+            value = Z80.iy.b.h;
 			break;
 
 		case RegIYl:
-            value = z80.iy.b.l;
+            value = Z80.iy.b.l;
 			break;
 
 		case RegAltA:
-            value = z80.af_.b.h;
+            value = Z80.af_.b.h;
 			break;
 
 		case RegAltB:
-            value = z80.bc_.b.h;
+            value = Z80.bc_.b.h;
 			break;
 
 		case RegAltC:
-            value = z80.bc_.b.l;
+            value = Z80.bc_.b.l;
 			break;
 
 		case RegAltD:
-            value = z80.de_.b.h;
+            value = Z80.de_.b.h;
 			break;
 
 		case RegAltE:
-            value = z80.de_.b.l;
+            value = Z80.de_.b.l;
 			break;
 
 		case RegAltH:
-            value = z80.hl_.b.h;
+            value = Z80.hl_.b.h;
 			break;
 
 		case RegAltL:
-            value = z80.hl_.b.l;
+            value = Z80.hl_.b.l;
 			break;
 
 		case RegBC:
-            value = z80.bc.w.l;
+            value = Z80.bc.w.l;
 			break;
 
 		case RegDE:
-            value = z80.de.w.l;
+            value = Z80.de.w.l;
 			break;
 
 		case RegHL:
-            value = z80.hl.w.l;
+            value = Z80.hl.w.l;
 			break;
 
 		case RegIX:
-            value = z80.ix.w.l;
+            value = Z80.ix.w.l;
 			break;
 
 		case RegIY:
-            value = z80.iy.w.l;
+            value = Z80.iy.w.l;
 			break;
 
 		case RegPC:
-            value = z80.pc.w.l;
+            value = Z80.pc.d.l;
 			break;
 
 		case RegSP:
-            value = z80.sp.w.l;
+            value = Z80.sp.d.l;
 			break;
 
 		case RegAltBC:
-            value = z80.bc_.w;
+            value = Z80.bc_.w;
 			break;
 
 		case RegAltDE:
-            value = z80.de_.w;
+            value = Z80.de_.w;
 			break;
 
 		case RegAltHL:
-            value = z80.hl_.w;
+            value = Z80.hl_.w;
 			break;
     }
 #endif
@@ -940,24 +942,24 @@ void Tdebug::UpdateVals(void)
         int i,j, Stack;
 
         // Update registers
-        SetLabelInfo(HL, z80.hl.w);
-        SetLabelInfo(BC, z80.bc.w);
-        SetLabelInfo(DE, z80.de.w);
-        SetLabelInfo(HL_, z80.hl_.w);
-        SetLabelInfo(BC_, z80.bc_.w);
-        SetLabelInfo(DE_, z80.de_.w);
-        SetLabelInfo(IX, z80.ix.w);
-        SetLabelInfo(IY, z80.iy.w);
-        SetLabelInfo(PC, z80.pc.w);
-        SetLabelInfo(SP, z80.sp.w);
-        SetLabelInfo(IR, (z80.i<<8) | (z80.r7 & 128) | ((z80.r) & 127));
-        SetLabelInfo(A, z80.af.b.h, 2);
-        SetLabelInfo(A_, z80.af_.b.h, 2);
-        F->Caption = Bin8(z80.af.b.l);
-        F_->Caption = Bin8(z80.af_.b.l);
+        SetLabelInfo(HL, Z80.hl.d);
+        SetLabelInfo(BC, Z80.bc.d);
+        SetLabelInfo(DE, Z80.de.d);
+        SetLabelInfo(HL_, Z80.hl2.d);
+        SetLabelInfo(BC_, Z80.bc2.d);
+        SetLabelInfo(DE_, Z80.de2.d);
+        SetLabelInfo(IX, Z80.ix.d);
+        SetLabelInfo(IY, Z80.iy.d);
+        SetLabelInfo(PC, Z80.pc.d);
+        SetLabelInfo(SP, Z80.sp.d);
+        //TODO SetLabelInfo(IR, (Z80.i<<8) | (Z80.r7 & 128) | ((Z80.r) & 127));
+        SetLabelInfo(A, Z80.af.b.h, 2);
+        SetLabelInfo(A_, Z80.af2.b.h, 2);
+        F->Caption = Bin8(Z80.af.b.l);
+        F_->Caption = Bin8(Z80.af2.b.l);
 
         // Update stack memory
-        i=z80.sp.w;
+        i=Z80.sp.d;
         Stack00->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
         Stack01->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
         Stack02->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
@@ -979,12 +981,12 @@ void Tdebug::UpdateVals(void)
         i = recentHistory[(recentHistoryPos+2)&3]; Disass2->Caption = Disassemble(&i);
 
         // Put current disassembly code
-        i=z80.pc.w;
+        i=Z80.pc.d;
         int stepOverStartAddr=i;
         StepOverInstruction = IsStepOverInstruction(i);
         Disass3->Caption = (Disassemble(&i) + "                              ").SetLength(63);
         StepOverAddr = i;
-        StepOverStack=z80.sp.w;
+        StepOverStack=Z80.sp.d;
         StepOverInstructionSize = StepOverAddr - stepOverStartAddr;
         StepOutRequested = 0;
 
@@ -998,9 +1000,9 @@ void Tdebug::UpdateVals(void)
         Disass11->Caption = Disassemble(&i);
 
         // Update flags
-        Halt->Caption = z80.halted ? "Yes":"No" ;
-        Interrupts->Caption = z80.iff1 ? "Enabled":"Disabled" ;
-        IM->Caption = z80.im;
+        Halt->Caption = Z80.halt ? "Yes":"No" ;
+        Interrupts->Caption = Z80.iff1 ? "Enabled":"Disabled" ;
+        IM->Caption = Z80.im;
         if ((displayedTStatesCount >= 0) && (displayedTStatesCount < 1000000))
         {
                 TStatesCount->Caption = displayedTStatesCount;
@@ -1012,7 +1014,7 @@ void Tdebug::UpdateVals(void)
 
         UpdateChanges();
 
-        if (coleco.stop)
+        if (emul2.stop)
         {
                 RunStop1->Caption = "Run";
                 Step1->Enabled = true;
@@ -1095,13 +1097,13 @@ __fastcall Tdebug::Tdebug(TComponent* Owner)
     Breakpoints=0;
     NMIRetAddr=INTRetAddr=-1;
 
-    ini = new TIniFile(coleco.inipath);
+    ini = new TIniFile(emul2.inipath);
     LoadSettings(ini);
     delete ini;
 
     maxMemory = 0xFFFF+1;
     cboMemory->ItemIndex=0;
-    BaseAddress = z80.pc.w;
+    BaseAddress = Z80.pc.d;
 
     BPList->DefaultColWidth = BPList->Width;
 
@@ -1121,9 +1123,9 @@ __fastcall Tdebug::Tdebug(TComponent* Owner)
 
 void __fastcall Tdebug::FormClose(TObject *Sender, TCloseAction &Action)
 {
-    coleco.singlestep=0;
+    emul2.singlestep=0;
     Form1->Debugger1->Checked=false;
-    coleco.stop=0;
+    emul2.stop=0;
     StepOutRequested = 0;
 }
 
@@ -1132,7 +1134,7 @@ void __fastcall Tdebug::FormShow(TObject *Sender)
 {
     AutoRefresh1->Enabled = true;
 
-    if (AutoRefresh1->Checked==true) coleco.singlestep=1;
+    if (AutoRefresh1->Checked==true) emul2.singlestep=1;
     UpdateVals();
 }
 //---------------------------------------------------------------------------
@@ -1159,8 +1161,8 @@ void Tdebug::SaveSettings(TIniFile *ini)
 //---------------------------------------------------------------------------
 void __fastcall Tdebug::RunStop1Click(TObject *Sender)
 {
-    coleco.stop = 1-coleco.stop;
-    if(!coleco.stop)
+    emul2.stop = 1-emul2.stop;
+    if(!emul2.stop)
     {
         ClearChanges();
         SoundResume();
@@ -1176,8 +1178,8 @@ void __fastcall Tdebug::RunStop1Click(TObject *Sender)
 void __fastcall Tdebug::Step1Click(TObject *Sender)
 {
     ClearChanges();
-    coleco.stop=0;
-    coleco.singlestep=1;
+    emul2.stop=0;
+    emul2.singlestep=1;
     StackChange = 0;
     DoNext=true;
 }
@@ -1250,7 +1252,7 @@ void __fastcall Tdebug::DoEditStack(int offs)
 {
     editvalue->CentreOn(this);
 
-    int i = 2 * offs + z80.sp.w;
+    int i = 2 * offs + Z80.sp.d;
     int v = getbyte(i)+256*getbyte(i+1);
     if (editvalue->Edit2(v, 2))
     {
@@ -1276,7 +1278,7 @@ void __fastcall Tdebug::Stack00MouseDown(TObject *Sender,
     int len = label->Name.Length();
     int idx = label->Name.SubString(len-1, 2).ToInt();
 
-    int i = z80.sp.w;
+    int i = Z80.sp.d;
     i += 2 * idx;
     SetMenuContent(getbyte(i)+256*getbyte(i+1));
 }
@@ -1329,7 +1331,7 @@ void __fastcall Tdebug::FClick(TObject *Sender)
     int f = cp.x / (F->Width / 8);
 
     int bit = 0x80 >> f;
-    z80.af.b.l ^= bit;
+    Z80.af.b.l ^= bit;
     UpdateVals()
 */
 }
@@ -1346,7 +1348,7 @@ void __fastcall Tdebug::F_Click(TObject *Sender)
     int f = (cp.x) / (F_->Width / 8);
 
     int bit = 0x80 >> f;
-    z80.af_.b.l ^= bit;
+    Z80.af_.b.l ^= bit;
     UpdateVals();
 */
 }
@@ -1355,35 +1357,35 @@ void __fastcall Tdebug::F_Click(TObject *Sender)
 void __fastcall Tdebug::BCMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.bc.w);
+   SetMenuContent(Z80.bc.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DEMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.de.w);
+   SetMenuContent(Z80.de.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HLMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.hl.w);
+   SetMenuContent(Z80.hl.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IXMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.ix.w);
+   SetMenuContent(Z80.ix.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IYMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.iy.w);
+   SetMenuContent(Z80.iy.d);
 }
 //---------------------------------------------------------------------------
 
@@ -1391,7 +1393,7 @@ void __fastcall Tdebug::IRMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
 #if 0
-        int ir = (z80.i << 8) | (z80.r7 & 128) | (z80.r & 127);
+        int ir = (Z80.i << 8) | (Z80.r7 & 128) | (Z80.r & 127);
         SetMenuContent(ir);
 #endif
 }
@@ -1400,14 +1402,14 @@ void __fastcall Tdebug::IRMouseDown(TObject *Sender, TMouseButton Button,
 void __fastcall Tdebug::SPMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.sp.w);
+   SetMenuContent(Z80.sp.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::PCMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-   SetMenuContent(z80.pc.w);
+   SetMenuContent(Z80.pc.d);
 }
 //---------------------------------------------------------------------------
 
@@ -1439,80 +1441,80 @@ void __fastcall Tdebug::DoEditReg(BYTE& value)
 
 void __fastcall Tdebug::AClick(TObject *Sender)
 {
-        DoEditReg(z80.af.b.h);
+        DoEditReg(Z80.af.b.h);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::A_Click(TObject *Sender)
 {
-        DoEditReg(z80.af_.b.h);
+        DoEditReg(Z80.af2.b.h);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::SPClick(TObject *Sender)
 {
-        DoEditReg(z80.sp.w);
+        DoEditReg((WORD) Z80.sp.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::PCClick(TObject *Sender)
 {
-    DoEditReg(z80.pc.w);
+    DoEditReg((WORD) Z80.pc.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::BCClick(TObject *Sender)
 {
-    DoEditReg(z80.bc.w);
+    DoEditReg((WORD) Z80.bc.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DEClick(TObject *Sender)
 {
-    DoEditReg(z80.de.w);
+    DoEditReg((WORD) Z80.de.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HLClick(TObject *Sender)
 {
-    DoEditReg(z80.hl.w);
+    DoEditReg((WORD) Z80.hl.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::BC_Click(TObject *Sender)
 {
-    DoEditReg(z80.bc_.w);
+    DoEditReg((WORD) Z80.bc2.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DE_Click(TObject *Sender)
 {
-    DoEditReg(z80.de_.w);
+    DoEditReg((WORD) Z80.de2.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HL_Click(TObject *Sender)
 {
-    DoEditReg(z80.hl_.w);
+    DoEditReg((WORD) Z80.hl2.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IXClick(TObject *Sender)
 {
-    DoEditReg(z80.ix.w);
+    DoEditReg((WORD) Z80.ix.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IYClick(TObject *Sender)
 {
-    DoEditReg(z80.iy.w);
+    DoEditReg((WORD) Z80.iy.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::IMClick(TObject *Sender)
 {
 #if 0
-    if (++z80.im == 3) z80.im=0;
+    if (++Z80.im == 3) Z80.im=0;
     UpdateVals();
 #endif
 }
@@ -1521,7 +1523,7 @@ void __fastcall Tdebug::IMClick(TObject *Sender)
 void __fastcall Tdebug::InterruptsClick(TObject *Sender)
 {
 #if 0
-    z80.iff1=z80.iff2= !z80.iff1;
+    Z80.iff1=Z80.iff2= !Z80.iff1;
     UpdateVals();
 #endif
 }
@@ -1533,12 +1535,12 @@ void __fastcall Tdebug::IRClick(TObject *Sender)
 
     int v;
 #if 0
-    v = (z80.i << 8) | (z80.r7 & 128) | z80.r;
+    v = (Z80.i << 8) | (Z80.r7 & 128) | Z80.r;
     if (editvalue->Edit2(v, 2))
     {
-        z80.r = v&127;
-        z80.r7 = v&128;
-        z80.i = (v>>8)&255;
+        Z80.r = v&127;
+        Z80.r7 = v&128;
+        Z80.i = (v>>8)&255;
         UpdateVals();
     }
 #endif
@@ -1596,21 +1598,21 @@ void __fastcall Tdebug::EditBrkBtnClick(TObject *Sender)
 void __fastcall Tdebug::BC_MouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-//   SetMenuContent(z80.bc_.w);
+//   SetMenuContent(Z80.bc_.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DE_MouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-//   SetMenuContent(z80.de_.w);
+//   SetMenuContent(Z80.de_.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HL_MouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-//   SetMenuContent(z80.hl_.w);
+//   SetMenuContent(Z80.hl_.d);
 }
 
 //---------------------------------------------------------------------------
@@ -1935,7 +1937,7 @@ void __fastcall Tdebug::panMemClick(TObject *Sender)
 
     // CR  this is nasty - but it's the quickest way to tell if the debugger
     // is running continuously
-    if (coleco.singlestep!=1)  return;
+    if (emul2.singlestep!=1)  return;
 
     if (xyToAddress(cp.x-gBoxMemory->Left-panMem->Left, cp.y-gBoxMemory->Top-panMem->Top, address))
     {
@@ -1959,12 +1961,12 @@ void __fastcall Tdebug::AutoRefresh1Click(TObject *Sender)
         AutoRefresh1->Checked=!AutoRefresh1->Checked;
         if (AutoRefresh1->Checked==true)
         {
-            coleco.singlestep=1;
+            emul2.singlestep=1;
             EnableVals();
         }
         else
         {
-            coleco.singlestep=0;
+            emul2.singlestep=0;
             DisableVals();
         }
         UpdateVals();

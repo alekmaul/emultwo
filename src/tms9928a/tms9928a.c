@@ -59,8 +59,8 @@ void tms9918_reset(void) {
 	tms.CurLine=0;                                          // Current scanline
     tms.DLatch = 0;                                         // Current Data latch
     tms.ScanLines = TMS9918_LINES;                          // Default for NTSC
-    tms.MaxSprites = TMS9918_MAXSPRITES;                    // Default for chipset
 
+    tms.MaxSprites = TMS9918_MAXSPRITES;                    // Default for chipset
 	tms.ChrTab=tms.ColTab=tms.ChrGen=tms.ram;               // tms.VR tables (screen)
 	tms.SprTab=tms.SprGen=tms.ram;                          // tms.VR tables (sprites)
 
@@ -202,6 +202,8 @@ unsigned char tms9918_readctrl(void) {
 
     retval = tms.SR;
     tms.SR &= TMS9918_STAT_5THNUM|TMS9918_STAT_5THSPR;
+
+    z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE); 
 
     return(retval);
 }
@@ -772,6 +774,7 @@ unsigned char tms9918_loop(void) {
 	if(++tms.CurLine>=tms.ScanLines) tms.CurLine=0;
 
 	// If refreshing display area, call scanline handler
+
     if((tms.CurLine>=TMS9918_START_LINE)&&(tms.CurLine<TMS9918_END_LINE))
     {
 		if(tms.UCount>=100)

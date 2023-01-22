@@ -26,28 +26,16 @@
 
 #include "fdidisk.h"
 
-#define MAXRAMSIZE      512*1024                 // 512K of Memory (rom begin at 0x38000, so for 256K max of ROM)
-#define MAXEEPROMSIZE   32*1024                  // 32K of EEProm memory
-#define MAXSTATESIZE    (MAXRAMSIZE+MAXEEPROMSIZE+32*1024)
-
-#define ROM_WRITER      (cvmemory)              // 32kB SmartWriter ROM
-#define RAM_MAIN_LO     (cvmemory+0x8000)       // 32kB main Adam RAM
-#define RAM_EXP_LO      (cvmemory+0x10000)      // 32kB exp Adam RAM
-#define ROM_OS7         (cvmemory+0x18000)      // 8kB OS7 ROM (CV BIOS)
-#define ROM_BIOS        ROM_OS7
-#define RAM_OS7         (cvmemory+0x1A000)      // 8x1kB main CV RAM
-#define RAM_BASE        RAM_OS7
-#define RAM_DUMMY       (cvmemory+0x1C000)      // 8kB dummy RAM
-#define ROM_EOS         (cvmemory+0x1E000)      // 8kB EOS ROM
-#define RAM_MAIN_HI     (cvmemory+0x20000)      // 32kB main Adam RAM
-#define ROM_EXPANSION   (cvmemory+0x28000)      // 32kB Expansion ROM
-#define RAM_EXP_HI      (cvmemory+0x30000)      // 32kB exp Adam RAM
-#define ROM_CARTRIDGE   (cvmemory+0x38000)      // 32kB Cartridge ROM
+#define MAX_CART_SIZE   512                   // 512K of cart memory
+#define MAX_EEPROM_SIZE 32                    // 32K of EEProm memory
+#define MAX_RAM_SIZE    128
+#define MAX_BIOS_SIZE   64
+#define MAXSTATESIZE    (MAX_CART_SIZE+MAX_EEPROM_SIZE+MAX_RAM_SIZE)
 
 #define MAX_DISKS     4       /* Maximal number of disks     */
 #define MAX_TAPES     4       /* Maximal number of tapes     */
 
-enum                   
+enum
 {
     CHRMAP=0,CHRGEN,SPRATTR,SPRGEN,CHRCOL,VRAM, SGMRAM, RAM, ROM, EEPROM, SRAM,
 };
@@ -58,22 +46,22 @@ extern BYTE cv_display[TVW*TVH];                        // Coleco display buffer
 extern int cv_pal32[16];                                // Coleco display palette in 32 bits RGB
 extern unsigned int *cv_screen[TVH];                    // Coleco display buffer in 32 bits RGB
 
-extern BYTE cvmemory[MAXRAMSIZE];                      // CPU address space
-extern BYTE eepromdata[MAXEEPROMSIZE];                 // Max EEProm memory 32Ko
+extern BYTE ROM_Memory[MAX_CART_SIZE * 1024];          // ROM Carts up to 512K
+extern BYTE RAM_Memory[MAX_RAM_SIZE * 1024];           // RAM up to 128K (for the ADAM... )
+extern BYTE BIOS_Memory[MAX_BIOS_SIZE * 1024];         // 64K To hold our BIOS and related OS memory
+extern BYTE SRAM_Memory[MAX_EEPROM_SIZE*1024];         // SRAM up to 32K for the few carts which use it
 
 extern int tstates,frametstates;
 
 extern BYTE coleco_megacart;                            // <>0 if mega cart rom detected
-extern BYTE coleco_megapage;                           // selected page for megacart
 extern BYTE coleco_megasize;                           // mega cart rom size in 16kB pages
 
 extern unsigned int coleco_joystat;                     // Joystick / Paddle management
 
+extern int coleco_spinpos;                             // Spinner position
 extern unsigned int coleco_spincount;                  // Spinner counters
 extern unsigned int coleco_spinstep;                   // Spinner steps
 extern unsigned int coleco_spinstate;                  // Spinner bit states
-
-extern int coleco_intpending;                           // 1 if we need a IRQ38 interrupt (spinner, and so on ...)
 
 extern FDIDisk Disks[MAX_DISKS];                        // Adam disk drives
 extern FDIDisk Tapes[MAX_TAPES];                        // Adam tape drives
@@ -81,6 +69,8 @@ extern FDIDisk Tapes[MAX_TAPES];                        // Adam tape drives
 //---------------------------------------------------------------------------
 extern unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y);
 extern BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y);
+
+extern void megacart_bankswitch(BYTE bank);
 
 extern void coleco_initialise(void);
 extern void coleco_setbyte(int Address, int Data);

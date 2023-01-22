@@ -24,7 +24,7 @@
 
 #include "colecoconfig.h"
 
-COLECO coleco;
+EMUL2 emul2;
 MACHINE machine;
 
 int lastMemoryReadAddrLo, lastMemoryWriteAddrLo;
@@ -42,24 +42,27 @@ void load_config(void)
         int versionNumberPart4;
         GetVersionNumber(versionNumberMajor, versionNumberMinor, versionNumberPart3, versionNumberPart4);
 
-        coleco.emuid=EMUID;
-        coleco.major=versionNumberMajor;
-        coleco.minor=versionNumberMinor;
-        coleco.testver=versionNumberPart3;
-        coleco.machine=MACHINECOLECO;
-        coleco.NTSC=1;
-        coleco.SGM=0;
-        coleco.F18A=0;
-        coleco.frameskip=0;
-        coleco.vsyncsound=0;
-        coleco.cardcrc=-1;
-        coleco.cardsize=0;
-        coleco.startdebug=0;
-        coleco.romCartridge = ROMCARTRIDGENONE;
-        coleco.typebackup=NOBACKUP;
-        coleco.palette=0;
-        coleco.hackbiospal;
-        coleco.biosnodelay;
+        emul2.emuid=EMUID;
+        emul2.major=versionNumberMajor;
+        emul2.minor=versionNumberMinor;
+        emul2.testver=versionNumberPart3;
+        emul2.machine=MACHINECOLECO;
+        emul2.NTSC=1;
+        emul2.SGM=0;
+        emul2.F18A=0;
+        emul2.frameskip=0;
+        emul2.vsyncsound=0;
+        emul2.cardcrc=-1;
+        emul2.cardsize=0;
+        emul2.startdebug=0;
+        emul2.romCartridge = ROMCARTRIDGENONE;
+        emul2.typebackup=NOBACKUP;
+        emul2.palette=0;
+        emul2.hackbiospal;
+        emul2.biosnodelay;
+        emul2.singlestep=0;
+        emul2.stop=0;
+        strcpy(emul2.machinename, "E.mul T.wo");
 
         machine.clockspeed=CLOCK_NTSC;
         machine.tperscanline=207;
@@ -67,9 +70,5 @@ void load_config(void)
         machine.fps=50;
         machine.intposition=0;
 
-        coleco.singlestep=0;
-        coleco.stop=0;
-
-        strcpy(coleco.machinename, "E.mul T.wo");
 }
 

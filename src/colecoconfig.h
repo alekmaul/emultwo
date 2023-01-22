@@ -84,14 +84,13 @@ typedef struct
         int frameskip;
 
         char cwd[256];
-        char temppath[256];
         char inipath[256];
         char configpath[256];
         char mydocs[256];
         char machinename[256];
 
         char CurRom[256];
-} COLECO;
+} EMUL2;
 
 typedef struct
 {
@@ -122,7 +121,7 @@ typedef struct
 
 } MACHINE;
 
-extern COLECO coleco;
+extern EMUL2 emul2;
 extern MACHINE machine;
 
 extern int lastMemoryReadAddrLo, lastMemoryWriteAddrLo;
@@ -131,7 +130,7 @@ extern int lastMemoryReadAddrHi, lastMemoryWriteAddrHi;
 extern int lastMemoryReadValueHi, lastMemoryWriteValueHi;
 
 extern void load_config();
-
+#if 0
 #define readbyte_internal(Addr) (machine.opcode_fetch(Addr))
 #define readbyte(Addr) (machine.readbyte(Addr))
 #define readoperandbyte(Addr) (machine.readoperandbyte(Addr))
@@ -141,6 +140,15 @@ extern void load_config();
 #define writeport(Addr,Data,tstates) (machine.writeport(Addr,Data,tstates))
 #define readport(Addr, tstates) (machine.readport(Addr, tstates))
 #define opcode_fetch(Addr) (machine.opcode_fetch(Addr))
+
+#else
+#define cpu_readmem16(address) (machine.readbyte(address))
+#define cpu_writemem16(address,value) (machine.writebyte(address,value))
+#define cpu_readport16(Port) (machine.readport(Port,0))
+#define cpu_writeport16(Port,Value) (machine.writeport(Port,Value,0))
+#define getbyte(Addr) (machine.getbyte(Addr))
+#define setbyte(Addr,Data) (machine.setbyte(Addr,Data))
+#endif
 
 #endif
 

@@ -28,8 +28,17 @@
 
 #include "coleco.h"
 
+byte HoldingBuf[4096];
+BYTE io_busy= 0;
+word savedBUF = 0;
+word savedLEN = 0;
+byte last_command_read=false;
+byte io_show_status=0;
+
+#define DELAY_IO 10
+
 /** RAM Access Macro *****************************************/
-#define RAM(A)         (RAMPage[(A)>>13][(A)&0x1FFF])
+#define RAM(A)         (RAM_Memory[A])
 
 /** PCB Field Offsets ****************************************/
 #define PCB_CMD_STAT   0
@@ -137,29 +146,17 @@ static const byte CtrlKey[256] =
   0xF0,0xF1,0xF2,0xF3,0xF4,0xF5,0xF6,0xF7,0xF8,0xF9,0xFA,0xFB,0xFC,0xFD,0xFE,0xFF
 };
 
-extern byte *ROMPage[8];    /* 8x8kB read-only (ROM) pages   */
-extern byte *RAMPage[8];    /* 8x8kB read-write (RAM) pages  */
 extern byte coleco_port60;
 
 byte PCBTable[0x10000];
 
-static word PCBAddr;
-static byte DiskID;
-static byte KBDStatus;
-static byte LastKey;
+word PCBAddr;
+byte DiskID;
+byte KBDStatus;
+byte LastKey;
 
-/** ComputeCRC() *********************************************/
-/** Compute CRC of a buffer by XORing all bytes.            **/
-/*************************************************************/
-static byte ComputeCRC(byte *Buf,int Length)
-{
-  byte CRC;
-  int J;
-  /* XOR all bytes together */
-  for(CRC=0x00,J=0 ; J<Length ; ++J) CRC^=Buf[J];
-  /* Done */
-  return(CRC);
-}
+extern byte RAM_Memory[];
+
 
 /** GetDCB() *************************************************/
 /** Get DCB byte at given offset.                           **/
@@ -167,7 +164,7 @@ static byte ComputeCRC(byte *Buf,int Length)
 static byte GetDCB(byte Dev,byte Offset)
 {
   word A = (PCBAddr+PCB_SIZE+Dev*DCB_SIZE+Offset)&0xFFFF;
-  return(ROMPage[A>>13][A&0x1FFF]);
+  return(RAM_Memory[A]);
 }
 
 static word GetDCBBase(byte Dev)
@@ -196,7 +193,7 @@ static unsigned int GetDCBSector(byte Dev)
 static byte GetPCB(word Offset)
 {
   word A = (PCBAddr+Offset)&0xFFFF;
-  return(ROMPage[A>>13][A&0x1FFF]);
+  return(RAM_Memory[A]);
 }
 
 static word GetPCBBase(void)
@@ -215,7 +212,8 @@ static word GetMaxDCB(void)
 static void SetDCB(byte Dev,byte Offset,byte Value)
 {
   word A = (PCBAddr+PCB_SIZE+Dev*DCB_SIZE+Offset)&0xFFFF;
-  RAM(A) = Value;
+    
+  RAM_Memory[A] = Value;
 }
 
 /** SetPCB() *************************************************/
@@ -224,7 +222,7 @@ static void SetDCB(byte Dev,byte Offset,byte Value)
 static void SetPCB(word Offset,byte Value)
 {
   word A = (PCBAddr+Offset)&0xFFFF;
-  RAM(A) = Value;
+  RAM_Memory[A] = Value;
 }
 
 /** IsPCB() **************************************************/
@@ -234,7 +232,6 @@ static int IsPCB(word A)
 {
   /* Quick check for PCB presence */
   if(!PCBTable[A]) return(0);
-
   /* Check if PCB is mapped in */
   if((A<0x2000) && ((coleco_port60&0x03)!=1)) return(0);
   if((A<0x8000) && ((coleco_port60&0x03)!=1) && ((coleco_port60&0x03)!=3)) return(0);
@@ -295,8 +292,10 @@ void PutKBD(unsigned int Key)
   Mode = Key & ~0xFF;
   Key  = Key & 0xFF;
   Key  = (Key>='A')&&(Key<='Z')? Key+'a'-'A':Key;
+//  Key  = (Mode&ADAM_KEY_CONTROL || key_ctrl) && (CtrlKey[Key]!=Key)?  CtrlKey[Key]
+//       : (Mode&ADAM_KEY_SHIFT || key_shift)  && (ShiftKey[Key]!=Key)? ShiftKey[Key]
   Key  = (Mode&KEY_CONTROL) && (CtrlKey[Key]!=Key)?  CtrlKey[Key]
-       : (Mode&KEY_SHIFT)   && (ShiftKey[Key]!=Key)? ShiftKey[Key]
+       : (Mode&KEY_SHIFT )  && (ShiftKey[Key]!=Key)? ShiftKey[Key]
        : Key;
   Key  = (Mode&KEY_CAPS)&&(Key>='a')&&(Key<='z')? Key+'A'-'a':Key;
 
@@ -336,7 +335,9 @@ static void UpdateKBD(byte Dev,int V)
       A = GetDCBBase(Dev);
       N = GetDCBLen(Dev);
       for(J=0 ; (J<N) && (V=GetKBD()) ; ++J, A=(A+1)&0xFFFF)
-        RAM(A) = V;
+      {
+        RAM_Memory[A] = V;
+      }
       KBDStatus = RSP_STATUS+(J<N? 0x0C:0x00);
       break;
   }
@@ -344,7 +345,7 @@ static void UpdateKBD(byte Dev,int V)
 
 static void UpdatePRN(byte Dev,int V)
 {
-  int J,N;
+  int N;
   word A;
 
   switch(V)
@@ -361,12 +362,24 @@ static void UpdatePRN(byte Dev,int V)
       SetDCB(Dev,DCB_CMD_STAT,0x00);
       A = GetDCBBase(Dev);
       N = GetDCBLen(Dev);
-      for(J=0 ; J<N ; ++J, A=(A+1)&0xFFFF)
-       Printer(RAM(A));
+      (void)A;
+      (void)N;
+      //for(J=0 ; J<N ; ++J, A=(A+1)&0xFFFF)
+        //Printer(RAM(A));
       break;
     default:
       SetDCB(Dev,DCB_CMD_STAT,RSP_STATUS);
       break;
+  }
+}
+
+static void AdamFlushCache(void)
+{
+  for (word i=0; i<savedLEN; i++)
+  {
+      // Copy data from holding buffer...
+      RAM_Memory[savedBUF] = HoldingBuf[i];
+      savedBUF++;
   }
 }
 
@@ -383,7 +396,21 @@ static void UpdateDSK(byte N,byte Dev,int V)
   /* If reading DCB status, stop here */
   if(V<0)
   {
-    SetDCB(Dev,DCB_CMD_STAT,RSP_STATUS);
+      if (io_busy)
+      {
+          io_busy--;
+          SetDCB(Dev,DCB_CMD_STAT,0x00);
+          
+          if (io_busy == 0 && last_command_read)
+          {
+              last_command_read=0;
+              AdamFlushCache();
+          }
+      }
+      else
+      {
+         SetDCB(Dev,DCB_CMD_STAT,RSP_STATUS);
+      }
     return;
   }
 
@@ -404,8 +431,11 @@ static void UpdateDSK(byte N,byte Dev,int V)
 
     case CMD_WRITE:
     case CMD_READ:
+      io_show_status = (V==CMD_READ) ? 1:2;
+      //TODO if (io_show_status == 2) adam_unsaved_data = 1;
       /* Busy status by default */
       SetDCB(Dev,DCB_CMD_STAT,0x00);
+      io_busy = DELAY_IO;
       /* If no disk, stop here */
       if(!Disks[N].Data) break;
       /* Determine buffer address, length, block number */
@@ -413,6 +443,8 @@ static void UpdateDSK(byte N,byte Dev,int V)
       LEN = GetDCBLen(Dev);
       LEN = LEN<0x0400? LEN:0x0400;
       SEC = GetDCBSector(Dev);
+      savedBUF = BUF;
+      savedLEN = LEN;
       /* For each 512-byte sector... */
       for(I=0, SEC<<=1 ; I<LEN ; ++SEC, I+=0x200)
       {
@@ -430,9 +462,21 @@ static void UpdateDSK(byte N,byte Dev,int V)
         /* Read or write sectors */
         K = I+0x200>LEN? LEN-I:0x200;
         if(V==CMD_READ)
-          for(J=0;J<K;++J,++BUF) RAM(BUF) = Data[J];
+        {
+            last_command_read = true;
+            for(J=0;J<K;++J,++BUF) 
+            {
+                HoldingBuf[I+J] = Data[J];
+            }
+        }
         else
-          for(J=0;J<K;++J,++BUF) Data[J] = RAM(BUF);
+        {
+          last_command_read = false;
+          for(J=0;J<K;++J,++BUF) 
+          {
+              Data[J] = RAM_Memory[BUF];
+          }
+        }
         /* If disk access failed, stop here */
         if(J<K)
         {
@@ -455,7 +499,20 @@ static void UpdateTAP(byte N,byte Dev,int V)
   /* If reading DCB status, stop here */
   if(V<0)
   {
-    SetDCB(Dev,DCB_CMD_STAT,RSP_STATUS);
+      if (io_busy)
+      {
+          io_busy--;
+          SetDCB(Dev,DCB_CMD_STAT,0x00);
+          if (io_busy == 0 && last_command_read)
+          {
+              last_command_read = 0;
+              AdamFlushCache();
+          }
+      }
+      else
+      {
+        SetDCB(Dev,DCB_CMD_STAT,RSP_STATUS);
+      }
     return;
   }
 
@@ -476,8 +533,11 @@ static void UpdateTAP(byte N,byte Dev,int V)
 
     case CMD_WRITE:
     case CMD_READ:
+      io_show_status = (V==CMD_READ) ? 1:2;
+      // TODO if (io_show_status == 2) adam_unsaved_data = 1;
       /* Busy status by default */
       SetDCB(Dev,DCB_CMD_STAT,0x00);
+      io_busy = DELAY_IO;
       /* If no tape, stop here */
       if(!Tapes[N].Data) break;
       /* Determine buffer address, length, block number */
@@ -485,6 +545,9 @@ static void UpdateTAP(byte N,byte Dev,int V)
       LEN = GetDCBLen(Dev);
       LEN = LEN<0x0400? LEN:0x0400;
       SEC = GetDCBSector(Dev);
+      savedBUF = BUF;
+      savedLEN = LEN;
+      
       /* For each 512-byte sector... */
       for(I=0, SEC<<=1 ; I<LEN ; ++SEC, I+=0x200)
       {
@@ -500,9 +563,18 @@ static void UpdateTAP(byte N,byte Dev,int V)
         /* Read or write sectors */
         K = I+0x200>LEN? LEN-I:0x200;
         if(V==CMD_READ)
-          for(J=0;J<K;++J,++BUF) RAM(BUF) = Data[J];
+        {
+          last_command_read = true;
+          for(J=0;J<K;++J,++BUF) 
+          {
+              HoldingBuf[I+J] = Data[J];
+          }
+        }
         else
+        {
+          last_command_read = false;
           for(J=0;J<K;++J,++BUF) Data[J] = RAM(BUF);
+        }
         /* If disk access failed, stop here */
         if(J<K)
         {
@@ -595,8 +667,14 @@ void WritePCB(word A,byte V)
         MovePCB(GetPCBBase(),GetMaxDCB());
         SetPCB(PCB_CMD_STAT,RSP_STATUS|V);
         break;
+      case CMD_PCB_IDLE:
+      case CMD_PCB_WAIT:
+        break;
+      case CMD_PCB_RESET:
+        memset(PCBTable,0,sizeof(PCBTable));
+        break;
       default:
-        /* Ignore invalid commands 0x00, 0x80, ... */
+        memset(PCBTable,0,sizeof(PCBTable));
         break;
     }
   }
@@ -622,7 +700,60 @@ void ResetPCB(void)
 
   /* @@@ Reset tape and disk here */
   KBDStatus = RSP_STATUS;
-
   LastKey   = 0x00;
+}
+
+/** ChangeTape() *********************************************/
+/** Change tape image in a given drive. Closes current tape **/
+/** image if Name=0 was given. Creates a new tape image if  **/
+/** Name="" was given. Returns 1 on success or 0 on failure.**/
+/*************************************************************/
+byte ChangeTape(byte N,const char *FileName)
+{
+  byte *P;
+
+  /* We only have MAX_TAPES drives */
+  if(N>=MAX_TAPES) return(0);
+
+  /* Eject disk if requested */
+  if(!FileName) { EjectFDI(&Tapes[N]);return(1); }
+
+  /* If FileName not empty, try loading tape image */
+  if(*FileName && LoadFDI(&Tapes[N],FileName,FMT_DDP))
+  {
+    /* Done */
+    return(1);
+  }
+
+  /* If no existing file, create a new 256kB tape image */
+  P = FormatFDI(&Tapes[N],FMT_DDP);
+  return(!!P);
+}
+
+/** ChangeDisk() *********************************************/
+/** Change disk image in a given drive. Closes current disk **/
+/** image if Name=0 was given. Creates a new disk image if  **/
+/** Name="" was given. Returns 1 on success or 0 on failure.**/
+/*************************************************************/
+byte ChangeDisk(byte N,const char *FileName)
+{
+  byte *P;
+
+  /* We only have MAX_DISKS drives */
+  if(N>=MAX_DISKS) return(0);
+
+  /* Eject disk if requested */
+  if(!FileName) { EjectFDI(&Disks[N]);return(1); }
+
+  /* If FileName not empty, try loading disk image */
+  if(*FileName && LoadFDI(&Disks[N],FileName,FMT_ADMDSK))
+  {
+    /* Done */
+    return(1);
+  }
+
+  /* If no existing file, create a new 160kB disk image */
+  P = FormatFDI(&Disks[N],FMT_ADMDSK);
+  return(!!P);
 }
 

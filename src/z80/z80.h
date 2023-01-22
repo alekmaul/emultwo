@@ -1,88 +1,165 @@
-/* z80.h: z80 emulation core
-   Copyright (c) 1999-2002 Philip Kendall
+#ifndef Z80_H_
+#define Z80_H_
 
-   $Id: z80.h,v 1.5 2003/01/14 15:02:58 pak21 Exp $
+typedef unsigned char            UINT8;
+typedef unsigned short            UINT16;
+typedef unsigned int                        UINT32;
+//__extension__ typedef unsigned long long    UINT64;
+typedef signed char             INT8;
+typedef signed short            INT16;
+typedef signed int                          INT32;
+//__extension__ typedef signed long long      INT64;
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+/******************************************************************************
+ * Union of UINT8, UINT16 and UINT32 in native endianess of the target
+ * This is used to access bytes and words in a machine independent manner.
+ * The upper bytes h2 and h3 normally contain zero (16 bit CPU cores)
+ * thus PAIR.d can be used to pass arguments to the memory system
+ * which expects 'int' really.
+ ******************************************************************************/
+typedef union {
+    struct { UINT8 l,h,h2,h3; } b;
+    struct { UINT16 l,h; } w;
+    UINT32 d;
+}  PAIR;
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-   Author contact information:
+/* Interrupt line constants */
+enum
+{
+  /* line states */
+  CLEAR_LINE = 0,     /* clear (a fired, held or pulsed) line */
+  ASSERT_LINE,        /* assert an interrupt immediately */
+  HOLD_LINE,          /* hold interrupt line until acknowledged */
+  PULSE_LINE,         /* pulse interrupt line for one instruction */
 
-   E-mail: pak21-fuse@srcf.ucam.org
-   Postal address: 15 Crescent Road, Wokingham, Berks, RG40 2DB, England
+  /* internal flags (not for use by drivers!) */
+  INTERNAL_CLEAR_LINE = 100 + CLEAR_LINE,
+  INTERNAL_ASSERT_LINE = 100 + ASSERT_LINE,
 
-*/
+  /* input lines */
+  MAX_INPUT_LINES = 32+3,
+  INPUT_LINE_IRQ0 = 0,
+  INPUT_LINE_IRQ1 = 1,
+  INPUT_LINE_IRQ2 = 2,
+  INPUT_LINE_IRQ3 = 3,
+  INPUT_LINE_IRQ4 = 4,
+  INPUT_LINE_IRQ5 = 5,
+  INPUT_LINE_IRQ6 = 6,
+  INPUT_LINE_IRQ7 = 7,
+  INPUT_LINE_IRQ8 = 8,
+  INPUT_LINE_IRQ9 = 9,
+  INPUT_LINE_NMI = MAX_INPUT_LINES - 3,
 
-#ifndef FUSE_Z80_H
-#define FUSE_Z80_H
+  /* special input lines that are implemented in the core */
+  INPUT_LINE_RESET = MAX_INPUT_LINES - 2,
+  INPUT_LINE_HALT = MAX_INPUT_LINES - 1,
+
+  /* output lines */
+  MAX_OUTPUT_LINES = 32
+};
+
+
+/* daisy-chain link */
+typedef struct {
+  void (*reset)(int);             /* reset callback     */
+  int  (*interrupt_entry)(int);   /* entry callback     */
+  void (*interrupt_reti)(int);    /* reti callback      */
+  int irq_param;                  /* callback paramater */
+}  Z80_DaisyChain;
+
+#define Z80_MAXDAISY  4    /* maximum of daisy chan device */
+
+#define Z80_INT_REQ     0x01    /* interrupt request mask       */
+#define Z80_INT_IEO     0x02    /* interrupt disable mask(IEO)  */
+
+#define Z80_VECTOR(device,state) (((device)<<8)|(state))
+
+enum
+{
+  Z80_PC, Z80_SP,
+  Z80_A, Z80_B, Z80_C, Z80_D, Z80_E, Z80_H, Z80_L,
+  Z80_AF, Z80_BC, Z80_DE, Z80_HL,
+  Z80_IX, Z80_IY,  Z80_AF2, Z80_BC2, Z80_DE2, Z80_HL2,
+  Z80_R, Z80_I, Z80_IM, Z80_IFF1, Z80_IFF2, Z80_HALT,
+  Z80_DC0, Z80_DC1, Z80_DC2, Z80_DC3, Z80_WZ
+};
+
+enum {
+  Z80_TABLE_op,
+  Z80_TABLE_cb,
+  Z80_TABLE_ed,
+  Z80_TABLE_xy,
+  Z80_TABLE_xycb,
+  Z80_TABLE_ex  /* cycles counts for taken jr/jp/call and interrupt latency (rst opcodes) */
+};
+
+/****************************************************************************/
+/* The Z80 registers. HALT is set to 1 when the CPU is halted, the refresh  */
+/* register is calculated as follows: refresh=(Z80.r&127)|(Z80.r2&128)      */
+/****************************************************************************/
+typedef struct
+{
+  PAIR  pc,sp,af,bc,de,hl,ix,iy,wz;
+  PAIR  af2,bc2,de2,hl2;
+  UINT8  r,r2,iff1,iff2,halt,im,i;
+  UINT8  nmi_state;      /* nmi line state */
+  UINT8  nmi_pending;    /* nmi pending */
+  UINT8  irq_state;      /* irq line state */
+  UINT8  after_ei;      /* are we in the EI shadow? */
+  const struct z80_irq_daisy_chain *daisy;
+  int    (*irq_callback)(int irqline);
+}  Z80_Regs;
+
 
 #ifdef __cplusplus
-extern "C" {
-#endif
+extern "C" int z80_cycle_count;
+extern "C" Z80_Regs Z80;
 
-#include "config.h"
+extern "C" void take_interrupt(void);
+extern "C" int z80_ICount;
+extern "C" int z80_exec;               // 1= in exec loop, 0= out of
+extern "C" int z80_cycle_count;        // running total of cycles executed
+extern "C" int z80_requested_cycles;   // requested cycles to execute this timeslice
+extern "C" int z80_checknmi(void);
+extern "C" int z80_do_opcode(void);
 
-#ifndef FUSE_TYPES_H
-//#include <types.h>
-#endif			/* #ifndef FUSE_TYPES_H */
-
-/* Union allowing a register pair to be accessed as bytes or as a word */
-typedef union {
-#ifdef WORDS_BIGENDIAN
-  struct { BYTE h,l; } b;
+//void z80_init(int index, int clock, const void *config, int (*irqcallback)(int));
+extern "C" void z80_init(void);
+extern "C" void z80_reset (void);
+extern "C" void z80_exit (void);
+extern "C" int z80_execute(int cycles);
+extern "C" void z80_burn(int cycles);
+extern "C" void z80_get_context (void *dst);
+extern "C" void z80_set_context (void *src);
+extern "C" void z80_set_irq_line(int irqline, int state);
+extern "C" void z80_reset_cycle_count(void);
+extern "C" int z80_get_elapsed_cycles(void);
 #else
-  struct { BYTE l,h; } b;
-#endif
-  WORD w;
-} regpair;
+extern int z80_cycle_count;
+extern Z80_Regs Z80;
 
-/* What's stored in the main processor */
-typedef struct {
-  regpair af,bc,de,hl;
-  regpair af_,bc_,de_,hl_;
-  regpair ix,iy;
-  BYTE i;
-  WORD r;		/* The low seven bits of the R register. 16 bits long
-			   so it can also act as an RZX instruction counter */
-  BYTE r7;		/* The high bit of the R register */
-  regpair sp,pc;
-  BYTE iff1,iff2,im;
-  int halted;
-  int tstates;
-} processor;
-
-extern void z80_init(void);
-extern void z80_reset(void);
-
-extern int z80_interrupt(int ts);
-extern int z80_nmi( int ts );
-
+extern void take_interrupt(void);
+extern int z80_ICount;
+extern int z80_exec;               // 1= in exec loop, 0= out of
+extern int z80_cycle_count;        // running total of cycles executed
+extern int z80_requested_cycles;   // requested cycles to execute this timeslice
+extern int z80_checknmi(void);
 extern int z80_do_opcode(void);
 
-//extern void debug(int data);
-
-extern processor z80;
-extern BYTE halfcarry_add_table[];
-extern BYTE halfcarry_sub_table[];
-extern BYTE overflow_add_table[];
-extern BYTE overflow_sub_table[];
-extern BYTE sz53_table[];
-extern BYTE sz53p_table[];
-extern BYTE parity_table[];
-
-#ifdef __cplusplus
-}
+//void z80_init(int index, int clock, const void *config, int (*irqcallback)(int));
+extern void z80_init(void);
+extern void z80_reset (void);
+extern void z80_exit (void);
+extern int z80_execute(int cycles);
+extern void z80_burn(int cycles);
+extern void z80_get_context (void *dst);
+extern void z80_set_context (void *src);
+extern void z80_set_irq_line(int irqline, int state);
+extern void z80_reset_cycle_count(void);
+extern int z80_get_elapsed_cycles(void);
 #endif
 
-#endif			/* #ifndef FUSE_Z80_H */
+#endif
+

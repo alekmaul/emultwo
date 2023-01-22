@@ -103,7 +103,7 @@ __fastcall Tcartprofile::Tcartprofile(TComponent* Owner)
 {
         TIniFile *ini;
 
-        ini = new TIniFile(coleco.inipath);
+        ini = new TIniFile(emul2.inipath);
         LoadSettings(ini);
         delete ini;
 
@@ -139,12 +139,12 @@ void __fastcall Tcartprofile::ShowProfile(void)
             Memo1->Lines->Add("Header Type: Game (0xAA55)");
         else if ((coleco_getbyte(0x8000)==0x55) && (coleco_getbyte(0x8001)==0xAA) )
             Memo1->Lines->Add("Header Type: Test (0x55AA)");
-        else if ((coleco.romCartridge == ROMCARTRIDGEMEGA) )
+        else if ((emul2.romCartridge == ROMCARTRIDGEMEGA) )
         {
             sprintf(text,"Header Type: MegaCart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
             Memo1->Lines->Add(text);
         }
-        else if ((coleco.romCartridge == ROMCARTRIDGEZX81) )
+        else if ((emul2.romCartridge == ROMCARTRIDGEZX81) )
         {
             sprintf(text,"Header Type: ZX81Cart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
             Memo1->Lines->Add(text);
@@ -159,9 +159,9 @@ void __fastcall Tcartprofile::ShowProfile(void)
                 text[ix+13]=bval;
         }
         Memo1->Lines->Add(text);
-        if (coleco.typebackup==EEP24C08) Memo1->Lines->Add("256-byte EEPROM");
-        else if (coleco.typebackup==EEP24C256) Memo1->Lines->Add("32kB EEPROM");
-        else if (coleco.typebackup==EEPSRAM) Memo1->Lines->Add("2kB SRAM");
+        if (emul2.typebackup==EEP24C08) Memo1->Lines->Add("256-byte EEPROM");
+        else if (emul2.typebackup==EEP24C256) Memo1->Lines->Add("32kB EEPROM");
+        else if (emul2.typebackup==EEPSRAM) Memo1->Lines->Add("2kB SRAM");
 
         // Vector entries
         Memo1->Lines->Add(" ");
@@ -279,14 +279,14 @@ void __fastcall Tcartprofile::ShowBanks(void)
         BYTE *romentry;
         int maxx,maxy,off,hgt;
 
-    if (coleco.romCartridge == ROMCARTRIDGENONE)
+    if (emul2.romCartridge == ROMCARTRIDGENONE)
 	{
                 ImageBanks->Canvas->TextOut(10,10,"No rom cartridge");
 		return;
 	}
 
         // Init some vars regarding current rom
-        romentry=ROM_CARTRIDGE;
+        romentry=ROM_Memory;
         bknum=coleco_megasize;
 
         // Calculate size of view

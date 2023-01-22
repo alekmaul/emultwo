@@ -75,14 +75,14 @@ void __fastcall Tsoundviewer::addsnvalue(byte Data)
         nbsnval++;
         if (nbsnval>7)
         {
-            bytesn+="0x"+IntToHex(Data,2)+",";
+            bytesn+="$"+IntToHex(Data,2)+",";
             mSN76489->Lines->Add(bytesn);
             bytesn="";
             nbsnval=0;
         }
         else
         {
-            bytesn+="0x"+IntToHex(Data,2)+",";
+            bytesn+="$"+IntToHex(Data,2)+",";
         }
     }
 }
@@ -93,7 +93,7 @@ void __fastcall Tsoundviewer::addsnplay(byte Data)
     int coleco_sndtable=(RAM_Memory[0x7000+0x20]+256*RAM_Memory[0x7000+0x21]);
 
     // Add sound in view
-    mSNPlay->Lines->Add("AddSound "+IntToHex(Data,2)+" "+IntToHex(getbyte(coleco_sndtable+Data*4)+256*getbyte(coleco_sndtable+Data*4+1),4));
+    mSNPlay->Lines->Add("AddSound $"+IntToHex(Data,2)+" $"+IntToHex(getbyte(coleco_sndtable+Data*4)+256*getbyte(coleco_sndtable+Data*4+1),4));
 }
 
 //---------------------------------------------------------------------------
@@ -121,19 +121,19 @@ void __fastcall Tsoundviewer::clearsnClick(TObject *Sender)
 void __fastcall Tsoundviewer::UpdateChanges()
 {
     // CV Address entries
-    eMPA->Caption = IntToHex(RAM_Memory[0x7000+0x20]+256*RAM_Memory[0x7000+0x21],4);
-    eNGP->Caption = IntToHex(RAM_Memory[0x7000+0x22]+256*RAM_Memory[0x7000+0x23],4);
-    eT1GP->Caption = IntToHex(RAM_Memory[0x7000+0x24]+256*RAM_Memory[0x7000+0x25],4);
-    eT2GP->Caption = IntToHex(RAM_Memory[0x7000+0x26]+256*RAM_Memory[0x7000+0x27],4);
-    eT3GP->Caption = IntToHex(RAM_Memory[0x7000+0x28]+256*RAM_Memory[0x7000+0x29],4);
-    eNCRS->Caption = IntToHex(RAM_Memory[0x7000+0x2A],2);
+    eMPA->Caption = "$"+IntToHex(RAM_Memory[0x7000+0x20]+256*RAM_Memory[0x7000+0x21],4);
+    eNGP->Caption = "$"+IntToHex(RAM_Memory[0x7000+0x22]+256*RAM_Memory[0x7000+0x23],4);
+    eT1GP->Caption = "$"+IntToHex(RAM_Memory[0x7000+0x24]+256*RAM_Memory[0x7000+0x25],4);
+    eT2GP->Caption = "$"+IntToHex(RAM_Memory[0x7000+0x26]+256*RAM_Memory[0x7000+0x27],4);
+    eT3GP->Caption = "$"+IntToHex(RAM_Memory[0x7000+0x28]+256*RAM_Memory[0x7000+0x29],4);
+    eNCRS->Caption = "$"+IntToHex(RAM_Memory[0x7000+0x2A],2);
 
     // SN76489
-    tsnRLatch->Caption=IntToHex(sn.LastRegister,2); tsnRRand->Caption=IntToHex(sn.RNG,4);
-    tsnR0->Caption=IntToHex(sn.Register[0],3); tsnR1->Caption=IntToHex(sn.Register[1],3);
-    tsnR2->Caption=IntToHex(sn.Register[2],3); tsnR3->Caption=IntToHex(sn.Register[3],3);
-    tsnR4->Caption=IntToHex(sn.Register[4],3); tsnR5->Caption=IntToHex(sn.Register[5],3);
-    tsnR6->Caption=IntToHex(sn.Register[6],3); tsnR7->Caption=IntToHex(sn.Register[7],3);
+    tsnRLatch->Caption="$"+IntToHex(sn.LastRegister,2); tsnRRand->Caption="$"+IntToHex(sn.RNG,4);
+    tsnR0->Caption="$"+IntToHex(sn.Register[0],3); tsnR1->Caption="$"+IntToHex(sn.Register[1],3);
+    tsnR2->Caption="$"+IntToHex(sn.Register[2],3); tsnR3->Caption="$"+IntToHex(sn.Register[3],3);
+    tsnR4->Caption="$"+IntToHex(sn.Register[4],3); tsnR5->Caption="$"+IntToHex(sn.Register[5],3);
+    tsnR6->Caption="$"+IntToHex(sn.Register[6],3); tsnR7->Caption="$"+IntToHex(sn.Register[7],3);
     pbTone0->Position=sn.Volume[0]*6;pbTone1->Position=sn.Volume[1]*6;
     pbTone2->Position=sn.Volume[2]*6;pbNoise->Position=sn.Volume[3]*6;
 }
@@ -172,9 +172,9 @@ void __fastcall Tsoundviewer::Button1Click(TObject *Sender)
     int coleco_sndtable=(RAM_Memory[0x7000+0x20]+256*RAM_Memory[0x7000+0x21]);
 
     mSTContent->Clear();
+    i=0;
     if (coleco_sndtable!=0xFFFF)
     {
-        i=0;
         int firstsndarea=getbyte(coleco_sndtable+2+i*4)+256*getbyte(coleco_sndtable+3+i*4);
         while(1)
         {
@@ -185,14 +185,15 @@ void __fastcall Tsoundviewer::Button1Click(TObject *Sender)
             if ( (sndarea>0x73b8) || (sndarea<0x702b)) // 0x73b8=stack and 0x702b=beginning of ram
                 break;
             // add entry to list
-            mSTContent->Lines->Add(IntToHex(sndval,4)+" , SOUNDAREA"+((sndarea-firstsndarea)/10+1)+" // #"+(i+1) );
+            mSTContent->Lines->Add("$"+IntToHex(sndval,4)+" , SOUNDAREA"+((sndarea-firstsndarea)/10+1)+" // #"+(i+1) );
 
             // avoid infinite loop
             i++;
             if (i>64) break;
         }
     }
-    else
+
+    if ( (i==0) || (coleco_sndtable==0xFFFF))
         Application->MessageBox("No sound table address","Error",
                 MB_OK | MB_ICONERROR);
 

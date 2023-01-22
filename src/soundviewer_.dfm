@@ -5,7 +5,7 @@ object soundviewer: Tsoundviewer
   BorderStyle = bsToolWindow
   Caption = 'Sound Logger'
   ClientHeight = 397
-  ClientWidth = 772
+  ClientWidth = 779
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,21 +18,21 @@ object soundviewer: Tsoundviewer
   PixelsPerInch = 96
   TextHeight = 13
   object Label9: TLabel
-    Left = 552
+    Left = 560
     Top = 0
     Width = 106
     Height = 13
     Caption = '1FF1 Sound Play Calls'
   end
   object Label10: TLabel
-    Left = 552
+    Left = 560
     Top = 230
     Width = 101
     Height = 13
     Caption = 'Sound Table Content'
   end
   object mSNPlay: TMemo
-    Left = 552
+    Left = 560
     Top = 16
     Width = 217
     Height = 209
@@ -50,51 +50,51 @@ object soundviewer: Tsoundviewer
   object GroupBox1: TGroupBox
     Left = 328
     Top = 0
-    Width = 217
+    Width = 225
     Height = 161
     Caption = 'SN76489 Address'
     TabOrder = 1
     object Label8: TLabel
       Left = 34
       Top = 140
-      Width = 175
+      Width = 181
       Height = 13
-      Caption = '702A Noise Control Register Shadow'
+      Caption = '$702A Noise Control Register Shadow'
     end
     object Label7: TLabel
       Left = 51
       Top = 116
-      Width = 117
+      Width = 123
       Height = 13
-      Caption = '7028 Tone3 Gen Pointer'
+      Caption = '$7028 Tone3 Gen Pointer'
     end
     object Label3: TLabel
       Left = 51
       Top = 20
-      Width = 121
+      Width = 127
       Height = 13
-      Caption = '7020 Music Table Pointer'
+      Caption = '$7020 Music Table Pointer'
     end
     object Label4: TLabel
       Left = 51
       Top = 44
-      Width = 113
+      Width = 119
       Height = 13
-      Caption = '7022 Noise Gen Pointer'
+      Caption = '$7022 Noise Gen Pointer'
     end
     object Label5: TLabel
       Left = 51
       Top = 68
-      Width = 117
+      Width = 123
       Height = 13
-      Caption = '7024 Tone1 Gen Pointer'
+      Caption = '$7024 Tone1 Gen Pointer'
     end
     object Label6: TLabel
       Left = 51
       Top = 92
-      Width = 117
+      Width = 123
       Height = 13
-      Caption = '7026 Tone2 Gen Pointer'
+      Caption = '$7026 Tone2 Gen Pointer'
     end
     object eNCRS: TStaticText
       Left = 8
@@ -103,7 +103,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 0
     end
@@ -114,7 +114,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 1
     end
@@ -125,7 +125,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 2
     end
@@ -136,7 +136,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 3
     end
@@ -147,7 +147,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 4
     end
@@ -158,7 +158,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 5
     end
@@ -166,12 +166,12 @@ object soundviewer: Tsoundviewer
   object gSN76: TGroupBox
     Left = 328
     Top = 168
-    Width = 217
+    Width = 225
     Height = 225
     Caption = 'SN76489 Chip'
     TabOrder = 2
     object lTone0: TLabel
-      Left = 160
+      Left = 184
       Top = 140
       Width = 31
       Height = 13
@@ -241,21 +241,21 @@ object soundviewer: Tsoundviewer
       Caption = 'R7'
     end
     object lTone1: TLabel
-      Left = 160
+      Left = 184
       Top = 160
       Width = 31
       Height = 13
       Caption = 'Tone2'
     end
     object lTone2: TLabel
-      Left = 160
+      Left = 184
       Top = 180
       Width = 31
       Height = 13
       Caption = 'Tone3'
     end
     object lNoise: TLabel
-      Left = 160
+      Left = 184
       Top = 200
       Width = 27
       Height = 13
@@ -271,7 +271,7 @@ object soundviewer: Tsoundviewer
     object pbTone0: TProgressBar
       Left = 8
       Top = 136
-      Width = 150
+      Width = 170
       Height = 17
       Min = 0
       Max = 90
@@ -280,7 +280,7 @@ object soundviewer: Tsoundviewer
     object pbTone1: TProgressBar
       Left = 8
       Top = 156
-      Width = 150
+      Width = 170
       Height = 17
       Min = 0
       Max = 90
@@ -289,7 +289,7 @@ object soundviewer: Tsoundviewer
     object pbTone2: TProgressBar
       Left = 8
       Top = 176
-      Width = 150
+      Width = 170
       Height = 17
       Min = 0
       Max = 90
@@ -298,7 +298,7 @@ object soundviewer: Tsoundviewer
     object pbNoise: TProgressBar
       Left = 8
       Top = 196
-      Width = 150
+      Width = 170
       Height = 17
       Min = 0
       Max = 90
@@ -311,8 +311,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnRLatch'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 4
     end
@@ -323,8 +322,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR0'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 5
     end
@@ -335,8 +333,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR1'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 6
     end
@@ -347,8 +344,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR2'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 7
     end
@@ -359,8 +355,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR3'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 8
     end
@@ -371,8 +366,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnRRand'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 9
     end
@@ -383,8 +377,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR4'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 10
     end
@@ -395,8 +388,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR5'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 11
     end
@@ -407,8 +399,7 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR7'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 12
     end
@@ -419,17 +410,16 @@ object soundviewer: Tsoundviewer
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      Caption = 'tsnR6'
-      Color = clCaptionText
+      Color = clWhite
       ParentColor = False
       TabOrder = 13
     end
   end
   object mSTContent: TMemo
-    Left = 552
+    Left = 560
     Top = 248
     Width = 217
-    Height = 146
+    Height = 145
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -442,7 +432,7 @@ object soundviewer: Tsoundviewer
     OnKeyDown = mSN76489KeyDown
   end
   object Button1: TButton
-    Left = 664
+    Left = 672
     Top = 228
     Width = 89
     Height = 17

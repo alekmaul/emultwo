@@ -41,6 +41,7 @@
 #include "bios_adam.h"
 
 #include "printviewer_.h"
+#include "soundviewer_.h"
 
 extern void DebugUpdate(void);
 
@@ -1021,6 +1022,10 @@ int coleco_do_scanline(void)
             // For each line
             do
             {
+                // fetch specific coleco bios address:
+                // -> add sound to play
+                if (Z80.pc.w.l==0x1ff1) { if (soundviewer->Visible) soundviewer->addsnplay(Z80.bc.w.l); }
+
                 // do current opcode
                 ts = z80_do_opcode();
                 CurScanLine_len -= ts;
@@ -1038,20 +1043,18 @@ int coleco_do_scanline(void)
             if (CurScanLine_len<=0)
             {
                 CurScanLine_len+=MaxScanLen;
-                //SoundUpdate(tms.CurLine);
+                SoundUpdate(tms.CurLine);
 
                 // go to next line and check nmi
                 if (tms9918_loop())
                     z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
 
                 // end of screen, update sound and go outside
-                if (tms.CurLine==tms.ScanLines-1)
+                if (tms.CurLine==TMS9918_END_LINE /*tms.ScanLines-1*/)
                 {
-                    SoundUpdate(tms.CurLine);
+                    //SoundUpdate(tms.ScanLines-1);
                     break;
                 }
-                //if(tms.CurLine==TMS9918_END_LINE)
-                    //break;
             }
             if (emul2.singlestep)
                 break;

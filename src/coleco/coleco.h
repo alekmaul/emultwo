@@ -27,10 +27,10 @@
 #include "fdidisk.h"
 
 #define MAX_CART_SIZE   512                   // 512K of cart memory
-#define MAX_EEPROM_SIZE 32                    // 32K of EEProm memory
 #define MAX_RAM_SIZE    128
+#define MAX_EEPROM_SIZE 32                    // 32K of EEProm memory
 #define MAX_BIOS_SIZE   64
-#define MAXSTATESIZE    (MAX_CART_SIZE+MAX_EEPROM_SIZE+MAX_RAM_SIZE)
+#define MAXSTATESIZE    (MAX_CART_SIZE+MAX_RAM_SIZE+MAX_EEPROM_SIZE)
 
 #define MAX_DISKS     4       /* Maximal number of disks     */
 #define MAX_TAPES     4       /* Maximal number of tapes     */
@@ -53,8 +53,13 @@ extern BYTE SRAM_Memory[MAX_EEPROM_SIZE*1024];         // SRAM up to 32K for the
 
 extern int tstates,frametstates;
 
-extern BYTE coleco_megacart;                            // <>0 if mega cart rom detected
+extern BYTE coleco_port20;                             // Adam port 0x20-0x3F (AdamNet)
+extern BYTE coleco_port60;                             // Adam port 0x60-0x7F (memory)
+extern BYTE coleco_port53;                             // SGM port 0x53 (memory)
+
+extern BYTE coleco_megabank;                           // selected bank for megacart
 extern BYTE coleco_megasize;                           // mega cart rom size in 16kB pages
+extern BYTE coleco_megacart;                           // <>0 if mega cart rom detected
 
 extern unsigned int coleco_joystat;                     // Joystick / Paddle management
 

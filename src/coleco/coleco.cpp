@@ -1074,98 +1074,92 @@ void Printer(BYTE V)
 // Save a state file
 BYTE coleco_savestate(char *filename)
 {
-#if 0
-        BYTE stateheader[24] = "emultwo state\032\0\0\0\0\0\0\0\0\0\0";
-        unsigned int statesave[48];
-        unsigned int statesize,i;
-        BYTE *statebuf;
-        FILE *fstatefile = NULL;
+    BYTE stateheader[24] = "emultwo state\032\1\0\0\0\0\0\0\0\0\0";
+    unsigned int statesave[32];
+    unsigned int statesize,i;
+    BYTE *statebuf;
+    FILE *fstatefile = NULL;
 
 
-        // Allocate temporary buffer
-        statebuf  = (BYTE *) malloc(MAXSTATESIZE);
-        if(!statebuf)
-                return(0);
+    // Allocate temporary buffer
+    statebuf  = (BYTE *) malloc(MAXSTATESIZE*1024);
+    if(!statebuf)
+        return(0);
 
-        // Fill header with current crc (still have space for something else)
-        stateheader[4] = emul2.cardcrc&0xFF;
-        stateheader[5] = (emul2.cardcrc>>8)&0xFF;
-        stateheader[6] = (emul2.cardcrc>>16)&0xFF;
-        stateheader[7] = (emul2.cardcrc>>24)&0xFF;
+    // Fill header with current crc (still have space for something else)
+    stateheader[18] = emul2.cardcrc&0xFF;
+    stateheader[19] = (emul2.cardcrc>>8)&0xFF;
+    stateheader[20] = (emul2.cardcrc>>16)&0xFF;
+    stateheader[21] = (emul2.cardcrc>>24)&0xFF;
 
-        // Get memory pointers
-        statesize=0;
-        memset(statesave,0,sizeof(statesave));
+    // Get memory pointers
+    statesize=0;
+    memset(statesave,0,sizeof(statesave));
 
-        // Get coleco and machine info
-        memcpy(statebuf+statesize,&emul2,sizeof(emul2)); statesize+=sizeof(emul2);
-        memcpy(statebuf+statesize,&machine,sizeof(machine)); statesize+=sizeof(machine);
+    // Get coleco and machine info
+    memcpy(statebuf+statesize,&emul2,sizeof(emul2)); statesize+=sizeof(emul2);
+    memcpy(statebuf+statesize,&machine,sizeof(machine)); statesize+=sizeof(machine);
 
-        // Get global variable memory location
-        i=0;
-        statesave[i++] = coleco_megapage;
-        statesave[i++] = coleco_megasize;
-        statesave[i++] = coleco_megacart;
-        statesave[i++] = coleco_port20;
-        statesave[i++] = coleco_port60;
-        statesave[i++] = coleco_port53;
-        statesave[i++] = coleco_joymode;
-        statesave[i++] = coleco_joystat;
-        statesave[i++] = coleco_spincount;
-        statesave[i++] = coleco_spinstep;
-        statesave[i++] = coleco_spinstate;
-        statesave[i++] = coleco_updatetms;
-        statesave[i++] = tstates;
-        statesave[i++] = frametstates;
-        statesave[i++] = tStatesCount;
-        statesave[i++] = (int) (ROMPage[0]-RAM); statesave[i++] = (int) (ROMPage[1]-RAM); statesave[i++] = (int) (ROMPage[2]-RAM);
-        statesave[i++] = (int) (ROMPage[3]-RAM); statesave[i++] = (int) (ROMPage[4]-RAM); statesave[i++] = (int) (ROMPage[5]-RAM);
-        statesave[i++] = (int) (ROMPage[6]-RAM); statesave[i++] = (int) (ROMPage[7]-RAM);
-        statesave[i++] = (int) (RAMPage[0]-RAM); statesave[i++] = (int) (RAMPage[1]-RAM); statesave[i++] = (int) (RAMPage[2]-RAM);
-        statesave[i++] = (int) (RAMPage[3]-RAM); statesave[i++] = (int) (RAMPage[4]-RAM); statesave[i++] = (int) (RAMPage[5]-RAM);
-        statesave[i++] = (int) (RAMPage[6]-RAM); statesave[i++] = (int) (RAMPage[7]-RAM);
-        memcpy(statebuf+statesize,&statesave,sizeof(statesave));statesize+=sizeof(statesave);
+    // Get global variable memory location
+    i=0;
+    statesave[i++] = coleco_megasize;
+    statesave[i++] = coleco_megacart;
+    statesave[i++] = coleco_megabank;
+    statesave[i++] = coleco_port20;
+    statesave[i++] = coleco_port60;
+    statesave[i++] = coleco_port53;
+    statesave[i++] = coleco_joymode;
+    statesave[i++] = coleco_joystat;
+    statesave[i++] = coleco_spincount;
+    statesave[i++] = coleco_spinstep;
+    statesave[i++] = coleco_spinstate;
+    statesave[i++] = coleco_updatetms;
+    statesave[i++] = tstates;
+    statesave[i++] = frametstates;
+    statesave[i++] = tStatesCount;
+       statesave[i++] = (int) (MemoryMap[0]); statesave[i++] = (int) (MemoryMap[1]); statesave[i++] = (int) (MemoryMap[2]);
+    statesave[i++] = (int) (MemoryMap[3]); statesave[i++] = (int) (MemoryMap[4]); statesave[i++] = (int) (MemoryMap[5]);
+    statesave[i++] = (int) (MemoryMap[6]); statesave[i++] = (int) (MemoryMap[7]);
+    memcpy(statebuf+statesize,&statesave,sizeof(statesave));statesize+=sizeof(statesave);
 
-        // Save Z80 CPU
-        memcpy(statebuf+statesize,&z80,sizeof(z80)); statesize+=sizeof(z80);
-        memcpy(statebuf+statesize,&sz53_table,0x100); statesize+=0x100;
-        memcpy(statebuf+statesize,&parity_table,0x100); statesize+=0x100;
-        memcpy(statebuf+statesize,&sz53p_table,0x100); statesize+=0x100;
+    // Save Z80 CPU
+    memcpy(statebuf+statesize,&Z80,sizeof(Z80)); statesize+=sizeof(Z80);
 
-        // Save VDP
-        memcpy(statebuf+statesize,&tms,sizeof(tms)); statesize+=sizeof(tms);
+    // Save VDP
+    memcpy(statebuf+statesize,&tms,sizeof(tms)); statesize+=sizeof(tms);
 
-        // Save sound
-        memcpy(statebuf+statesize,&sn,sizeof(sn)); statesize+=sizeof(sn);
-        memcpy(statebuf+statesize,&ay,sizeof(ay)); statesize+=sizeof(ay);
+    // Save sound
+    memcpy(statebuf+statesize,&sn,sizeof(sn)); statesize+=sizeof(sn);
+    memcpy(statebuf+statesize,&ay,sizeof(ay)); statesize+=sizeof(ay);
 
-        // Save memory
-        memcpy(statebuf+statesize,cvmemory,MAXRAMSIZE);statesize+=MAXRAMSIZE;
-        memcpy(statebuf+statesize,eepromdata,MAXEEPROMSIZE);statesize+=MAXEEPROMSIZE;
+    // Save memory
+    memcpy(statebuf+statesize,ROM_Memory,MAX_CART_SIZE*1024);statesize+=MAX_CART_SIZE*1024;
+    memcpy(statebuf+statesize,RAM_Memory,MAX_RAM_SIZE*1024);statesize+=MAX_RAM_SIZE*1024;
+    memcpy(statebuf+statesize,SRAM_Memory,MAX_EEPROM_SIZE*1024);statesize+=MAX_EEPROM_SIZE*1024;
 
-        // Open new state file
-        fstatefile = fopen(filename,"wb");
-        if(!fstatefile)
-        {
-                free(statebuf);return(0);
-        }
+    // Open new state file
+    fstatefile = fopen(filename,"wb");
+    if(!fstatefile)
+    {
+        free(statebuf);return(0);
+    }
 
-        // Write out the header and data
-        if (fwrite(stateheader,1,24,fstatefile)!=24)
-        {
-                fclose(fstatefile);fstatefile=NULL;
-        }
-        if ((fstatefile!=NULL) && (fwrite(statebuf,1,statesize,fstatefile)!=statesize))
-        {
-                fclose(fstatefile);fstatefile=NULL;
-        }
+    // Write out the header and data
+    if (fwrite(stateheader,1,24,fstatefile)!=24)
+    {
+        fclose(fstatefile);fstatefile=NULL;
+    }
+    if ((fstatefile!=NULL) && (fwrite(statebuf,1,statesize,fstatefile)!=statesize))
+    {
+        fclose(fstatefile);fstatefile=NULL;
+    }
 
-        // If failed writing state, delete open file
-        if(fstatefile) fclose(fstatefile); else unlink(filename);
+    // If failed writing state, delete open file
+    if(fstatefile) fclose(fstatefile); else unlink(filename);
 
-        // Done
-        free(statebuf);
-#endif
+    // Done
+    free(statebuf);
+
     return(1);
 }
 
@@ -1173,94 +1167,87 @@ BYTE coleco_savestate(char *filename)
 // Load a state file
 BYTE coleco_loadstate(char *filename)
 {
-#if 0
-        BYTE stateheader[24];
-        unsigned int statesave[48];
-        unsigned int statesize,i;
-        BYTE *statebuf;
-        FILE *fstatefile = NULL;
+    BYTE stateheader[24];
+    unsigned int statesave[32];
+    unsigned int statesize,i;
+    BYTE *statebuf;
+    FILE *fstatefile = NULL;
 
-        // Allocate temporary buffer
-        statebuf  = (BYTE *) malloc(MAXSTATESIZE);
-        if(!statebuf)
-                return(0);
+    // Allocate temporary buffer
+    statebuf  = (BYTE *) malloc(MAXSTATESIZE);
+    if(!statebuf)
+        return(0);
 
-        // Open saved state file
-        fstatefile=fopen(filename,"rb");
-        if (fstatefile==NULL) return(0);
+    // Open saved state file
+    fstatefile=fopen(filename,"rb");
+    if (fstatefile==NULL) return(0);
 
-        // Read and check the header
-        if (fread(stateheader,1,24,fstatefile)!=24)
-        {
-                fclose(fstatefile);return(0);
-        }
-        if(memcmp(stateheader,"emultwo state\032",14))
-        {
-                fclose(fstatefile);return(0);
-        }
+    // Read and check the header
+    if (fread(stateheader,1,24,fstatefile)!=24)
+    {
+        fclose(fstatefile);return(0);
+    }
+    if(memcmp(stateheader,"emultwo state\032\1\0\0",17))
+    {
+        fclose(fstatefile);return(0);
+    }
 
+    // Read state into temporary buffer, then load it
+    statesize=fread(statebuf,1,MAXSTATESIZE,fstatefile);
 
-        // Read state into temporary buffer, then load it
-        statesize=fread(statebuf,1,MAXSTATESIZE,fstatefile);
+    // If failed loading state, reset hardware
+    if(!statesize)
+        machine.initialise();
+    else
+    {
+        statesize=0;
 
-        // If failed loading state, reset hardware
-        if(!statesize)
-                machine.initialise();
-        else
-        {
-                statesize=0;
+        // Get coleco and machine info
+        memcpy(&emul2,statebuf+statesize,sizeof(emul2)); statesize+=sizeof(emul2);
+        memcpy(&machine,statebuf+statesize,sizeof(machine)); statesize+=sizeof(machine);
 
-                // Get coleco and machine info
-                memcpy(&emul2,statebuf+statesize,sizeof(emul2)); statesize+=sizeof(emul2);
-                memcpy(&machine,statebuf+statesize,sizeof(machine)); statesize+=sizeof(machine);
+        // Get global variable memory location
+        memcpy(&statesave,statebuf+statesize,sizeof(statesave));statesize+=sizeof(statesave);
+        i=0;
+        coleco_megasize=statesave[i++];
+        coleco_megacart=statesave[i++];
+        coleco_megabank=statesave[i++];
+        coleco_port20=statesave[i++];
+        coleco_port60=statesave[i++];
+        coleco_port53=statesave[i++];
+        coleco_joymode=statesave[i++];
+        coleco_joystat=statesave[i++];
+        coleco_spincount=statesave[i++];
+        coleco_spinstep=statesave[i++];
+        coleco_spinstate=statesave[i++];
+        coleco_updatetms=statesave[i++];
+        tstates=statesave[i++];
+        frametstates=statesave[i++];
+        tStatesCount=statesave[i++];
+        MemoryMap[0]=(unsigned char *) (statesave[i++]); MemoryMap[1]=(unsigned char *) (statesave[i++]); MemoryMap[2]=(unsigned char *) (statesave[i++]);
+        MemoryMap[3]=(unsigned char *) (statesave[i++]); MemoryMap[4]=(unsigned char *) (statesave[i++]); MemoryMap[5]=(unsigned char *) (statesave[i++]);
+        MemoryMap[6]=(unsigned char *) (statesave[i++]); MemoryMap[7]=(unsigned char *) (statesave[i++]);
 
-                // Get global variable memory location
-                memcpy(&statesave,statebuf+statesize,sizeof(statesave));statesize+=sizeof(statesave);
-                i=0;
-                coleco_megapage=statesave[i++];
-                coleco_megasize=statesave[i++];
-                coleco_megacart=statesave[i++];
-                coleco_port20=statesave[i++];
-                coleco_port60=statesave[i++];
-                coleco_port53=statesave[i++];
-                coleco_joymode=statesave[i++];
-                coleco_joystat=statesave[i++];
-                coleco_spincount=statesave[i++];
-                coleco_spinstep=statesave[i++];
-                coleco_spinstate=statesave[i++];
-                coleco_updatetms=statesave[i++];
-                tstates=statesave[i++];
-                frametstates=statesave[i++];
-                tStatesCount=statesave[i++];
-                ROMPage[0]=(unsigned char *) (statesave[i++]+RAM); ROMPage[1]=(unsigned char *) (statesave[i++]+RAM); ROMPage[2]=(unsigned char *) (statesave[i++]+RAM);
-                ROMPage[3]=(unsigned char *) (statesave[i++]+RAM); ROMPage[4]=(unsigned char *) (statesave[i++]+RAM); ROMPage[5]=(unsigned char *) (statesave[i++]+RAM);
-                ROMPage[6]=(unsigned char *) (statesave[i++]+RAM); ROMPage[7]=(unsigned char *) (statesave[i++]+RAM);
-                RAMPage[0]=(unsigned char *) (statesave[i++]+RAM); RAMPage[1]=(unsigned char *) (statesave[i++]+RAM); RAMPage[2]=(unsigned char *) (statesave[i++]+RAM);
-                RAMPage[3]=(unsigned char *) (statesave[i++]+RAM); RAMPage[4]=(unsigned char *) (statesave[i++]+RAM); RAMPage[5]=(unsigned char *) (statesave[i++]+RAM);
-                RAMPage[6]=(unsigned char *) (statesave[i++]+RAM); RAMPage[7]=(unsigned char *) (statesave[i++]+RAM);
+        // Get Z80 CPU   (init it again for tables)
+        z80_init();
+        memcpy(&Z80,statebuf+statesize,sizeof(Z80)); statesize+=sizeof(Z80);
 
-                // Get Z80 CPU
-                memcpy(&z80,statebuf+statesize,sizeof(z80)); statesize+=sizeof(z80);
-                memcpy(&sz53_table,statebuf+statesize,0x100); statesize+=0x100;
-                memcpy(&parity_table,statebuf+statesize,0x100); statesize+=0x100;
-                memcpy(&sz53p_table,statebuf+statesize,0x100); statesize+=0x100;
+        // Get VDP
+        memcpy(&tms,statebuf+statesize,sizeof(tms)); statesize+=sizeof(tms);
 
-                // Get VDP
-                memcpy(&tms,statebuf+statesize,sizeof(tms)); statesize+=sizeof(tms);
+        // Get sound
+        memcpy(&sn,statebuf+statesize,sizeof(sn)); statesize+=sizeof(sn);
+        memcpy(&ay,statebuf+statesize,sizeof(ay)); statesize+=sizeof(ay);
 
-                // Get sound
-                memcpy(&sn,statebuf+statesize,sizeof(sn)); statesize+=sizeof(sn);
-                memcpy(&ay,statebuf+statesize,sizeof(ay)); statesize+=sizeof(ay);
+        // Get memory
+        memcpy(ROM_Memory,statebuf+statesize,MAX_CART_SIZE*1024);statesize+=MAX_CART_SIZE*1024;
+        memcpy(RAM_Memory,statebuf+statesize,MAX_RAM_SIZE*1024);statesize+=MAX_RAM_SIZE*1024;
+        memcpy(SRAM_Memory,statebuf+statesize,MAX_EEPROM_SIZE*1024);statesize+=MAX_EEPROM_SIZE*1024;
+    }
 
-                // Get memory
-                memcpy(cvmemory,statebuf+statesize,MAXRAMSIZE);statesize+=MAXRAMSIZE;
-                memcpy(eepromdata,statebuf+statesize,MAXEEPROMSIZE);statesize+=MAXEEPROMSIZE;
-        }
-
-        // Done, close file and free memory
-        fclose(fstatefile);
-        free(statebuf);
-#endif
+    // Done, close file and free memory
+    fclose(fstatefile);
+    free(statebuf);
 
     return(1);
 }

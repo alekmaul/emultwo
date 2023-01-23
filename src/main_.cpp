@@ -554,21 +554,21 @@ void __fastcall TForm1::Emulation1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 {
-        if (emul2.stop)
-        {
-            AccurateUpdateDisplay(false);
-            return;
-        }
+    if (emul2.stop)
+    {
+        AccurateUpdateDisplay(false);
+        return;
+    }
 
-        fps++;
-        frametstates=0;
+    fps++;
+    frametstates=0;
 
-        // Update Joystick, spinner
-        KeybJoyUpdate();
+    // Update Joystick, spinner
+    KeybJoyUpdate();
 
-        // Update emulation
-        machine.do_scanline();
-        AccurateUpdateDisplay(emul2.singlestep ? false : true);
+    // Update emulation
+    machine.do_scanline();
+    AccurateUpdateDisplay(emul2.singlestep ? false : true);
 }
 //---------------------------------------------------------------------------
 

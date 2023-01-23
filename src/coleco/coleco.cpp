@@ -741,9 +741,6 @@ void megacart_bankswitch(BYTE bank)
 
 void coleco_WriteByte(int Address, int Data)
 {
-
-//        LiveMemoryWindow->Write(Address);
-
     // If the ADAM is enabled, we may be trying to write to AdamNet
     if(emul2.machine == MACHINEADAM)
     {
@@ -834,9 +831,6 @@ void coleco_writebyte(int Address, int Data)
 
 BYTE coleco_ReadByte(int Address)
 {
-//        LiveMemoryWindow->Read(Address);
-
-
     // Handle Megacart Hot Spots
     if (coleco_megacart)
     {

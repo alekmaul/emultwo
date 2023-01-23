@@ -105,7 +105,16 @@ void __fastcall Thardware::FormShow(TObject *Sender)
     ResetRequired=false;
 
     // Value that can be changed during loading phase
-    //cboSEBACK->ItemIndex=machine.typebackup;
+    if (emul2.machine==MACHINECOLECO)
+    {
+        maccol->Down=true;
+    }
+    else if (emul2.machine==MACHINEADAM)
+    {
+        macadam->Down=true;
+    }
+    else
+        macpho->Down=true;
 }
 //---------------------------------------------------------------------------
 

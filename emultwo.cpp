@@ -126,7 +126,7 @@ WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
                 g_hwndMain=hInstance;
 
                 Application->Initialize();
-                Application->Title = "Emul Two";
+                Application->Title = "E.mul T.wo";
                 #include "allformsImpl.cpp"
 
                 Application->ProcessMessages();

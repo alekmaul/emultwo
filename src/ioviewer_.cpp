@@ -29,6 +29,7 @@ __fastcall Tiomapviewer::Tiomapviewer(TComponent* Owner)
 //---------------------------------------------------------------------------
 void __fastcall Tiomapviewer::UpdateChanges()
 {
+    AnsiString texS;
 
 
     // Keypads
@@ -40,6 +41,16 @@ void __fastcall Tiomapviewer::UpdateChanges()
     // Spinner
     eSpinP0->Caption=IntToHex(RAM_Memory[0x73EB],4);
     eSpinP1->Caption=IntToHex(RAM_Memory[0x73EC],4);
+
+    // Memory
+    eP20->Caption="$"+IntToHex(coleco_port20,2);
+    eP53->Caption="$"+IntToHex(coleco_port53,2);
+    texS=coleco_port53 & 0x01 ? "SGM enable" : "SGM disable";
+    texS+=coleco_port60 & 0x02 ? ", BIOS enable" : "RAM enable";
+    eP53exp->Caption=texS;
+    eP60->Caption="$"+IntToHex(coleco_port60,2);
+    eBank->Caption="$"+IntToHex(coleco_megabank,2);
+    eSGMRAM->Caption=emul2.SGM ? (coleco_port60 & 0x02 ? "24K" :"32K") : "--";
 
     // PSG for SGM
     ePSGR0->Text=IntToHex(ay.register_latch,2);

@@ -398,73 +398,132 @@ object iomapviewer: Tiomapviewer
   object GroupBox3: TGroupBox
     Left = 2
     Top = 160
-    Width = 311
-    Height = 129
+    Width = 415
+    Height = 161
     Caption = 'Memory'
     TabOrder = 3
     object Label3: TLabel
-      Left = 8
+      Left = 48
       Top = 20
       Width = 40
       Height = 13
-      Caption = 'Port $20'
+      Caption = '$20 Port'
     end
     object Label4: TLabel
-      Left = 8
+      Left = 48
       Top = 44
       Width = 40
       Height = 13
-      Caption = 'Port $33'
+      Caption = '$53 Port'
     end
     object Label5: TLabel
-      Left = 8
+      Left = 48
       Top = 68
       Width = 40
       Height = 13
-      Caption = 'Port $60'
+      Caption = '$60 Port'
     end
     object Label6: TLabel
-      Left = 8
-      Top = 100
-      Width = 25
+      Left = 48
+      Top = 140
+      Width = 74
       Height = 13
-      Caption = 'Bank'
+      Caption = 'MegaCart Bank'
     end
-    object StaticText1: TStaticText
-      Left = 56
+    object Label7: TLabel
+      Left = 48
+      Top = 92
+      Width = 51
+      Height = 13
+      Caption = 'SGM RAM'
+    end
+    object eP20: TStaticText
+      Left = 8
       Top = 18
-      Width = 49
+      Width = 32
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 0
     end
-    object StaticText2: TStaticText
-      Left = 56
+    object eP53: TStaticText
+      Left = 8
       Top = 42
-      Width = 49
+      Width = 32
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 1
     end
-    object StaticText3: TStaticText
-      Left = 56
+    object eP60: TStaticText
+      Left = 8
       Top = 66
-      Width = 49
+      Width = 32
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 2
     end
-    object StaticText4: TStaticText
-      Left = 56
-      Top = 98
-      Width = 49
+    object eBank: TStaticText
+      Left = 8
+      Top = 138
+      Width = 32
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 3
+    end
+    object eP60exp: TStaticText
+      Left = 126
+      Top = 64
+      Width = 281
+      Height = 21
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 4
+    end
+    object eP53exp: TStaticText
+      Left = 126
+      Top = 40
+      Width = 281
+      Height = 21
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 5
+    end
+    object eP20exp: TStaticText
+      Left = 126
+      Top = 16
+      Width = 281
+      Height = 21
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 6
+    end
+    object eSGMRAM: TStaticText
+      Left = 8
+      Top = 90
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 7
     end
   end
   object MainMenu1: TMainMenu

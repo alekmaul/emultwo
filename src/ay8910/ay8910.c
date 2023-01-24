@@ -414,14 +414,12 @@ void _AYWriteReg(int r, unsigned char v) {
             //if (ay.Regs[AY_ENABLE] & 0x40)
             //SP0256w(v);
             break;
-/*
     case AY_PORTB:
       //if ((PSG->Regs[AY_ENABLE] & 0x80) == 0)
       //if (PSG->Regs[AY_ENABLE] & 0x80)
-        if (PSG->PortBwrite)
-           (*PSG->PortBwrite)(0,v);
+        //if (PSG->PortBwrite)
+          // (*PSG->PortBwrite)(0,v);
       break;
-*/
     }
 }
 

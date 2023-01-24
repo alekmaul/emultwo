@@ -106,23 +106,23 @@ void Tpatternviewer::UpdateOfsText(void)
     int sprtil=coleco_gettmsaddr(SPRGEN,0,0);
     int spratr=coleco_gettmsaddr(SPRATTR,0,0);
 
-    if ( (mBaseVram >=bgmap) && (mBaseVram<bgmap+0x0300) )
+    if ( (mVramTile >=bgmap) && (mVramTile<bgmap+0x0300) )
     {
         eVRAMTxt->Caption="BG Map";
     }
-    else if ( (mBaseVram >=bgtil) && (mBaseVram<bgtil+0x1800) )
+    else if ( (mVramTile >=bgtil) && (mVramTile<bgtil+0x1800) )
     {
         eVRAMTxt->Caption="BG Tile";
     }
-    else if ( (mBaseVram >=bgcol) && (mBaseVram<bgcol+0x1800) )
+    else if ( (mVramTile >=bgcol) && (mVramTile<bgcol+0x1800) )
     {
         eVRAMTxt->Caption="BG Col";
     }
-    else if ( (mBaseVram >=sprtil) && (mBaseVram<sprtil+0x0800) )
+    else if ( (mVramTile >=sprtil) && (mVramTile<sprtil+0x0800) )
     {
         eVRAMTxt->Caption="SPR Tile";
     }
-    else if ( (mBaseVram >=spratr) && (mBaseVram<spratr+0x0400) )
+    else if ( (mVramTile >=spratr) && (mVramTile<spratr+0x0400) )
     {
         eVRAMTxt->Caption="SPR Attr";
     }
@@ -177,7 +177,7 @@ void __fastcall Tpatternviewer::SaveasBMP1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void Tpatternviewer::CreateTile(void)
 {
-    int iy,value,vcol, fgcol,bgcol;
+    int ix, iy,value,vcol,ofsvram, fgcol,bgcol;
     unsigned int *LinePtr;
 
     // Prepare a 8x8 bitmap for the tile
@@ -202,16 +202,19 @@ void Tpatternviewer::CreateTile(void)
             // Get Pattern
             value=coleco_gettmsval(VRAM,iy+addrgen,0,0);
         }
-        else*/ {
-            if ( (mVramTile >=coleco_gettmsaddr(CHRGEN,0,0)) && (mVramTile<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) ) {
+        else*/
+        {
+            if ( (mVramTile >=coleco_gettmsaddr(CHRGEN,0,0)) && (mVramTile<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) )
+            {
+                ofsvram=mVramTile-coleco_gettmsaddr(CHRGEN,0,0); // get offset in VRAM
                 if (tms.Mode==1) {
                     vcol =coleco_gettmsval(CHRCOL,mVramTile,tms.Mode,iy>>3);
                 }
                 else
                 {
-                    if (mVramTile >=0x1000)
+                    if (ofsvram >=0x1000)
                         vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
-                    else if (mVramTile >=0x800)
+                    else if (ofsvram >=0x800)
                         vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x40);
                     else
                         vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
@@ -219,9 +222,9 @@ void Tpatternviewer::CreateTile(void)
                 // Get fg and bg color
                 fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
                 bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
-                if (mVramTile >=0x1000)
+                if (ofsvram >=0x1000)
                     value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
-                else if (mVramTile >=0x800)
+                else if (ofsvram >=0x800)
                     value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x40);
                 else
                     value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
@@ -257,6 +260,24 @@ void Tpatternviewer::CreateTile(void)
     }
     StretchBlt(TileAlone->Canvas->Handle, 0,0, 128,128,
         mOfftileBitmap->Canvas->Handle, 0, 0, 8, 8,SRCCOPY);
+
+    // Draw a grid of 16x16 pix if needed
+    if (chkGrid->Checked)
+    {
+        TileAlone->Canvas->Brush->Style = bsClear;
+        TileAlone->Canvas->Pen->Style = psSolid;
+        TileAlone->Canvas->Pen->Color = cl3DDkShadow;
+        for (ix=0;ix<Width;ix+=128/8)
+        {
+            TileAlone->Canvas->MoveTo(ix,0);
+            TileAlone->Canvas->LineTo(ix,128);
+        }
+        for (ix=0;ix<Height;ix+=128/8)
+        {
+            TileAlone->Canvas->MoveTo(0,ix);
+            TileAlone->Canvas->LineTo(128,ix);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -264,94 +285,102 @@ void Tpatternviewer::CreateTile(void)
 #define LINECNT 256
 void Tpatternviewer::CreateBitmap(TCanvas *Acanvas, int w, int h)
 {
-        int ix,iy,it,vcol, value,fgcol,bgcol;
-        byte ic;
-        unsigned int *LinePtr;
+    int ix,iy,it,ofsit,vcol, value,fgcol,bgcol;
+    byte ic;
+    unsigned int *LinePtr;
 
-        if (mOffscreenBitmap)
-        {
-                delete mOffscreenBitmap;
-        }
+    if (mOffscreenBitmap)
+    {
+        delete mOffscreenBitmap;
+    }
 
-        mOffscreenBitmap = new Graphics::TBitmap;
-        mOffscreenBitmap->Width = ROWCNT;
-        mOffscreenBitmap->Height =LINECNT;
+    mOffscreenBitmap = new Graphics::TBitmap;
+    mOffscreenBitmap->Width = ROWCNT;
+    mOffscreenBitmap->Height =LINECNT;
 	mOffscreenBitmap->PixelFormat = pf32bit;
 	mOffscreenBitmap->IgnorePalette = true;
 
-        // Scan all lines
-        for (iy=0;iy<LINECNT;iy++) {
-                LinePtr = (unsigned int *) mOffscreenBitmap->ScanLine[iy];
-                for (ix=0;ix<(ROWCNT/8);ix++) {
-                        // Get Pattern
-                        it=(ix*8)+LINECNT*(iy>>3);//+mBaseVram;
+    // Scan all lines
+    for (iy=0;iy<LINECNT;iy++)
+    {
+        LinePtr = (unsigned int *) mOffscreenBitmap->ScanLine[iy];
+        for (ix=0;ix<(ROWCNT/8);ix++)
+        {
+            // Get Pattern
+            it=(ix*8)+LINECNT*(iy>>3)+mBaseVram;
 
-                        // Compute colors only in chrgen area
-                        if ( (it >=coleco_gettmsaddr(CHRGEN,0,0)) && (it<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) ) {
-                                if (tms.Mode==1) {
-                                        vcol =coleco_gettmsval(CHRCOL,it,tms.Mode,iy>>3);
-                                }
-                                else
-                                {
-                                        if (it >=0x1000)
-                                                vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x80);
-                                        else if (it >=0x800)
-                                                vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x40);
-                                        else
-                                                vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x00);
-                                }
-                                // Get fg and bg color (and register 7 index)
-                                fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
-                                bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
-                                if (it >=0x1000)
-                                        value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x80);
-                                else if (it >=0x800)
-                                        value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x40);
-                                else
-                                        value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x00);
-                                // if B&W mode choosen, just change colors
-                                if (rBW->Checked==true)
-                                {
-                                        fgcol=cv_pal32[15];
-                                        bgcol=cv_pal32[0];
-                                }
-                        }
-                        // not bg, vram or sprite
-                        else {
-                                fgcol=cv_pal32[15];
-                                bgcol=cv_pal32[0];
-                                value = coleco_gettmsval(VRAM,it+(iy&7),0x00,0x00);
-                        }
-
-                        // Draw bitmap
-                        *(LinePtr++)= (value & 0x80) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x40) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x20) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x10) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x08) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x04) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x02) ? fgcol : bgcol;
-                        *(LinePtr++)= (value & 0x01) ? fgcol : bgcol;
+            // Compute colors only in chrgen area
+            if ( (it >=coleco_gettmsaddr(CHRGEN,0,0)) && (it<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) )
+            {
+                ofsit=it-coleco_gettmsaddr(CHRGEN,0,0); // get offset in VRAM
+                if (tms.Mode==1)
+                {
+                    vcol =coleco_gettmsval(CHRCOL,it,tms.Mode,iy>>3);
                 }
+                else
+                {
+                    if (ofsit >=0x1000)
+                        vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x80);
+                    else if (ofsit >=0x800)
+                        vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x40);
+                    else
+                        vcol =coleco_gettmsval(CHRCOL,(it &0x7ff)+(iy&7),tms.Mode,0x00);
+                }
+                // Get fg and bg color (and register 7 index)
+                fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
+                bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
+                if (ofsit >=0x1000)
+                    value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x80);
+                else if (ofsit >=0x800)
+                    value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x40);
+                else
+                    value =coleco_gettmsval(CHRGEN,(it &0x7ff)+(iy&7),tms.Mode,0x00);
+                // if B&W mode choosen, just change colors
+                if (rBW->Checked==true)
+                {
+                    fgcol=cv_pal32[15];
+                    bgcol=cv_pal32[0];
+                }
+            }
+            // not bg, vram or sprite
+            else
+            {
+                fgcol=cv_pal32[15];
+                bgcol=cv_pal32[0];
+                value = coleco_gettmsval(VRAM,it+(iy&7),0x00,0x00);
+            }
+
+            // Draw bitmap
+            *(LinePtr++)= (value & 0x80) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x40) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x20) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x10) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x08) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x04) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x02) ? fgcol : bgcol;
+            *(LinePtr++)= (value & 0x01) ? fgcol : bgcol;
         }
-        StretchBlt(Acanvas->Handle, 0,0, w, h,
+    }
+    StretchBlt(Acanvas->Handle, 0,0, w, h,
                 mOffscreenBitmap->Canvas->Handle, 0, 0, 256,LINECNT,SRCCOPY);
 
-        // Draw a grid of 16x16 pix if needed
-        if (chkGrid->Checked)
+    // Draw a grid of 16x16 pix if needed
+    if (chkGrid->Checked)
+    {
+        Acanvas->Brush->Style = bsClear;
+        Acanvas->Pen->Style = psSolid;
+        Acanvas->Pen->Color = cl3DDkShadow;
+        for (ix=0;ix<Width;ix+=w/32)
         {
-                Acanvas->Brush->Style = bsClear;
-                Acanvas->Pen->Style = psSolid;
-                Acanvas->Pen->Color = cl3DDkShadow;
-                for (ix=0;ix<Width;ix+=w/32) {
-                        Acanvas->MoveTo(ix,0);
-                        Acanvas->LineTo(ix,h);
-                }
-                for (ix=0;ix<Height;ix+=h/32) {
-                        Acanvas->MoveTo(0,ix);
-                        Acanvas->LineTo(w,ix);
-                }
+            Acanvas->MoveTo(ix,0);
+            Acanvas->LineTo(ix,h);
         }
+        for (ix=0;ix<Height;ix+=h/32)
+        {
+            Acanvas->MoveTo(0,ix);
+            Acanvas->LineTo(w,ix);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -419,15 +448,9 @@ void __fastcall Tpatternviewer::VRamMouseMove(TObject *Sender,
     // Show current information in Details groupbox
     ix=(X)/(VRam->Width/32);
     iy=(Y)/(VRam->Height/32);
-    mBaseVram=ix*8+256*iy;
-    //it=ix*8+256*iy+mBaseVram;
-    it=mBaseVram;
-    eBGTTileNo->Caption="$"+IntToHex(ix+32*iy/*+(mBaseVram/8)*/,3);
+    it=ix*8+256*iy+mBaseVram;
+    eBGTTileNo->Caption="$"+IntToHex(ix+32*iy+(mBaseVram/8),3);
     eBGTTileAdr->Caption="$"+IntToHex(coleco_gettmsaddr(VRAM,0,0)+it,4);
-//    if (machine.F18A)
-//        eGVVCF18No->Caption=IntToHex(coleco_gettmsval(CHRCOL,it,0,0),2);
-//    else
-        eGVVCF18No->Caption="N/A";
     if (it != mVramTile)
     {
         mVramTile=it;
@@ -462,14 +485,33 @@ void __fastcall Tpatternviewer::Copytoclipboard1Click(TObject *Sender)
 
 void __fastcall Tpatternviewer::rColClick(TObject *Sender)
 {
-        UpdateChanges();
+    UpdateChanges();
+    SmallUpdateChanges();
 }
 //---------------------------------------------------------------------------
 
 
 void __fastcall Tpatternviewer::FormActivate(TObject *Sender)
 {
-        UpdateChanges();
+    UpdateChanges();
 }
 //---------------------------------------------------------------------------
+
+void __fastcall Tpatternviewer::scrVRAMChange(TObject *Sender)
+{
+    if ((scrVRAM->Position > 0))
+    {
+        int delta = scrVRAM->Position - mBaseVram;
+        int offset = delta % 128;
+        scrVRAM->Position -= offset;
+    }
+    mBaseVram = scrVRAM->Position;
+    mVramTile  = scrVRAM->Position; // when changing scrollbar, reset tile address
+    eVRAMOfs->Caption="$"+IntToHex(mBaseVram,4);
+    eBGTTileAdr->Caption="$"+IntToHex(mVramTile,4);
+    UpdateOfsText();
+    UpdateChanges();
+}
+//---------------------------------------------------------------------------
+
 

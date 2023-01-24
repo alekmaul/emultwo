@@ -70,8 +70,6 @@ __published:	// Composants gérés par l'EDI
     TLabel *lGVVCTAddr;
     TLabel *lGVVCCAddr;
     TStaticText *idTiValue;
-    TLabel *Label9;
-    TStaticText *eGVVCF18No;
         TPaintBox *TileAlone;
         TCheckBox *chkGrid;
         TCheckBox *chkTiles;

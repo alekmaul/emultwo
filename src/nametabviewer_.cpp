@@ -95,7 +95,7 @@ void __fastcall Tnametabviewer::SaveasBMP1Click(TObject *Sender)
 //---------------------------------------------------------------------------
 void Tnametabviewer::CreateTile(void)
 {
-    int iy,value,vcol, fgcol,bgcol;
+    int ix, iy,value,vcol,ofsvram, fgcol,bgcol;
     unsigned int *LinePtr;
 
     // Prepare a 8x8 bitmap for the tile
@@ -115,36 +115,39 @@ void Tnametabviewer::CreateTile(void)
     {
         LinePtr = (unsigned int *) mOfftileBitmap->ScanLine[iy];
 
-            if ( (mVramTile >=coleco_gettmsaddr(CHRGEN,0,0)) && (mVramTile<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) ) {
-                if (tms.Mode==1) {
-                    vcol =coleco_gettmsval(CHRCOL,mVramTile,tms.Mode,iy>>3);
-                }
-                else
-                {
-                    if (mVramTile >=0x1000)
-                        vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
-                    else if (mVramTile >=0x800)
-                        vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x40);
-                    else
-                        vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
-                }
-                // Get fg and bg color
-                fgcol=cv_pal32[vcol>>4];
-                bgcol=cv_pal32[vcol & 0xf];
-                if (mVramTile >=0x1000)
-                    value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
-                else if (mVramTile >=0x800)
-                    value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x40);
-                else
-                    value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
+    if ( (mVramTile >=coleco_gettmsaddr(CHRGEN,0,0)) && (mVramTile<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) )
+    {
+        ofsvram=mVramTile-coleco_gettmsaddr(CHRGEN,0,0); // get offset in VRAM
+        if (tms.Mode==1)
+        {
+            vcol =coleco_gettmsval(CHRCOL,mVramTile,tms.Mode,iy>>3);
+        }
+        else
+        {
+            if (ofsvram >=0x1000)
+                vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
+            else if (ofsvram >=0x800)
+                vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x40);
+            else
+                vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
             }
-            // not bg, vram or sprite
-            else {
-                fgcol=cv_pal32[15];
-                bgcol=cv_pal32[0];
-                value = coleco_gettmsval(VRAM,mVramTile+(iy&7),0x00,0x00);
-            }
-
+            // Get fg and bg color
+            fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
+            bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
+            if (ofsvram >=0x1000)
+                value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
+            else if (ofsvram >=0x800)
+                value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x40);
+            else
+                value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
+        }
+        // not bg, vram or sprite
+        else
+        {
+            fgcol=cv_pal32[15];
+            bgcol=cv_pal32[0];
+            value = coleco_gettmsval(VRAM,mVramTile+(iy&7),0x00,0x00);
+        }
 
         // Draw bitmap
         *(LinePtr++)= (value & 0x80) ? fgcol : bgcol;
@@ -163,6 +166,24 @@ void Tnametabviewer::CreateTile(void)
     }
     StretchBlt(TileAlone->Canvas->Handle, 0,0, 136,136,
         mOfftileBitmap->Canvas->Handle, 0, 0, 8, 8,SRCCOPY);
+
+    // Draw a grid of 16x16 pix if needed
+    if (chkGrid->Checked)
+    {
+        TileAlone->Canvas->Brush->Style = bsClear;
+        TileAlone->Canvas->Pen->Style = psSolid;
+        TileAlone->Canvas->Pen->Color = cl3DDkShadow;
+        for (ix=0;ix<Width;ix+=128/8)
+        {
+            TileAlone->Canvas->MoveTo(ix,0);
+            TileAlone->Canvas->LineTo(ix,128);
+        }
+        for (ix=0;ix<Height;ix+=128/8)
+        {
+            TileAlone->Canvas->MoveTo(0,ix);
+            TileAlone->Canvas->LineTo(128,ix);
+        }
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -361,10 +382,6 @@ void __fastcall Tnametabviewer::VRamMouseMove(TObject *Sender,
     it=coleco_gettmsval(CHRMAP,ix+32*iy,0,0);
     eGVVCloc->Caption="$"+IntToHex(ix,2)+",$"+IntToHex(iy,2);
     eGVVCTNo->Caption="$"+IntToHex(it,2);
-//    if (machine.F18A)
-//        eGVVCF18No->Caption=IntToHex(coleco_gettmsval(CHRCOL,it,0,0),2);
-//    else
-        eGVVCF18No->Caption="N/A";
     eGVVCMAddr->Caption="$"+IntToHex(coleco_gettmsaddr(CHRMAP,0,0)+ix+32*iy,4);
     bgti=it*8+coleco_gettmsaddr(CHRGEN,tms.Mode,iy*8);
     eGVVCTAddr->Caption="$"+IntToHex(bgti,4);
@@ -406,7 +423,8 @@ void __fastcall Tnametabviewer::Copytoclipboard1Click(TObject *Sender)
 
 void __fastcall Tnametabviewer::chkGridClick(TObject *Sender)
 {
-        UpdateChanges();
+    UpdateChanges();
+    SmallUpdateChanges();
 }
 //---------------------------------------------------------------------------
 

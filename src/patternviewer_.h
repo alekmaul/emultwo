@@ -26,23 +26,23 @@ __published:	// Composants gérés par l'EDI
     TMenuItem *SaveasBMP1;
     TMenuItem *N2;
     TMenuItem *Exit;
-    TLabel *lVRAMOfs;
     TGroupBox *gBGTile;
     TLabel *lBGTTileNo;
     TLabel *lBGTTileAdr;
     TStaticText *eBGTTileNo;
     TStaticText *eBGTTileAdr;
     TSaveDialog *dlgSVPic;
-        TStaticText *eVRAMTxt;
         TLabel *Label1;
     TRadioButton *rCol;
     TRadioButton *rBW;
     TStaticText *idTiValue;
-    TStaticText *eGVVCF18No;
-    TLabel *Label9;
         TPaintBox *TileAlone;
         TCheckBox *chkGrid;
         TPaintBox *VRam;
+    TScrollBar *scrVRAM;
+    TLabel *lVRAMOfs;
+    TStaticText *eVRAMOfs;
+    TStaticText *eVRAMTxt;
     void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
     void __fastcall FormShow(TObject *Sender);
     void __fastcall SaveasBMP1Click(TObject *Sender);
@@ -54,6 +54,7 @@ __published:	// Composants gérés par l'EDI
         void __fastcall Copytoclipboard1Click(TObject *Sender);
     void __fastcall rColClick(TObject *Sender);
         void __fastcall FormActivate(TObject *Sender);
+    void __fastcall scrVRAMChange(TObject *Sender);
 private:	// Déclarations de l'utilisateur
     Graphics::TBitmap *mOffscreenBitmap;
     Graphics::TBitmap *mOfftileBitmap;

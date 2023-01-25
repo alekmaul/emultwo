@@ -33,42 +33,43 @@ int lastMemoryReadAddrHi, lastMemoryWriteAddrHi;
 int lastMemoryReadValueHi, lastMemoryWriteValueHi;
 
 extern bool GetVersionNumber(int& versionNumberMajor, int& versionNumberMinor, int& versionNumberPart3, int& versionNumberPart4);
+//---------------------------------------------------------------------------
 
 void load_config(void)
 {
-        int versionNumberMajor;
-        int versionNumberMinor;
-        int versionNumberPart3;
-        int versionNumberPart4;
-        GetVersionNumber(versionNumberMajor, versionNumberMinor, versionNumberPart3, versionNumberPart4);
+    int versionNumberMajor,versionNumberMinor, versionNumberPart3,versionNumberPart4;
 
-        emul2.emuid=EMUID;
-        emul2.major=versionNumberMajor;
-        emul2.minor=versionNumberMinor;
-        emul2.testver=versionNumberPart3;
-        emul2.machine=MACHINECOLECO;
-        emul2.NTSC=1;
-        emul2.SGM=0;
-        emul2.F18A=0;
-        emul2.frameskip=0;
-        emul2.vsyncsound=0;
-        emul2.cardcrc=-1;
-        emul2.cardsize=0;
-        emul2.startdebug=0;
-        emul2.romCartridge = ROMCARTRIDGENONE;
-        emul2.typebackup=NOBACKUP;
-        emul2.palette=0;
-        emul2.hackbiospal;
-        emul2.biosnodelay;
-        emul2.singlestep=0;
-        emul2.stop=0;
-        strcpy(emul2.machinename, "E.mul T.wo");
+    // Retrieve version number of exe
+    GetVersionNumber(versionNumberMajor, versionNumberMinor, versionNumberPart3, versionNumberPart4);
 
-        machine.clockspeed=CLOCK_NTSC;
-        machine.tperscanline=207;
-        machine.tperframe=312*207;
-        machine.fps=50;
-        machine.intposition=0;
+    // Init default values
+    emul2.emuid=EMUID;
+    emul2.major=versionNumberMajor;
+    emul2.minor=versionNumberMinor;
+    emul2.testver=versionNumberPart3;
+    emul2.machine=MACHINECOLECO;
+    emul2.NTSC=1;
+    emul2.SGM=0;
+    emul2.F18A=0;
+    emul2.frameskip=0;
+    emul2.vsyncsound=0;
+    emul2.cardcrc=-1;
+    emul2.cardsize=0;
+    emul2.startdebug=0;
+    emul2.romCartridge = ROMCARTRIDGENONE;
+    emul2.typebackup=NOBACKUP;
+    emul2.palette=0;
+    emul2.hackbiospal;
+    emul2.biosnodelay;
+    emul2.singlestep=0;
+    emul2.stop=0;
+    strcpy(emul2.machinename, "E.mul T.wo");
+    strcpy(emul2.currentrom,"");
 
+    machine.clockspeed=CLOCK_NTSC;
+    machine.tperscanline=207;
+    machine.tperframe=312*207;
+    machine.fps=50;
+    machine.intposition=0;
 }
 

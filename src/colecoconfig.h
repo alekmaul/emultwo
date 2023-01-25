@@ -37,8 +37,7 @@
 #define ROMCARTRIDGENONE        0X00
 #define ROMCARTRIDGESTD         0X01
 #define ROMCARTRIDGEMEGA        0X02
-#define ROMCARTRIDGEZX81        0X03
-#define ROMCARTRIDGEDISK        0X04
+#define ROMCARTRIDGEDISK        0X05
 #define ROMCARTRIDGEDTAPE       0X05
 
 #define ROM_LOAD_FAIL           0X01
@@ -89,7 +88,7 @@ typedef struct
         char mydocs[256];
         char machinename[256];
 
-        char CurRom[256];
+        char currentrom[256];
 } EMUL2;
 
 typedef struct

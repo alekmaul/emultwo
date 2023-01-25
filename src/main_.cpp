@@ -383,8 +383,6 @@ void TForm1::UpdateStatusBar(void)
             text="Standard Cart";
         if (emul2.romCartridge == ROMCARTRIDGEMEGA)
             text = "MegaCart";
-        else if (emul2.romCartridge == ROMCARTRIDGEZX81)
-            text = "ZX81 31In1";
         else if (emul2.romCartridge == ROMCARTRIDGEDTAPE)
             text = "Disk Image";
         else if (emul2.romCartridge == ROMCARTRIDGEDTAPE)
@@ -775,12 +773,13 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
     try
     {
         emul2.stop=1;
-        retload=coleco_loadcart(FileName.c_str(),0);
+        retload=coleco_loadcart(FileName.c_str());
 
         if (retload == ROM_LOAD_PASS)
         {
             // Reset engine in coleco mode
             emul2.machine=MACHINECOLECO;
+            strcpy(emul2.currentrom,FileName.c_str());
             coleco_reset();
 
             // add to MUR list
@@ -846,6 +845,7 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
             // Reset engine in Adam mode
             emul2.machine=MACHINEADAM;
             coleco_reset();
+            strcpy(emul2.currentrom,FileName.c_str());
 
             // Update StatusBar if needed
             UpdateStatusBar();

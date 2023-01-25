@@ -95,7 +95,7 @@ extern void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y);
 
 extern void coleco_setpalette(int palette);
 
-extern BYTE coleco_loadcart(char *filename, unsigned char cardtype);
+extern BYTE coleco_loadcart(char *filename);
 extern void coleco_reset(void);
 extern void Printer(BYTE V);
 

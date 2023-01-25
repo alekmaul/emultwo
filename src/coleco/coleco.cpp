@@ -296,7 +296,7 @@ void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
 
 //---------------------------------------------------------------------------
 // Load a rom file
-BYTE coleco_loadcart(char *filename, unsigned char cardtype)
+BYTE coleco_loadcart(char *filename)
 {
     int adrlastbank, j, size;
     BYTE  *p;
@@ -1079,7 +1079,11 @@ BYTE coleco_savestate(char *filename)
     // Allocate temporary buffer
     statebuf  = (BYTE *) malloc(MAXSTATESIZE*1024);
     if(!statebuf)
+    {
+        Application->MessageBox("Can't allocate memory for state file","Error",
+            	    MB_OK | MB_ICONERROR);
         return(0);
+    }
 
     // Fill header with current crc (still have space for something else)
     stateheader[18] = emul2.cardcrc&0xFF;
@@ -1128,7 +1132,6 @@ BYTE coleco_savestate(char *filename)
     memcpy(statebuf+statesize,&ay,sizeof(ay)); statesize+=sizeof(ay);
 
     // Save memory
-    memcpy(statebuf+statesize,ROM_Memory,MAX_CART_SIZE*1024);statesize+=MAX_CART_SIZE*1024;
     memcpy(statebuf+statesize,RAM_Memory,MAX_RAM_SIZE*1024);statesize+=MAX_RAM_SIZE*1024;
     memcpy(statebuf+statesize,SRAM_Memory,MAX_EEPROM_SIZE*1024);statesize+=MAX_EEPROM_SIZE*1024;
 
@@ -1136,16 +1139,22 @@ BYTE coleco_savestate(char *filename)
     fstatefile = fopen(filename,"wb");
     if(!fstatefile)
     {
+        Application->MessageBox("Can't open state file","Error",
+            	    MB_OK | MB_ICONERROR);
         free(statebuf);return(0);
     }
 
     // Write out the header and data
     if (fwrite(stateheader,1,24,fstatefile)!=24)
     {
+        Application->MessageBox("Can't write header state file","Error",
+            	    MB_OK | MB_ICONERROR);
         fclose(fstatefile);fstatefile=NULL;
     }
     if ((fstatefile!=NULL) && (fwrite(statebuf,1,statesize,fstatefile)!=statesize))
     {
+        Application->MessageBox("Can't write state file","Error",
+            	    MB_OK | MB_ICONERROR);
         fclose(fstatefile);fstatefile=NULL;
     }
 
@@ -1171,19 +1180,32 @@ BYTE coleco_loadstate(char *filename)
     // Allocate temporary buffer
     statebuf  = (BYTE *) malloc(MAXSTATESIZE);
     if(!statebuf)
+    {
+        Application->MessageBox("Can't allocate memory for state file","Error",
+            	    MB_OK | MB_ICONERROR);
         return(0);
+    }
 
     // Open saved state file
     fstatefile=fopen(filename,"rb");
-    if (fstatefile==NULL) return(0);
+    if (fstatefile==NULL)
+    {
+        Application->MessageBox("Can't open state file","Error",
+            	    MB_OK | MB_ICONERROR);
+        return(0);
+    }
 
     // Read and check the header
     if (fread(stateheader,1,24,fstatefile)!=24)
     {
+        Application->MessageBox("Invalid state file","Error",
+            	    MB_OK | MB_ICONERROR);
         fclose(fstatefile);return(0);
     }
     if(memcmp(stateheader,"emultwo state\032\1\0\0",17))
     {
+        Application->MessageBox("Invalid state header file","Error",
+            	    MB_OK | MB_ICONERROR);
         fclose(fstatefile);return(0);
     }
 
@@ -1192,7 +1214,11 @@ BYTE coleco_loadstate(char *filename)
 
     // If failed loading state, reset hardware
     if(!statesize)
+    {
+        Application->MessageBox("Can't load state file","Error",
+            	    MB_OK | MB_ICONERROR);
         machine.initialise();
+    }
     else
     {
         statesize=0;
@@ -1200,6 +1226,17 @@ BYTE coleco_loadstate(char *filename)
         // Get coleco and machine info
         memcpy(&emul2,statebuf+statesize,sizeof(emul2)); statesize+=sizeof(emul2);
         memcpy(&machine,statebuf+statesize,sizeof(machine)); statesize+=sizeof(machine);
+
+        // if we can't load rom or disk, stop here
+        if ( (emul2.romCartridge==ROMCARTRIDGESTD) || (emul2.romCartridge==ROMCARTRIDGEMEGA) )
+        {
+            if (coleco_loadcart(emul2.currentrom) != ROM_LOAD_PASS)
+            {
+                Application->MessageBox("Can't open the rom file","Error",
+            	    MB_OK | MB_ICONERROR);
+                fclose(fstatefile);return(0);
+            }
+        }
 
         // Get global variable memory location
         memcpy(&statesave,statebuf+statesize,sizeof(statesave));statesize+=sizeof(statesave);
@@ -1235,7 +1272,6 @@ BYTE coleco_loadstate(char *filename)
         memcpy(&ay,statebuf+statesize,sizeof(ay)); statesize+=sizeof(ay);
 
         // Get memory
-        memcpy(ROM_Memory,statebuf+statesize,MAX_CART_SIZE*1024);statesize+=MAX_CART_SIZE*1024;
         memcpy(RAM_Memory,statebuf+statesize,MAX_RAM_SIZE*1024);statesize+=MAX_RAM_SIZE*1024;
         memcpy(SRAM_Memory,statebuf+statesize,MAX_EEPROM_SIZE*1024);statesize+=MAX_EEPROM_SIZE*1024;
     }

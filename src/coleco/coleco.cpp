@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * emul2.cpp
- * Based on   ColEm for some memory management
+ * Based on   ColEm for some memory management (https://fms.komkon.org/ColEm/)
  * Based on ColecoDS for memory read/write (https://github.com/wavemotion-dave/ColecoDS/)
  *
  */

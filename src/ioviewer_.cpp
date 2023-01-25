@@ -28,20 +28,48 @@ __fastcall Tiomapviewer::Tiomapviewer(TComponent* Owner)
 }
 //---------------------------------------------------------------------------
 
+AnsiString __fastcall Tiomapviewer::DescJoy(WORD joyvalue)
+{
+    AnsiString tVal="";
+
+    if (joyvalue & JST_UP) tVal+=" Up";
+    if (joyvalue & JST_DOWN) tVal+=" Down";
+    if (joyvalue & JST_LEFT) tVal+=" Left";
+    if (joyvalue & JST_RIGHT) tVal+=" Right";
+    if (joyvalue & JST_FIRER) tVal+=" FireR";
+    if (joyvalue & JST_FIREL) tVal+=" FireL";
+
+    if (joyvalue & JST_0) tVal+=" 0";
+    if (joyvalue & JST_1) tVal+=" 1";
+    if (joyvalue & JST_2) tVal+=" 2";
+    if (joyvalue & JST_3) tVal+=" 3";
+    if (joyvalue & JST_4) tVal+=" 4";
+    if (joyvalue & JST_5) tVal+=" 5";
+    if (joyvalue & JST_6) tVal+=" 6";
+    if (joyvalue & JST_7) tVal+=" 7";
+    if (joyvalue & JST_8) tVal+=" 8";
+    if (joyvalue & JST_9) tVal+=" 9";
+
+    if (joyvalue & JST_STAR) tVal+=" *";
+    if (joyvalue & JST_HASH) tVal+=" #";
+
+    return tVal;
+}
+//---------------------------------------------------------------------------
+
 void __fastcall Tiomapviewer::UpdateChanges()
 {
     AnsiString texS;
 
-
     // Keypads
-    eJoyP0->Caption=IntToHex((unsigned short) (coleco_joystat& 0x0000FFFF),4);
-    eJoyP1->Caption=IntToHex((unsigned short) ((coleco_joystat & 0xFFFF0000)>>16),4);
-    eJoyP0E->Caption="";
-    eJoyP1E->Caption="";
+    eJoyP0->Caption="$"+IntToHex((unsigned short) (coleco_joystat& 0x0000FFFF),4);
+    eJoyP1->Caption="$"+IntToHex((unsigned short) ((coleco_joystat & 0xFFFF0000)>>16),4);
+    eJoyP0E->Caption=DescJoy((coleco_joystat& 0x0000FFFF));
+    eJoyP1E->Caption=DescJoy(((coleco_joystat & 0xFFFF0000)>>16));
 
     // Spinner
-    eSpinP0->Caption=IntToHex(RAM_Memory[0x73EB],4);
-    eSpinP1->Caption=IntToHex(RAM_Memory[0x73EC],4);
+    eSpinP0->Caption="$"+IntToHex(RAM_Memory[0x73EB],4);
+    eSpinP1->Caption="$"+IntToHex(RAM_Memory[0x73EC],4);
 
     // Memory
     eP20->Caption="$"+IntToHex(coleco_port20,2);

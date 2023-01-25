@@ -90,6 +90,7 @@ __published:	// IDE-managed Components
     void __fastcall FormShow(TObject *Sender);
 private:	// User declarations
     void __fastcall UpdateChanges();
+    AnsiString __fastcall DescJoy(WORD joyvalue);
 public:		// User declarations
     __fastcall Tiomapviewer(TComponent* Owner);
     void LoadSettings(TIniFile *ini);

@@ -4,7 +4,7 @@ object iomapviewer: Tiomapviewer
   BorderStyle = bsToolWindow
   Caption = 'I/O Map Viewer'
   ClientHeight = 243
-  ClientWidth = 630
+  ClientWidth = 617
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,7 +18,7 @@ object iomapviewer: Tiomapviewer
   PixelsPerInch = 96
   TextHeight = 13
   object gPSG: TGroupBox
-    Left = 424
+    Left = 412
     Top = 0
     Width = 201
     Height = 241
@@ -334,12 +334,12 @@ object iomapviewer: Tiomapviewer
   object GroupBox1: TGroupBox
     Left = 2
     Top = 0
-    Width = 418
+    Width = 407
     Height = 110
     Caption = 'Controls'
     TabOrder = 1
     object Label9: TLabel
-      Left = 64
+      Left = 56
       Top = 20
       Width = 76
       Height = 13
@@ -347,28 +347,28 @@ object iomapviewer: Tiomapviewer
     end
     object lJP1: TLabel
       Tag = 42
-      Left = 64
+      Left = 56
       Top = 44
       Width = 76
       Height = 13
       Caption = 'Joystick Port #2'
     end
     object Label1: TLabel
-      Left = 64
+      Left = 56
       Top = 64
       Width = 74
       Height = 13
       Caption = 'Spinner Port #1'
     end
     object Label2: TLabel
-      Left = 64
+      Left = 56
       Top = 86
       Width = 74
       Height = 13
       Caption = 'Spinner Port #2'
     end
     object eJoyP0E: TStaticText
-      Left = 152
+      Left = 144
       Top = 18
       Width = 257
       Height = 18
@@ -379,7 +379,7 @@ object iomapviewer: Tiomapviewer
       TabOrder = 0
     end
     object eJoyP1E: TStaticText
-      Left = 152
+      Left = 144
       Top = 40
       Width = 257
       Height = 18
@@ -392,7 +392,7 @@ object iomapviewer: Tiomapviewer
     object eJoyP0: TStaticText
       Left = 8
       Top = 18
-      Width = 49
+      Width = 44
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -403,7 +403,7 @@ object iomapviewer: Tiomapviewer
     object eJoyP1: TStaticText
       Left = 8
       Top = 40
-      Width = 49
+      Width = 44
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -414,7 +414,7 @@ object iomapviewer: Tiomapviewer
     object eSpinP0: TStaticText
       Left = 8
       Top = 62
-      Width = 49
+      Width = 44
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -425,7 +425,7 @@ object iomapviewer: Tiomapviewer
     object eSpinP1: TStaticText
       Left = 8
       Top = 84
-      Width = 49
+      Width = 44
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -437,7 +437,7 @@ object iomapviewer: Tiomapviewer
   object GroupBox3: TGroupBox
     Left = 2
     Top = 110
-    Width = 418
+    Width = 407
     Height = 131
     Caption = 'Memory'
     TabOrder = 2
@@ -521,7 +521,7 @@ object iomapviewer: Tiomapviewer
       TabOrder = 3
     end
     object eP60exp: TStaticText
-      Left = 126
+      Left = 118
       Top = 62
       Width = 284
       Height = 18
@@ -532,7 +532,7 @@ object iomapviewer: Tiomapviewer
       TabOrder = 4
     end
     object eP53exp: TStaticText
-      Left = 126
+      Left = 118
       Top = 40
       Width = 284
       Height = 18

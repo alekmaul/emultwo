@@ -16,6 +16,7 @@
 #pragma resource "*.dfm"
 Tiomapviewer *iomapviewer;
 //---------------------------------------------------------------------------
+
 __fastcall Tiomapviewer::Tiomapviewer(TComponent* Owner)
     : TForm(Owner)
 {
@@ -25,8 +26,8 @@ __fastcall Tiomapviewer::Tiomapviewer(TComponent* Owner)
     LoadSettings(ini);
     delete ini;
 }
-
 //---------------------------------------------------------------------------
+
 void __fastcall Tiomapviewer::UpdateChanges()
 {
     AnsiString texS;
@@ -46,23 +47,36 @@ void __fastcall Tiomapviewer::UpdateChanges()
     eP20->Caption="$"+IntToHex(coleco_port20,2);
     eP53->Caption="$"+IntToHex(coleco_port53,2);
     texS=coleco_port53 & 0x01 ? "SGM enable" : "SGM disable";
-    texS+=coleco_port60 & 0x02 ? ", BIOS enable" : "RAM enable";
+    texS+=coleco_port60 & 0x02 ? ", BIOS enable" : ", RAM enable";
     eP53exp->Caption=texS;
     eP60->Caption="$"+IntToHex(coleco_port60,2);
+    texS="--";
+    if ((coleco_port60 & 0x03)==0x00)
+        texS="Low 32K ROM";
+    else if ((coleco_port60 & 0x03)==0x01)
+        texS="Low 32K RAM";
+    else if ((coleco_port60 & 0x03)==0x03)
+        texS="Low 32K BIOS + RAM";
+    if ((coleco_port60 & 0x0C) == 0x00)
+        texS+=", High 32K RAM";
+    else if ((coleco_port60 & 0x0C) == 0x08)
+        texS+=", Expanded 128K RAM";
+    eP60exp->Caption=texS;
     eBank->Caption="$"+IntToHex(coleco_megabank,2);
     eSGMRAM->Caption=emul2.SGM ? (coleco_port60 & 0x02 ? "24K" :"32K") : "--";
 
     // PSG for SGM
-    ePSGR0->Text=IntToHex(ay.register_latch,2);
-    ePSGR1->Text=IntToHex(ay.Regs[0],2); ePSGR2->Text=IntToHex(ay.Regs[1],2);
-    ePSGR3->Text=IntToHex(ay.Regs[2],2); ePSGR4->Text=IntToHex(ay.Regs[3],2);
-    ePSGR5->Text=IntToHex(ay.Regs[4],2); ePSGR6->Text=IntToHex(ay.Regs[5],2);
-    ePSGR7->Text=IntToHex(ay.Regs[6],2); ePSGR8->Text=IntToHex(ay.Regs[7],2);
-    ePSGR9->Text=IntToHex(ay.Regs[8],2); ePSGRA->Text=IntToHex(ay.Regs[9],2);
-    ePSGRB->Text=IntToHex(ay.Regs[10],2); ePSGRC->Text=IntToHex(ay.Regs[11],2);
-    ePSGRD->Text=IntToHex(ay.Regs[12],2); ePSGRE->Text=IntToHex(ay.Regs[13],2);
-    ePSGRF->Text=IntToHex(ay.Regs[14],2); ePSGRG->Text=IntToHex(ay.Regs[15],2);
+    ePSGRL->Caption="$"+IntToHex(ay.register_latch,2);
+    ePSGR0->Caption="$"+IntToHex(ay.Regs[0],2); ePSGR1->Caption="$"+IntToHex(ay.Regs[1],2);
+    ePSGR2->Caption="$"+IntToHex(ay.Regs[2],2); ePSGR3->Caption="$"+IntToHex(ay.Regs[3],2);
+    ePSGR4->Caption="$"+IntToHex(ay.Regs[4],2); ePSGR5->Caption="$"+IntToHex(ay.Regs[5],2);
+    ePSGR6->Caption="$"+IntToHex(ay.Regs[6],2); ePSGR7->Caption="$"+IntToHex(ay.Regs[7],2);
+    ePSGR8->Caption="$"+IntToHex(ay.Regs[8],2); ePSGR9->Caption="$"+IntToHex(ay.Regs[9],2);
+    ePSGRA->Caption="$"+IntToHex(ay.Regs[10],2); ePSGRB->Caption="$"+IntToHex(ay.Regs[11],2);
+    ePSGRC->Caption="$"+IntToHex(ay.Regs[12],2); ePSGRD->Caption="$"+IntToHex(ay.Regs[13],2);
+    ePSGRE->Caption="$"+IntToHex(ay.Regs[14],2); ePSGRF->Caption="$"+IntToHex(ay.Regs[15],2);
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tiomapviewer::do_refresh()
 {
@@ -74,7 +88,7 @@ void __fastcall Tiomapviewer::do_refresh()
 //---------------------------------------------------------------------------
 void __fastcall Tiomapviewer::ExitClick(TObject *Sender)
 {
-    Close();    
+    Close();
 }
 //---------------------------------------------------------------------------
 void __fastcall Tiomapviewer::Refresh1Click(TObject *Sender)

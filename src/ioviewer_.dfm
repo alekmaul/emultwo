@@ -1,10 +1,10 @@
 object iomapviewer: Tiomapviewer
-  Left = 910
-  Top = 267
+  Left = 631
+  Top = 268
   BorderStyle = bsToolWindow
   Caption = 'I/O Map Viewer'
-  ClientHeight = 360
-  ClientWidth = 638
+  ClientHeight = 243
+  ClientWidth = 630
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -20,388 +20,427 @@ object iomapviewer: Tiomapviewer
   object gPSG: TGroupBox
     Left = 424
     Top = 0
-    Width = 209
-    Height = 345
+    Width = 201
+    Height = 241
     Caption = 'PSG AY8910'
     TabOrder = 0
     object Label11: TLabel
-      Left = 40
-      Top = 92
+      Left = 46
+      Top = 20
       Width = 27
       Height = 13
       Caption = 'Latch'
     end
     object Label12: TLabel
-      Left = 40
-      Top = 113
-      Width = 14
+      Left = 46
+      Top = 44
+      Width = 51
       Height = 13
-      Caption = 'R0'
+      Caption = '0 Freq A.lo'
     end
     object Label13: TLabel
-      Left = 40
-      Top = 134
-      Width = 14
+      Left = 46
+      Top = 68
+      Width = 51
       Height = 13
-      Caption = 'R1'
+      Caption = '1 Freq A.hi'
     end
     object Label14: TLabel
-      Left = 40
-      Top = 153
-      Width = 14
+      Left = 46
+      Top = 92
+      Width = 51
       Height = 13
-      Caption = 'R2'
+      Caption = '2 Freq B.lo'
     end
     object Label15: TLabel
-      Left = 40
-      Top = 174
-      Width = 14
+      Left = 46
+      Top = 116
+      Width = 51
       Height = 13
-      Caption = 'R3'
+      Caption = '3 Freq B.hi'
     end
     object Label16: TLabel
-      Left = 40
-      Top = 194
-      Width = 14
+      Left = 46
+      Top = 140
+      Width = 51
       Height = 13
-      Caption = 'R4'
+      Caption = '4 Freq C.lo'
     end
     object Label17: TLabel
-      Left = 40
-      Top = 212
-      Width = 14
+      Left = 46
+      Top = 164
+      Width = 51
       Height = 13
-      Caption = 'R5'
+      Caption = '5 Freq C.hi'
     end
     object Label18: TLabel
-      Left = 40
-      Top = 234
-      Width = 14
+      Left = 46
+      Top = 188
+      Width = 54
       Height = 13
-      Caption = 'R6'
+      Caption = '6 Freq Dish'
     end
     object Label19: TLabel
-      Left = 40
-      Top = 254
-      Width = 14
+      Left = 46
+      Top = 212
+      Width = 24
       Height = 13
-      Caption = 'R7'
+      Caption = '7 Ctrl'
+    end
+    object Label8: TLabel
+      Left = 142
+      Top = 44
+      Width = 34
+      Height = 13
+      Caption = '8 Vol A'
+    end
+    object Label10: TLabel
+      Left = 142
+      Top = 68
+      Width = 34
+      Height = 13
+      Caption = '9 Vol B'
     end
     object Label20: TLabel
-      Left = 96
-      Top = 113
-      Width = 14
+      Left = 142
+      Top = 92
+      Width = 35
       Height = 13
-      Caption = 'R8'
+      Caption = 'A Vol C'
     end
     object Label21: TLabel
-      Left = 96
-      Top = 134
-      Width = 14
+      Left = 142
+      Top = 116
+      Width = 53
       Height = 13
-      Caption = 'R9'
+      Caption = 'B Freq H.lo'
     end
     object Label22: TLabel
-      Left = 96
-      Top = 153
-      Width = 20
+      Left = 142
+      Top = 140
+      Width = 53
       Height = 13
-      Caption = 'R10'
+      Caption = 'C Freq H.hi'
     end
     object Label23: TLabel
-      Left = 96
-      Top = 174
-      Width = 20
+      Left = 142
+      Top = 164
+      Width = 35
       Height = 13
-      Caption = 'R11'
+      Caption = 'D Huell'
     end
     object Label24: TLabel
-      Left = 96
-      Top = 194
-      Width = 20
+      Left = 142
+      Top = 188
+      Width = 36
       Height = 13
-      Caption = 'R12'
+      Caption = 'E None'
     end
     object Label25: TLabel
-      Left = 96
+      Left = 142
       Top = 212
-      Width = 20
+      Width = 35
       Height = 13
-      Caption = 'R13'
+      Caption = 'F None'
     end
-    object Label26: TLabel
-      Left = 96
-      Top = 234
-      Width = 20
-      Height = 13
-      Caption = 'R14'
-    end
-    object Label27: TLabel
-      Left = 96
-      Top = 254
-      Width = 20
-      Height = 13
-      Caption = 'R15'
-    end
-    object ePSGR0: TEdit
+    object ePSGRL: TStaticText
       Left = 8
-      Top = 88
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 18
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 0
-      Text = 'ePSGR0'
     end
-    object ePSGR1: TEdit
+    object ePSGR0: TStaticText
       Left = 8
-      Top = 109
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 42
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 1
-      Text = 'ePSGR1'
     end
-    object ePSGR2: TEdit
+    object ePSGR1: TStaticText
       Left = 8
-      Top = 130
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 66
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 2
-      Text = 'ePSGR2'
     end
-    object ePSGR3: TEdit
+    object ePSGR2: TStaticText
       Left = 8
-      Top = 149
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 90
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 3
-      Text = 'ePSGR3'
     end
-    object ePSGR4: TEdit
+    object ePSGR3: TStaticText
       Left = 8
-      Top = 170
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 114
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 4
-      Text = 'ePSGR4'
     end
-    object ePSGR5: TEdit
+    object ePSGR4: TStaticText
       Left = 8
-      Top = 190
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 138
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 5
-      Text = 'ePSGR5'
     end
-    object ePSGR6: TEdit
+    object ePSGR5: TStaticText
       Left = 8
-      Top = 208
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 162
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 6
-      Text = 'ePSGR6'
     end
-    object ePSGR7: TEdit
+    object ePSGR6: TStaticText
       Left = 8
-      Top = 230
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 186
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 7
-      Text = 'ePSGR7'
     end
-    object ePSGR8: TEdit
+    object ePSGR7: TStaticText
       Left = 8
-      Top = 250
-      Width = 28
-      Height = 21
-      ReadOnly = True
+      Top = 210
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 8
-      Text = 'ePSGR8'
     end
-    object ePSGR9: TEdit
-      Left = 64
-      Top = 109
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGR8: TStaticText
+      Left = 104
+      Top = 42
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 9
-      Text = 'ePSGR9'
     end
-    object ePSGRA: TEdit
-      Left = 64
-      Top = 130
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGR9: TStaticText
+      Left = 104
+      Top = 66
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 10
-      Text = 'ePSGRA'
     end
-    object ePSGRB: TEdit
-      Left = 64
-      Top = 149
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGRA: TStaticText
+      Left = 104
+      Top = 90
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 11
-      Text = 'ePSGRB'
     end
-    object ePSGRC: TEdit
-      Left = 64
-      Top = 170
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGRB: TStaticText
+      Left = 104
+      Top = 114
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 12
-      Text = 'ePSGRC'
     end
-    object ePSGRD: TEdit
-      Left = 64
-      Top = 190
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGRC: TStaticText
+      Left = 104
+      Top = 138
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 13
-      Text = 'ePSGRD'
     end
-    object ePSGRE: TEdit
-      Left = 64
-      Top = 208
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGRD: TStaticText
+      Left = 104
+      Top = 162
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 14
-      Text = 'ePSGRE'
     end
-    object ePSGRF: TEdit
-      Left = 64
-      Top = 230
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGRE: TStaticText
+      Left = 104
+      Top = 186
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 15
-      Text = 'ePSGRF'
     end
-    object ePSGRG: TEdit
-      Left = 64
-      Top = 250
-      Width = 28
-      Height = 21
-      ReadOnly = True
+    object ePSGRF: TStaticText
+      Left = 104
+      Top = 210
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 16
-      Text = 'ePSGRG'
     end
   end
   object GroupBox1: TGroupBox
     Left = 2
     Top = 0
-    Width = 417
-    Height = 73
-    Caption = 'Joystick'
+    Width = 418
+    Height = 110
+    Caption = 'Controls'
     TabOrder = 1
     object Label9: TLabel
-      Left = 8
+      Left = 64
       Top = 20
-      Width = 35
+      Width = 76
       Height = 13
-      Caption = 'Port #1'
+      Caption = 'Joystick Port #1'
     end
     object lJP1: TLabel
-      Left = 8
+      Tag = 42
+      Left = 64
       Top = 44
-      Width = 35
+      Width = 76
       Height = 13
-      Caption = 'Port #2'
+      Caption = 'Joystick Port #2'
+    end
+    object Label1: TLabel
+      Left = 64
+      Top = 64
+      Width = 74
+      Height = 13
+      Caption = 'Spinner Port #1'
+    end
+    object Label2: TLabel
+      Left = 64
+      Top = 86
+      Width = 74
+      Height = 13
+      Caption = 'Spinner Port #2'
     end
     object eJoyP0E: TStaticText
-      Left = 128
-      Top = 16
-      Width = 281
-      Height = 21
+      Left = 152
+      Top = 18
+      Width = 257
+      Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 0
     end
     object eJoyP1E: TStaticText
-      Left = 128
+      Left = 152
       Top = 40
-      Width = 281
-      Height = 21
+      Width = 257
+      Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 1
     end
     object eJoyP0: TStaticText
-      Left = 48
+      Left = 8
       Top = 18
       Width = 49
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 2
     end
     object eJoyP1: TStaticText
-      Left = 48
-      Top = 42
+      Left = 8
+      Top = 40
       Width = 49
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
       TabOrder = 3
     end
-  end
-  object GroupBox2: TGroupBox
-    Left = 2
-    Top = 80
-    Width = 311
-    Height = 73
-    Caption = 'Spinner'
-    TabOrder = 2
-    object Label1: TLabel
-      Left = 8
-      Top = 20
-      Width = 35
-      Height = 13
-      Caption = 'Port #1'
-    end
-    object Label2: TLabel
-      Left = 8
-      Top = 44
-      Width = 35
-      Height = 13
-      Caption = 'Port #2'
-    end
     object eSpinP0: TStaticText
-      Left = 48
-      Top = 18
+      Left = 8
+      Top = 62
       Width = 49
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      TabOrder = 0
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 4
     end
     object eSpinP1: TStaticText
-      Left = 48
-      Top = 42
+      Left = 8
+      Top = 84
       Width = 49
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
-      TabOrder = 1
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 5
     end
   end
   object GroupBox3: TGroupBox
     Left = 2
-    Top = 160
-    Width = 415
-    Height = 161
+    Top = 110
+    Width = 418
+    Height = 131
     Caption = 'Memory'
-    TabOrder = 3
+    TabOrder = 2
     object Label3: TLabel
       Left = 48
       Top = 20
@@ -411,28 +450,28 @@ object iomapviewer: Tiomapviewer
     end
     object Label4: TLabel
       Left = 48
-      Top = 44
+      Top = 42
       Width = 40
       Height = 13
       Caption = '$53 Port'
     end
     object Label5: TLabel
       Left = 48
-      Top = 68
+      Top = 64
       Width = 40
       Height = 13
       Caption = '$60 Port'
     end
     object Label6: TLabel
       Left = 48
-      Top = 140
+      Top = 108
       Width = 74
       Height = 13
       Caption = 'MegaCart Bank'
     end
     object Label7: TLabel
       Left = 48
-      Top = 92
+      Top = 86
       Width = 51
       Height = 13
       Caption = 'SGM RAM'
@@ -450,7 +489,7 @@ object iomapviewer: Tiomapviewer
     end
     object eP53: TStaticText
       Left = 8
-      Top = 42
+      Top = 40
       Width = 32
       Height = 18
       AutoSize = False
@@ -461,7 +500,7 @@ object iomapviewer: Tiomapviewer
     end
     object eP60: TStaticText
       Left = 8
-      Top = 66
+      Top = 62
       Width = 32
       Height = 18
       AutoSize = False
@@ -472,7 +511,7 @@ object iomapviewer: Tiomapviewer
     end
     object eBank: TStaticText
       Left = 8
-      Top = 138
+      Top = 106
       Width = 32
       Height = 18
       AutoSize = False
@@ -483,9 +522,9 @@ object iomapviewer: Tiomapviewer
     end
     object eP60exp: TStaticText
       Left = 126
-      Top = 64
-      Width = 281
-      Height = 21
+      Top = 62
+      Width = 284
+      Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
       Color = clWhite
@@ -495,39 +534,28 @@ object iomapviewer: Tiomapviewer
     object eP53exp: TStaticText
       Left = 126
       Top = 40
-      Width = 281
-      Height = 21
+      Width = 284
+      Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
       Color = clWhite
       ParentColor = False
       TabOrder = 5
     end
-    object eP20exp: TStaticText
-      Left = 126
-      Top = 16
-      Width = 281
-      Height = 21
-      AutoSize = False
-      BorderStyle = sbsSunken
-      Color = clWhite
-      ParentColor = False
-      TabOrder = 6
-    end
     object eSGMRAM: TStaticText
       Left = 8
-      Top = 90
+      Top = 84
       Width = 32
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
       Color = clWhite
       ParentColor = False
-      TabOrder = 7
+      TabOrder = 6
     end
   end
   object MainMenu1: TMainMenu
-    Top = 320
+    Left = 360
     object File1: TMenuItem
       Caption = 'File'
       object Exit: TMenuItem

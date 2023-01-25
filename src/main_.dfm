@@ -262,7 +262,7 @@ object Form1: TForm1
     Panels = <
       item
         Text = 'Machine'
-        Width = 60
+        Width = 50
       end
       item
         Alignment = taCenter
@@ -271,7 +271,7 @@ object Form1: TForm1
       end
       item
         Text = ' CardType'
-        Width = 100
+        Width = 80
       end
       item
         Text = ' Periph'

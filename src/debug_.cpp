@@ -16,7 +16,7 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  *
- * debug_.cpp
+ * debug2.cpp
  *
  * Lots of parts inspired from EightyOne Sinclair Emulator
  *   https://sourceforge.net/projects/eightyone-sinclair-emulator/
@@ -46,8 +46,6 @@
 #include "symbbrows_.h"
 
 #include <set>
-
-//#define Z80.pc.d Z80.pc.d
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
@@ -82,97 +80,101 @@ int recentHistory[4];
 int recentHistoryPos=0;
 
 //---------------------------------------------------------------------------
+
 void DebugUpdate(void)
 {
-        static int NMISaveSingleStep=-1, INTSaveSingleStep=-1;
-        static int lastpc;
-        int i;
+    static int NMISaveSingleStep=-1, INTSaveSingleStep=-1;
+    static int lastpc;
+    int i;
 
-        if (lastpc!=Z80.pc.d)
-        {
-                recentHistory[recentHistoryPos] = i;
-                recentHistoryPos = (recentHistoryPos + 1) & 3;
-                lastpc=Z80.pc.d;
-        }
+    if (lastpc!=Z80.pc.d)
+    {
+        recentHistory[recentHistoryPos] = i;
+        recentHistoryPos = (recentHistoryPos + 1) & 3;
+        lastpc=Z80.pc.d;
+    }
 
-        i=Z80.pc.d;
-        if ( (debug->NMIRetAddr==-1) && (NMISaveSingleStep!=-1) )
-        {
-                emul2.singlestep=NMISaveSingleStep;
-                NMISaveSingleStep=-1;
-        }
-        if ( (debug->INTRetAddr==-1) && (INTSaveSingleStep!=-1) )
-        {
-                emul2.singlestep=INTSaveSingleStep;
-                INTSaveSingleStep=-1;
-        }
-        if (Z80.pc.d == debug->NMIRetAddr)
-        {
-                debug->NMIRetAddr=-1;
-                emul2.singlestep=NMISaveSingleStep;
-        }
-        if (debug->NMIRetAddr!=-1) return;
+    i=Z80.pc.d;
+    if ( (debug->NMIRetAddr==-1) && (NMISaveSingleStep!=-1) )
+    {
+        emul2.singlestep=NMISaveSingleStep;
+        NMISaveSingleStep=-1;
+    }
+    if ( (debug->INTRetAddr==-1) && (INTSaveSingleStep!=-1) )
+    {
+        emul2.singlestep=INTSaveSingleStep;
+        INTSaveSingleStep=-1;
+    }
+    if (Z80.pc.d == debug->NMIRetAddr)
+    {
+        debug->NMIRetAddr=-1;
+        emul2.singlestep=NMISaveSingleStep;
+    }
+    if (debug->NMIRetAddr!=-1) return;
 
-        if (Z80.pc.d == debug->INTRetAddr)
-        {
-                debug->INTRetAddr=-1;
-                emul2.singlestep=INTSaveSingleStep;
-        }
-        if (debug->INTRetAddr!=-1) return;
+    if (Z80.pc.d == debug->INTRetAddr)
+    {
+        debug->INTRetAddr=-1;
+        emul2.singlestep=INTSaveSingleStep;
+    }
+    if (debug->INTRetAddr!=-1) return;
 
-        displayedTStatesCount = tStatesCount;
+    displayedTStatesCount = tStatesCount;
 
-        if (debug->BreakPointHit() || (RetExecuted && StepOutRequested && (StackChange < 0)))
-        {
-                StepOutRequested = 0;
-                debug->DoNext=false;
-                debug->UpdateVals();
-                debug->RunStop1Click(NULL);
-        }
+    if (debug->BreakPointHit() || (RetExecuted && StepOutRequested && (StackChange < 0)))
+    {
+        StepOutRequested = 0;
+        debug->DoNext=false;
+        debug->UpdateVals();
+        debug->RunStop1Click(NULL);
+    }
 
-        if (debug->DoNext)
-        {
-                emul2.stop=1;
-                debug->DoNext=false;
-                debug->UpdateVals();
-                emul2.singlestep = debug->AutoRefresh1->Checked ? 1 : 0;
-        }
+    if (debug->DoNext)
+    {
+        emul2.stop=1;
+        debug->DoNext=false;
+        debug->UpdateVals();
+        emul2.singlestep = debug->AutoRefresh1->Checked ? 1 : 0;
+    }
 #if 0
-        Profiler->DebugTick(&z80);
+    Profiler->DebugTick(&z80);
 #endif
-        if (debug->AutoRefresh1->Checked==true && debug->Visible==true)
-                debug->UpdateVals();
+    if (debug->AutoRefresh1->Checked==true && debug->Visible==true)
+        debug->UpdateVals();
 }
-
 //---------------------------------------------------------------------------
+
 int get_memoryvalue(int adrmemory)
 {
     int by=0;
-    switch (debug->cboMemory->ItemIndex) {
-        case 0 : by=getbyte(adrmemory); break; // ROM
-        case 1 : by=coleco_gettmsval(VRAM,adrmemory,0,0); break; // VRAM
-        case 2 : by=coleco_gettmsval(RAM,adrmemory,0,0); break; // RAM
-        case 3 : by=coleco_gettmsval(SGMRAM,adrmemory,0,0); break; // SGM RAM
-        case 4 : by=coleco_gettmsval(EEPROM,adrmemory,0,0); break; // EEPROM
-        case 5 : by=coleco_gettmsval(SRAM,adrmemory,0,0); break; // SRAM
+    switch (debug->cboMemory->ItemIndex)
+    {
+    case 0 : by=getbyte(adrmemory); break; // ROM
+    case 1 : by=coleco_gettmsval(VRAM,adrmemory,0,0); break; // VRAM
+    case 2 : by=coleco_gettmsval(RAM,adrmemory,0,0); break; // RAM
+    case 3 : by=coleco_gettmsval(SGMRAM,adrmemory,0,0); break; // SGM RAM
+    case 4 : by=coleco_gettmsval(EEPROM,adrmemory,0,0); break; // EEPROM
+    case 5 : by=coleco_gettmsval(SRAM,adrmemory,0,0); break; // SRAM
     }
 
     return by;
 }
+//---------------------------------------------------------------------------
 
 void set_memoryvalue(int adr, int val)
 {
-    switch (debug->cboMemory->ItemIndex) {
-        case 0 : coleco_setval(ROM, adr,val); break; // ROM
-        case 1 : coleco_setval(VRAM, adr,val); break; // VRAM
-        case 2 : coleco_setval(RAM, adr,val); break; // RAM
-        case 3 : coleco_setval(SGMRAM, adr,val); break; // SGM RAM
-        case 4 : coleco_setval(EEPROM, adr,val); break; // EEPROM
-        case 5 : coleco_setval(SRAM, adr,val); break; // SRAM
+    switch (debug->cboMemory->ItemIndex)
+    {
+    case 0 : coleco_setval(ROM, adr,val); break; // ROM
+    case 1 : coleco_setval(VRAM, adr,val); break; // VRAM
+    case 2 : coleco_setval(RAM, adr,val); break; // RAM
+    case 3 : coleco_setval(SGMRAM, adr,val); break; // SGM RAM
+    case 4 : coleco_setval(EEPROM, adr,val); break; // EEPROM
+    case 5 : coleco_setval(SRAM, adr,val); break; // SRAM
     }
 }
-
 //---------------------------------------------------------------------------
+
 void Tdebug::EnableValues(bool enable)
 {
     HL->Enabled = enable;
@@ -231,70 +233,68 @@ void Tdebug::EnableValues(bool enable)
     ButtonNextChange->Enabled = enable;
     ButtonLastChange->Enabled = enable;
   */
-        TStatesCount->Enabled = enable;
+  TStatesCount->Enabled = enable;
 }
+//---------------------------------------------------------------------------
 
 void Tdebug::DisableVals(void)
 {
-        EnableValues(false);
+    EnableValues(false);
 }
+//---------------------------------------------------------------------------
 
 void Tdebug::EnableVals(void)
 {
-        EnableValues(true);
+    EnableValues(true);
 }
-
 //---------------------------------------------------------------------------
+
 bool Tdebug::AddBreakPoint(struct breakpoint& bp)
 {
+    int i;
     const int maxBreakpoints = 99;
 
     if (Breakpoints >= maxBreakpoints)
         return false;
 
-    int i;
     for(i=0; i<Breakpoints; i++)
     {
         bool existingBreakpoint;
 
         switch (bp.Type)
         {
-            case BP_TSTATES:
-                existingBreakpoint = (Breakpoint[i].Type == bp.Type);
-                break;
-
-            case BP_REGISTER:
-                existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
+        case BP_TSTATES:
+            existingBreakpoint = (Breakpoint[i].Type == bp.Type);
+            break;
+        case BP_REGISTER:
+            existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
                     (Breakpoint[i].RegisterId == bp.RegisterId) &&
                     (Breakpoint[i].ConditionValue == bp.ConditionValue) &&
                     (Breakpoint[i].Value == bp.Value);
-                break;
-
-            case BP_FLAG:
-                existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
+            break;
+        case BP_FLAG:
+            existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
                     (Breakpoint[i].FlagId == bp.FlagId);
-                break;
-
-            case BP_MEMORY:
-                existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
+            break;
+        case BP_MEMORY:
+            existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
                     (Breakpoint[i].Addr == bp.Addr) &&
                     (Breakpoint[i].ConditionValue == bp.ConditionValue) &&
                     (Breakpoint[i].Value == bp.Value);
-                break;
-
-            case BP_RD:
-            case BP_WR:
-            case BP_EXE:
-            case BP_OUTL:
-            case BP_OUTH:
-            case BP_INL:
-            case BP_INH:
-                existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
+            break;
+        case BP_RD:
+        case BP_WR:
+        case BP_EXE:
+        case BP_OUTL:
+        case BP_OUTH:
+        case BP_INL:
+        case BP_INH:
+            existingBreakpoint = (Breakpoint[i].Type == bp.Type) &&
                     (Breakpoint[i].ConditionAddr == bp.ConditionAddr) &&
                     (Breakpoint[i].Addr == bp.Addr) &&
                     (Breakpoint[i].ConditionValue == bp.ConditionValue) &&
                     (Breakpoint[i].Value == bp.Value);
-                break;
+            break;
         }
 
         if (existingBreakpoint)
@@ -328,57 +328,45 @@ AnsiString Tdebug::GetBreakpointText(breakpoint* const bp)
 
     switch (bp->Type)
     {
-        case BP_EXE:
-            str = ConstructExeBreakpointText(bp);
-            break;
-
-        case BP_RD:
-            str = ConstructRdWrInOutMemBreakpointText("RD ", bp);
-            break;
-
-        case BP_WR:
-            str = ConstructRdWrInOutMemBreakpointText("WR ", bp);
-            break;
-
-        case BP_IN:
-            str = ConstructRdWrInOutMemBreakpointText("IN ", bp);
-            break;
-
-        case BP_OUT:
-            str = ConstructRdWrInOutMemBreakpointText("OUT", bp);
-            break;
-
-        case BP_MEMORY:
-            str = ConstructRdWrInOutMemBreakpointText("MEM", bp);
-            break;
-
-        case BP_INL:
-            str = ConstructLowIOBreakpointText("IN ", bp);
-            break;
-
-        case BP_INH:
-            str = ConstructHighIOBreakpointText("IN ", bp);
-            break;
-
-        case BP_OUTL:
-            str = ConstructLowIOBreakpointText("OUT", bp);
-            break;
-
-        case BP_OUTH:
-            str = ConstructHighIOBreakpointText("OUT", bp);
-            break;
-
-        case BP_TSTATES:
-            str = ConstructTStatesBreakpointText(bp);
-            break;
-
-        case BP_REGISTER:
-            str = ConstructRegisterBreakpointText(bp);
-            break;
-
-        case BP_FLAG:
-            str = ConstructFlagBreakpointText(bp);
-            break;
+    case BP_EXE:
+        str = ConstructExeBreakpointText(bp);
+        break;
+    case BP_RD:
+        str = ConstructRdWrInOutMemBreakpointText("RD ", bp);
+        break;
+    case BP_WR:
+        str = ConstructRdWrInOutMemBreakpointText("WR ", bp);
+        break;
+    case BP_IN:
+        str = ConstructRdWrInOutMemBreakpointText("IN ", bp);
+        break;
+    case BP_OUT:
+        str = ConstructRdWrInOutMemBreakpointText("OUT", bp);
+        break;
+    case BP_MEMORY:
+        str = ConstructRdWrInOutMemBreakpointText("MEM", bp);
+        break;
+    case BP_INL:
+        str = ConstructLowIOBreakpointText("IN ", bp);
+        break;
+    case BP_INH:
+        str = ConstructHighIOBreakpointText("IN ", bp);
+        break;
+    case BP_OUTL:
+        str = ConstructLowIOBreakpointText("OUT", bp);
+        break;
+    case BP_OUTH:
+        str = ConstructHighIOBreakpointText("OUT", bp);
+        break;
+    case BP_TSTATES:
+        str = ConstructTStatesBreakpointText(bp);
+        break;
+    case BP_REGISTER:
+        str = ConstructRegisterBreakpointText(bp);
+        break;
+    case BP_FLAG:
+        str = ConstructFlagBreakpointText(bp);
+        break;
     }
 
     if (!bp->Permanent)
@@ -748,134 +736,105 @@ bool Tdebug::BPRegisterValueHit(breakpoint* const bp)
 int Tdebug::getRegisterValue(int registerIndex)
 {
     int value;
-#if 0
+
     switch (registerIndex)
     {
-	    case RegA:
-            value = Z80.af.b.h;
-			break;
-
-		case RegB:
-            value = Z80.bc.b.h;
-			break;
-
-		case RegC:
-            value = Z80.bc.b.l;
-			break;
-
-		case RegD:
-            value = Z80.de.b.h;
-			break;
-
-		case RegE:
-            value = Z80.de.b.l;
-			break;
-
-		case RegH:
-            value = Z80.hl.b.h;
-			break;
-
-		case RegL:
-            value = Z80.hl.b.l;
-			break;
-
-		case RegI:
-            value = Z80.i;
-			break;
-
-		case RegR:
-            value = Z80.r;
-			break;
-
-		case RegIXh:
-            value = Z80.ix.b.h;
-			break;
-
-		case RegIXl:
-            value = Z80.ix.b.l;
-			break;
-
-		case RegIYh:
-            value = Z80.iy.b.h;
-			break;
-
-		case RegIYl:
-            value = Z80.iy.b.l;
-			break;
-
-		case RegAltA:
-            value = Z80.af_.b.h;
-			break;
-
-		case RegAltB:
-            value = Z80.bc_.b.h;
-			break;
-
-		case RegAltC:
-            value = Z80.bc_.b.l;
-			break;
-
-		case RegAltD:
-            value = Z80.de_.b.h;
-			break;
-
-		case RegAltE:
-            value = Z80.de_.b.l;
-			break;
-
-		case RegAltH:
-            value = Z80.hl_.b.h;
-			break;
-
-		case RegAltL:
-            value = Z80.hl_.b.l;
-			break;
-
-		case RegBC:
-            value = Z80.bc.w.l;
-			break;
-
-		case RegDE:
-            value = Z80.de.w.l;
-			break;
-
-		case RegHL:
-            value = Z80.hl.w.l;
-			break;
-
-		case RegIX:
-            value = Z80.ix.w.l;
-			break;
-
-		case RegIY:
-            value = Z80.iy.w.l;
-			break;
-
-		case RegPC:
-            value = Z80.pc.d.l;
-			break;
-
-		case RegSP:
-            value = Z80.sp.d.l;
-			break;
-
-		case RegAltBC:
-            value = Z80.bc_.w;
-			break;
-
-		case RegAltDE:
-            value = Z80.de_.w;
-			break;
-
-		case RegAltHL:
-            value = Z80.hl_.w;
-			break;
+    case RegA:
+        value = Z80.af.b.h;
+		break;
+    case RegB:
+        value = Z80.bc.b.h;
+        break;
+    case RegC:
+        value = Z80.bc.b.l;
+		break;
+    case RegD:
+        value = Z80.de.b.h;
+		break;
+    case RegE:
+        value = Z80.de.b.l;
+        break;
+    case RegH:
+        value = Z80.hl.b.h;
+		break;
+    case RegL:
+        value = Z80.hl.b.l;
+		break;
+    case RegI:
+        value = Z80.i;
+		break;
+    case RegR:
+        value = Z80.r;
+		break;
+    case RegIXh:
+        value = Z80.ix.b.h;
+		break;
+    case RegIXl:
+        value = Z80.ix.b.l;
+		break;
+    case RegIYh:
+        value = Z80.iy.b.h;
+		break;
+    case RegIYl:
+        value = Z80.iy.b.l;
+		break;
+    case RegAltA:
+        value = Z80.af2.b.h;
+		break;
+    case RegAltB:
+        value = Z80.bc2.b.h;
+        break;
+    case RegAltC:
+        value = Z80.bc2.b.l;
+		break;
+    case RegAltD:
+        value = Z80.de2.b.h;
+		break;
+    case RegAltE:
+        value = Z80.de2.b.l;
+		break;
+    case RegAltH:
+        value = Z80.hl2.b.h;
+		break;
+    case RegAltL:
+        value = Z80.hl2.b.l;
+		break;
+    case RegBC:
+        value = Z80.bc.w.l;
+		break;
+    case RegDE:
+        value = Z80.de.w.l;
+		break;
+    case RegHL:
+        value = Z80.hl.w.l;
+		break;
+    case RegIX:
+        value = Z80.ix.w.l;
+		break;
+    case RegIY:
+        value = Z80.iy.w.l;
+		break;
+    case RegPC:
+        value = Z80.pc.w.l;
+		break;
+    case RegSP:
+        value = Z80.sp.w.l;
+		break;
+    case RegAltBC:
+        value = Z80.bc2.w.l;
+		break;
+    case RegAltDE:
+        value = Z80.de2.w.l;
+		break;
+    case RegAltHL:
+        value = Z80.hl2.w.l;
+		break;
     }
-#endif
+
     return value;
 }
-
 //---------------------------------------------------------------------------
+
 int Tdebug::Hex2Dec(AnsiString num)
 {
     int val=0;
@@ -891,15 +850,18 @@ int Tdebug::Hex2Dec(AnsiString num)
     return(val);
 }
 //---------------------------------------------------------------------------
+
 AnsiString Tdebug::Hex16(int Value)
 {
     return AnsiString::IntToHex(Value,4);
 }
 //---------------------------------------------------------------------------
+
 AnsiString Tdebug::Hex8(int Value)
 {
     return AnsiString::IntToHex(Value,2);
 }
+
 //---------------------------------------------------------------------------
 AnsiString Tdebug::Bin8(int Value)
 {
@@ -912,8 +874,8 @@ AnsiString Tdebug::Bin8(int Value)
 
     return AnsiString(arry);
 }
-
 //---------------------------------------------------------------------------
+
 // set the caption and other good stuff for a register label
 void Tdebug::SetLabelInfo(TLabel* label, int value, int valueWidth)
 {
@@ -935,103 +897,103 @@ void Tdebug::SetLabelInfo(TLabel* label, int value, int valueWidth)
         label->Color = label->ShowHint ? clInfoBk : clBtnFace;
     }
 }
-
 //---------------------------------------------------------------------------
+
 void Tdebug::UpdateVals(void)
 {
-        int i,j, Stack;
+    int i,j, Stack;
 
-        // Update registers
-        SetLabelInfo(HL, Z80.hl.d);
-        SetLabelInfo(BC, Z80.bc.d);
-        SetLabelInfo(DE, Z80.de.d);
-        SetLabelInfo(HL_, Z80.hl2.d);
-        SetLabelInfo(BC_, Z80.bc2.d);
-        SetLabelInfo(DE_, Z80.de2.d);
-        SetLabelInfo(IX, Z80.ix.d);
-        SetLabelInfo(IY, Z80.iy.d);
-        SetLabelInfo(PC, Z80.pc.d);
-        SetLabelInfo(SP, Z80.sp.d);
-        //TODO SetLabelInfo(IR, (Z80.i<<8) | (Z80.r7 & 128) | ((Z80.r) & 127));
-        SetLabelInfo(A, Z80.af.b.h, 2);
-        SetLabelInfo(A_, Z80.af2.b.h, 2);
-        F->Caption = Bin8(Z80.af.b.l);
-        F_->Caption = Bin8(Z80.af2.b.l);
+    // Update registers
+    SetLabelInfo(HL, Z80.hl.d);
+    SetLabelInfo(BC, Z80.bc.d);
+    SetLabelInfo(DE, Z80.de.d);
+    SetLabelInfo(HL_, Z80.hl2.d);
+    SetLabelInfo(BC_, Z80.bc2.d);
+    SetLabelInfo(DE_, Z80.de2.d);
+    SetLabelInfo(IX, Z80.ix.d);
+    SetLabelInfo(IY, Z80.iy.d);
+    SetLabelInfo(PC, Z80.pc.d);
+    SetLabelInfo(SP, Z80.sp.d);
+    SetLabelInfo(IR, (Z80.i<<8) | (Z80.r2 & 128) | ((Z80.r) & 127));
+    SetLabelInfo(A, Z80.af.b.h, 2);
+    SetLabelInfo(A_, Z80.af2.b.h, 2);
+    F->Caption = Bin8(Z80.af.b.l);
+    F_->Caption = Bin8(Z80.af2.b.l);
 
-        // Update stack memory
-        i=Z80.sp.d;
-        Stack00->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack01->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack02->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack03->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack04->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack05->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack06->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack07->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack08->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack09->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack10->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack11->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack12->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-        Stack13->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    // Update stack memory
+    i=Z80.sp.d;
+    Stack00->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack01->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack02->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack03->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack04->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack05->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack06->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack07->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack08->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack09->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack10->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack11->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack12->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack13->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
 
-        // Put history back instructions
-        i = recentHistory[(recentHistoryPos+0)&3]; Disass0->Caption = Disassemble(&i);
-        i = recentHistory[(recentHistoryPos+1)&3]; Disass1->Caption = Disassemble(&i);
-        i = recentHistory[(recentHistoryPos+2)&3]; Disass2->Caption = Disassemble(&i);
+    // Put history back instructions
+    i = recentHistory[(recentHistoryPos+0)&3]; Disass0->Caption = Disassemble(&i);
+    i = recentHistory[(recentHistoryPos+1)&3]; Disass1->Caption = Disassemble(&i);
+    i = recentHistory[(recentHistoryPos+2)&3]; Disass2->Caption = Disassemble(&i);
 
-        // Put current disassembly code
-        i=Z80.pc.d;
-        int stepOverStartAddr=i;
-        StepOverInstruction = IsStepOverInstruction(i);
-        Disass3->Caption = (Disassemble(&i) + "                              ").SetLength(63);
-        StepOverAddr = i;
-        StepOverStack=Z80.sp.d;
-        StepOverInstructionSize = StepOverAddr - stepOverStartAddr;
-        StepOutRequested = 0;
+    // Put current disassembly code
+    i=Z80.pc.d;
+    int stepOverStartAddr=i;
+    StepOverInstruction = IsStepOverInstruction(i);
+    Disass3->Caption = (Disassemble(&i) + "                              ").SetLength(63);
+    StepOverAddr = i;
+    StepOverStack=Z80.sp.d;
+    StepOverInstructionSize = StepOverAddr - stepOverStartAddr;
+    StepOutRequested = 0;
 
-        Disass4->Caption = Disassemble(&i);
-        Disass5->Caption = Disassemble(&i);
-        Disass6->Caption = Disassemble(&i);
-        Disass7->Caption = Disassemble(&i);
-        Disass8->Caption = Disassemble(&i);
-        Disass9->Caption = Disassemble(&i);
-        Disass10->Caption = Disassemble(&i);
-        Disass11->Caption = Disassemble(&i);
+    Disass4->Caption = Disassemble(&i);
+    Disass5->Caption = Disassemble(&i);
+    Disass6->Caption = Disassemble(&i);
+    Disass7->Caption = Disassemble(&i);
+    Disass8->Caption = Disassemble(&i);
+    Disass9->Caption = Disassemble(&i);
+    Disass10->Caption = Disassemble(&i);
+    Disass11->Caption = Disassemble(&i);
 
-        // Update flags
-        Halt->Caption = Z80.halt ? "Yes":"No" ;
-        Interrupts->Caption = Z80.iff1 ? "Enabled":"Disabled" ;
-        IM->Caption = Z80.im;
-        if ((displayedTStatesCount >= 0) && (displayedTStatesCount < 1000000))
-        {
-                TStatesCount->Caption = displayedTStatesCount;
-        }
-        else
-        {
-                TStatesCount->Caption = "999999";
-        }
+    // Update flags
+    Halt->Caption = Z80.halt ? "Yes":"No" ;
+    Interrupts->Caption = Z80.iff1 ? "Enabled":"Disabled" ;
+    IM->Caption = Z80.im;
+    if ((displayedTStatesCount >= 0) && (displayedTStatesCount < 1000000))
+    {
+        TStatesCount->Caption = displayedTStatesCount;
+    }
+    else
+    {
+        TStatesCount->Caption = "999999";
+    }
 
-        UpdateChanges();
+    UpdateChanges();
 
-        if (emul2.stop)
-        {
-                RunStop1->Caption = "Run";
-                Step1->Enabled = true;
-                StepOver1->Enabled = true;
-                StepOut1->Enabled = true;
-                EnableVals();
-                DelTempBreakPoints();
+    if (emul2.stop)
+    {
+        RunStop1->Caption = "Run";
+        Step1->Enabled = true;
+        StepOver1->Enabled = true;
+        StepOut1->Enabled = true;
+        EnableVals();
+        DelTempBreakPoints();
                 //Profiler->Refresh();
-        }
-        else
-        {
-                RunStop1->Caption = "Stop";
-                Step1->Enabled = false;
-                StepOver1->Enabled = false;
-                StepOut1->Enabled = false;
-                if (!AutoRefresh1->Checked) DisableVals();
-        }
+    }
+    else
+    {
+        RunStop1->Caption = "Stop";
+        Step1->Enabled = false;
+        StepOver1->Enabled = false;
+        StepOut1->Enabled = false;
+        if (!AutoRefresh1->Checked) DisableVals();
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -1046,48 +1008,48 @@ bool Tdebug::IsStepOverInstruction(int Addr)
 
     switch(Opcode)
     {
-        case 0x10: // DJNZ fz
-        case 0x76: // HALT
-        case 0xc4: // CALL NZ,nnnn
-        case 0xc7: // RST 00
-        case 0xcc: // CALL Z,nnnn
-        case 0xcd: // CALL nnnn
-        case 0xcf: // RST 08
-        case 0xd4: // CALL NC,nnnn
-        case 0xd7: // RST 10
-        case 0xdc: // CALL C,nnnn
-        case 0xdf: // RST 18
-        case 0xe4: // CALL PO,nnnn
-        case 0xe7: // RST 20
-        case 0xec: // CALL PE,nnnn
-        case 0xef: // RST 28
-        case 0xf4: // CALL P,nnnn
-        case 0xf7: // RST 30
-        case 0xfc: // CALL M,nnnn
-        case 0xff: // RST 38
-    		stepOverInstruction = true;
-		    break;
-        case 0xed:
-            Opcode = GetMem(Addr);
-            switch(Opcode)
-            {
-                case 0xb0:	// LDIR
-                case 0xb1:	// CPIR
-                case 0xb2:	// INIR
-                case 0xb3:	// OTIR
-                case 0xb8:	// LDDR
-                case 0xb9:	// CPDR
-                case 0xba:	// INDR
-                case 0xbb:	// OTDR
-			        stepOverInstruction = true;
-                    break;
-            }
+    case 0x10: // DJNZ fz
+    case 0x76: // HALT
+    case 0xc4: // CALL NZ,nnnn
+    case 0xc7: // RST 00
+    case 0xcc: // CALL Z,nnnn
+    case 0xcd: // CALL nnnn
+    case 0xcf: // RST 08
+    case 0xd4: // CALL NC,nnnn
+    case 0xd7: // RST 10
+    case 0xdc: // CALL C,nnnn
+    case 0xdf: // RST 18
+    case 0xe4: // CALL PO,nnnn
+    case 0xe7: // RST 20
+    case 0xec: // CALL PE,nnnn
+    case 0xef: // RST 28
+    case 0xf4: // CALL P,nnnn
+    case 0xf7: // RST 30
+    case 0xfc: // CALL M,nnnn
+    case 0xff: // RST 38
+        stepOverInstruction = true;
+		break;
+    case 0xed:
+        Opcode = GetMem(Addr);
+        switch(Opcode)
+        {
+        case 0xb0:	// LDIR
+        case 0xb1:	// CPIR
+        case 0xb2:	// INIR
+        case 0xb3:	// OTIR
+        case 0xb8:	// LDDR
+        case 0xb9:	// CPDR
+        case 0xba:	// INDR
+        case 0xbb:	// OTDR
+		    stepOverInstruction = true;
             break;
+        }
+        break;
     }
 	return stepOverInstruction;
 }
-
 //---------------------------------------------------------------------------
+
 __fastcall Tdebug::Tdebug(TComponent* Owner)
     : TForm(Owner)
 {
@@ -1116,8 +1078,6 @@ __fastcall Tdebug::Tdebug(TComponent* Owner)
     mRowRenderer = new TraditionalRowRenderer; // SetViewMode(MWVM_TRADITIONAL);
     mCharSize = Canvas->TextExtent(AnsiString("0"));
     mHeadingHeight = mCharSize.cy + (mCharSize.cy / 2);
-
-    //    ResetLastIOAccesses();
 }
 //---------------------------------------------------------------------------
 
@@ -1128,8 +1088,8 @@ void __fastcall Tdebug::FormClose(TObject *Sender, TCloseAction &Action)
     emul2.stop=0;
     StepOutRequested = 0;
 }
-
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::FormShow(TObject *Sender)
 {
     AutoRefresh1->Enabled = true;
@@ -1151,6 +1111,7 @@ void Tdebug::LoadSettings(TIniFile *ini)
 
     AutoRefresh1->Checked = ini->ReadBool("DEBUG", "AutoRefresh", true);
 }
+//---------------------------------------------------------------------------
 
 void Tdebug::SaveSettings(TIniFile *ini)
 {
@@ -1159,6 +1120,7 @@ void Tdebug::SaveSettings(TIniFile *ini)
     ini->WriteBool("DEBUG", "AutoRefresh", AutoRefresh1->Checked);
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::RunStop1Click(TObject *Sender)
 {
     emul2.stop = 1-emul2.stop;
@@ -1175,6 +1137,7 @@ void __fastcall Tdebug::RunStop1Click(TObject *Sender)
     StackChange = 0;
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::Step1Click(TObject *Sender)
 {
     ClearChanges();
@@ -1184,6 +1147,7 @@ void __fastcall Tdebug::Step1Click(TObject *Sender)
     DoNext=true;
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::StepOver1Click(TObject *Sender)
 {
     if (!StepOverInstruction)
@@ -1199,6 +1163,7 @@ void __fastcall Tdebug::StepOver1Click(TObject *Sender)
     RunStop1Click(NULL);
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::StepOut1Click(TObject *Sender)
 {
     RunStop1Click(NULL);
@@ -1206,11 +1171,13 @@ void __fastcall Tdebug::StepOut1Click(TObject *Sender)
     StepOutRequested = 1;
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::Exit1Click(TObject *Sender)
 {
     Close();
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::ShowSymbols1Click(TObject *Sender)
 {
     if (symbbrows->Visible)
@@ -1223,6 +1190,7 @@ void __fastcall Tdebug::ShowSymbols1Click(TObject *Sender)
     ShowSymbols1->Caption="Hide Symbols";
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::LoadSymbolFile1Click(TObject *Sender)
 {
     AnsiString Filename;
@@ -1248,6 +1216,7 @@ void __fastcall Tdebug::LoadSymbolFile1Click(TObject *Sender)
     }
 }
 //---------------------------------------------------------------------------
+
 void __fastcall Tdebug::DoEditStack(int offs)
 {
     editvalue->CentreOn(this);
@@ -1261,6 +1230,7 @@ void __fastcall Tdebug::DoEditStack(int offs)
         UpdateVals();
     }
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tdebug::Stack00Click(TObject *Sender)
 {
@@ -1294,37 +1264,36 @@ void Tdebug::SetMenuContent(int memloc)
 void __fastcall Tdebug::cboMemoryChange(TObject *Sender)
 {
     // change max for memory
-    switch (cboMemory->ItemIndex) {
-        case 0 : // ROM
-            maxMemory = 0xFFFF+1;
-            break;
-        case 1 : // VRAM
-            maxMemory = 0x3FFF+1;
-            break;
-        case 2 : // RAM
-            maxMemory = 0x3FF+1;
-            break;
-        case 3 : // SGM RAM
-            maxMemory = 0x7FFF+1;
-            break;
-        case 4 : // EEPROM
-            maxMemory = 0x7FFF+1;
-            break;
-        case 5 : // SRAM
-            maxMemory = 0x7FF+1;
-            break;
+    switch (cboMemory->ItemIndex)
+    {
+    case 0 : // ROM
+        maxMemory = 0xFFFF+1;
+        break;
+    case 1 : // VRAM
+        maxMemory = 0x3FFF+1;
+        break;
+    case 2 : // RAM
+        maxMemory = 0x3FF+1;
+        break;
+    case 3 : // SGM RAM
+        maxMemory = 0x7FFF+1;
+        break;
+    case 4 : // EEPROM
+        maxMemory = 0x7FFF+1;
+        break;
+    case 5 : // SRAM
+        maxMemory = 0x7FF+1;
+        break;
     }
     UpdateChanges();
 }
 //---------------------------------------------------------------------------
-
 
 void __fastcall Tdebug::FClick(TObject *Sender)
 {
     // this relies on the textbox that displays the flag bits
     // being exactly 8 char_width pixels wide.
     //
-/*
     TPoint cp = ScreenToClient(Mouse->CursorPos);
     cp.x -= F->Left + 2;
     cp.y -= F->Top;
@@ -1332,14 +1301,12 @@ void __fastcall Tdebug::FClick(TObject *Sender)
 
     int bit = 0x80 >> f;
     Z80.af.b.l ^= bit;
-    UpdateVals()
-*/
+    UpdateVals();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::F_Click(TObject *Sender)
 {
-/*
     // see above.
     //
     TPoint cp = ScreenToClient(Mouse->CursorPos);
@@ -1348,9 +1315,8 @@ void __fastcall Tdebug::F_Click(TObject *Sender)
     int f = (cp.x) / (F_->Width / 8);
 
     int bit = 0x80 >> f;
-    Z80.af_.b.l ^= bit;
+    Z80.af2.b.l ^= bit;
     UpdateVals();
-*/
 }
 //---------------------------------------------------------------------------
 
@@ -1392,10 +1358,8 @@ void __fastcall Tdebug::IYMouseDown(TObject *Sender, TMouseButton Button,
 void __fastcall Tdebug::IRMouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-#if 0
-        int ir = (Z80.i << 8) | (Z80.r7 & 128) | (Z80.r & 127);
+        int ir = (Z80.i << 8) | (Z80.r2 & 128) | (Z80.r & 127);
         SetMenuContent(ir);
-#endif
 }
 //---------------------------------------------------------------------------
 
@@ -1415,45 +1379,45 @@ void __fastcall Tdebug::PCMouseDown(TObject *Sender, TMouseButton Button,
 
 void __fastcall Tdebug::DoEditReg(WORD& value)
 {
-        editvalue->CentreOn(this);
+    editvalue->CentreOn(this);
 
-        int n = value;
-        if (editvalue->Edit2(n, 2))
-        {
-                value = n;
-                UpdateVals();
-        }
+    int n = value;
+    if (editvalue->Edit2(n, 2))
+    {
+        value = n;
+        UpdateVals();
+    }
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DoEditReg(BYTE& value)
 {
-        editvalue->CentreOn(this);
+    editvalue->CentreOn(this);
 
-        int n = value;
-        if (editvalue->Edit2(n, 1))
-        {
-                value = n;
-                UpdateVals();
-        }
+    int n = value;
+    if (editvalue->Edit2(n, 1))
+    {
+        value = n;
+        UpdateVals();
+    }
 }
-
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::AClick(TObject *Sender)
 {
-        DoEditReg(Z80.af.b.h);
+    DoEditReg(Z80.af.b.h);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::A_Click(TObject *Sender)
 {
-        DoEditReg(Z80.af2.b.h);
+    DoEditReg(Z80.af2.b.h);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::SPClick(TObject *Sender)
 {
-        DoEditReg((WORD) Z80.sp.d);
+    DoEditReg((WORD) Z80.sp.d);
 }
 //---------------------------------------------------------------------------
 
@@ -1513,19 +1477,15 @@ void __fastcall Tdebug::IYClick(TObject *Sender)
 
 void __fastcall Tdebug::IMClick(TObject *Sender)
 {
-#if 0
     if (++Z80.im == 3) Z80.im=0;
     UpdateVals();
-#endif
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::InterruptsClick(TObject *Sender)
 {
-#if 0
     Z80.iff1=Z80.iff2= !Z80.iff1;
     UpdateVals();
-#endif
 }
 //---------------------------------------------------------------------------
 
@@ -1534,16 +1494,14 @@ void __fastcall Tdebug::IRClick(TObject *Sender)
     editvalue->CentreOn(this);
 
     int v;
-#if 0
-    v = (Z80.i << 8) | (Z80.r7 & 128) | Z80.r;
+    v = (Z80.i << 8) | (Z80.r2 & 128) | Z80.r;
     if (editvalue->Edit2(v, 2))
     {
         Z80.r = v&127;
-        Z80.r7 = v&128;
+        Z80.r2 = v&128;
         Z80.i = (v>>8)&255;
         UpdateVals();
     }
-#endif
 }
 //---------------------------------------------------------------------------
 
@@ -1598,24 +1556,24 @@ void __fastcall Tdebug::EditBrkBtnClick(TObject *Sender)
 void __fastcall Tdebug::BC_MouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-//   SetMenuContent(Z80.bc_.d);
+    SetMenuContent(Z80.bc2.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::DE_MouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-//   SetMenuContent(Z80.de_.d);
+    SetMenuContent(Z80.de2.d);
 }
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::HL_MouseDown(TObject *Sender, TMouseButton Button,
       TShiftState Shift, int X, int Y)
 {
-//   SetMenuContent(Z80.hl_.d);
+    SetMenuContent(Z80.hl2.d);
 }
-
 //---------------------------------------------------------------------------
+
 void RowRenderer::ChooseTextColour()
 {
     if (mDirty != mLast && mAddress == *mDirty)
@@ -1628,6 +1586,7 @@ void RowRenderer::ChooseTextColour()
         SetTextColor(mCHDC, GetSysColor(COLOR_WINDOWTEXT));
     }
 }
+//---------------------------------------------------------------------------
 
 void RowRenderer::AddressOut(void)
 {
@@ -1641,6 +1600,7 @@ void RowRenderer::AddressOut(void)
         TextOut(mCHDC, 0, mY, AnsiString::IntToHex(65536 + mAddress,4).c_str(), 4);
     }
 }
+//---------------------------------------------------------------------------
 
 bool RowRenderer::ByteAtX(const int x, int& byte)
 {
@@ -1652,6 +1612,7 @@ bool RowRenderer::ByteAtX(const int x, int& byte)
     byte = ((x - mLMargin) / mCellWidth) * mBytesPerCell;
     return true;
 }
+//---------------------------------------------------------------------------
 
 void RowRenderer::SetGeometry(int width, const TSize& charSize, int nCharsPerCell)
 {
@@ -1668,6 +1629,7 @@ void RowRenderer::SetGeometry(int width, const TSize& charSize, int nCharsPerCel
         ++mDisplayCellsPerRow;
     }
 }
+//---------------------------------------------------------------------------
 
 void RowRenderer::RenderColumnHeadings(const TSize& charSize)
 {
@@ -1679,6 +1641,7 @@ void RowRenderer::RenderColumnHeadings(const TSize& charSize)
         TextOut(mCHDC, (x * mCellWidth) + columnInset, 0, heading.c_str(), 2);
     }
 }
+//---------------------------------------------------------------------------
 
 bool TraditionalRowRenderer::ByteAtX(const int x, int& byte)
 {
@@ -1699,6 +1662,7 @@ bool TraditionalRowRenderer::ByteAtX(const int x, int& byte)
 
     return true;
 }
+//---------------------------------------------------------------------------
 
 void TraditionalRowRenderer::SetGeometry(int width, TSize& charSize)
 {
@@ -1712,6 +1676,7 @@ void TraditionalRowRenderer::SetGeometry(int width, TSize& charSize)
 
     mDisplayCellsPerRow = Lw / mCellWidth;
 }
+//---------------------------------------------------------------------------
 
 void TraditionalRowRenderer::RenderRow(void)
 {
@@ -1761,8 +1726,8 @@ void TraditionalRowRenderer::RenderRow(void)
 
     SetBkColor(mCHDC, prevBackgroundColour);
 }
-
 //---------------------------------------------------------------------------
+
 void Tdebug::CreateBitmap(void)
 {
     if (mOffscreenBitmap)
@@ -1824,6 +1789,7 @@ void Tdebug::CreateBitmap(void)
     SelectObject(chdc, oldbm);
     DeleteDC(chdc);
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tdebug::FormPaint(TObject *Sender)
 {
@@ -1904,7 +1870,6 @@ bool  __fastcall Tdebug::xyToAddress(int xIn, int yIn, int& address)
 
     return (address <= 0xFFFF);
 }
-
 //---------------------------------------------------------------------------
 
 void __fastcall Tdebug::panMemMouseMove(TObject *Sender, TShiftState Shift,
@@ -2005,6 +1970,7 @@ bool Tdebug::FindSequence(std::vector<int>& bytes, int& addr)
 
     return found;
 }
+//---------------------------------------------------------------------------
 
 bool Tdebug::FindMatch(int& addr, std::vector<int>& bytes)
 {
@@ -2035,8 +2001,8 @@ bool Tdebug::FindMatch(int& addr, std::vector<int>& bytes)
 
     return true;
 }
-
 //---------------------------------------------------------------------------
+
 void Tdebug::DoSearch()
 {
     searchsequence->CentreOn(this);
@@ -2054,6 +2020,7 @@ void Tdebug::DoSearch()
     else
         Application->MessageBox("Invalid characters","Error", MB_OK | MB_ICONERROR);
 }
+//---------------------------------------------------------------------------
 
 bool Tdebug::PerformSearch(std::vector<int>& bytes)
 {
@@ -2066,13 +2033,13 @@ bool Tdebug::PerformSearch(std::vector<int>& bytes)
     }
     return false;
 }
+//---------------------------------------------------------------------------
 
 void __fastcall Tdebug::Search1Click(TObject *Sender)
 {
     DoSearch();
 }
 //---------------------------------------------------------------------------
-
 
 void __fastcall Tdebug::AddBreak1Click(TObject *Sender)
 {
@@ -2119,35 +2086,34 @@ void __fastcall Tdebug::eMemAdrKeyPress(TObject *Sender, char &Key)
 
 void __fastcall Tdebug::DumpMemory1Click(TObject *Sender)
 {
-        int address;
+    int address;
 
-        // Get mouse pointer reference
-        TPoint cpm;
-        GetCursorPos(&cpm);
-        TPoint cp = ScreenToClient(cpm);
+    // Get mouse pointer reference
+    TPoint cpm;
+    GetCursorPos(&cpm);
+    TPoint cp = ScreenToClient(cpm);
 
-        // if got it, dump memory regarding type of memory
-        if (mSelectedAddress!=-1)
+    // if got it, dump memory regarding type of memory
+    if (mSelectedAddress!=-1)
+    {
+        address=mSelectedAddress;
+        dumpmem->CentreOn(this);
+        switch (cboMemory->ItemIndex)
         {
-                address=mSelectedAddress;
-                dumpmem->CentreOn(this);
-                switch (cboMemory->ItemIndex)
-                {
-                        case 0 : // ROM
-                                dumpmem->Dump2(address, 0xFFFF+1,0);
-                                break;
-                        case 1 : // VRAM
-                                dumpmem->Dump2(address, 0x3FFF+1,1);
-                                break;
-                        case 2 : // RAM
-                                dumpmem->Dump2(address, 0x3FF+1,2);
-                                break;
-                        case 3 : // SGM RAM
-                                dumpmem->Dump2(address, 0x7FFF+1,3);
-                                break;
-                }
+        case 0 : // ROM
+            dumpmem->Dump2(address, 0xFFFF+1,0);
+            break;
+        case 1 : // VRAM
+            dumpmem->Dump2(address, 0x3FFF+1,1);
+            break;
+        case 2 : // RAM
+            dumpmem->Dump2(address, 0x3FF+1,2);
+            break;
+        case 3 : // SGM RAM
+            dumpmem->Dump2(address, 0x7FFF+1,3);
+            break;
         }
-
+    }
 }
 //---------------------------------------------------------------------------
 

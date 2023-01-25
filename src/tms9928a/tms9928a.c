@@ -116,6 +116,11 @@ unsigned char Write9918(int iReg,unsigned char value) {
             tms.ChrGenM = ((int)(tms.VR[4]|~SCR[J].M4)<<11)|0x007FF;
 			tms.Mode=J;
         }
+            if ((iReg==1) && (tms.SR&TMS9918_STAT_VBLANK) ) {
+                if (value&TMS9918_REG1_IRQ)
+                    z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
+                else z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
+            }
         break;
     case  2: // Name Table
 	    tms.ChrTab=tms.ram+(((int)(value&SCR[tms.Mode].R2)<<10)&VRAMMask);

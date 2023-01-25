@@ -120,8 +120,8 @@ const unsigned char TMS9918A_palette[6*16*3] = {
         0,  0,  0,    0,  0,  0,  118, 81, 43,  153,118,  0, 81, 43,  0,  118, 81,  0,   81, 43,  0,  187,118, 43,
         118, 81,  0,  153,118, 43,  187,118, 43,  221,153,  0, 118, 81,  0,  153,118, 43,  221,153,  0,  255,187,  0
 };
-
 //---------------------------------------------------------------------------
+
 // Get tms vram adress
 unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
 {
@@ -129,11 +129,11 @@ unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
 
     switch (whichaddr)
     {
-        case CHRMAP:
-            result = tms.ChrTab-tms.ram;
-            break;
-        case CHRGEN:
-            result = tms.ChrGen-tms.ram;
+    case CHRMAP:
+        result = tms.ChrTab-tms.ram;
+        break;
+    case CHRGEN:
+        result = tms.ChrGen-tms.ram;
             if ((mode == 2) && (y>= 0x80) )
             {
                 switch (tms.VR[4]&3) {
@@ -147,9 +147,9 @@ unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
             {
                 result+=0x800;
             }
-            break;
-        case CHRCOL:
-            result = tms.ColTab-tms.ram;
+        break;
+    case CHRCOL:
+        result = tms.ColTab-tms.ram;
             if ((mode == 2) && (y>= 0x80) )
             {
                 switch (tms.VR[3]&0x60) {
@@ -163,16 +163,16 @@ unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
             {
                 result+=0x800;
             }
-            break;
-        case SPRATTR:
-            result = tms.SprTab-tms.ram;
-            break;
-        case SPRGEN:
-            result = tms.SprGen-tms.ram;
-            break;
-        case VRAM:
-            result = 0;
-            break;
+        break;
+    case SPRATTR:
+        result = tms.SprTab-tms.ram;
+        break;
+    case SPRGEN:
+        result = tms.SprGen-tms.ram;
+        break;
+    case VRAM:
+        result = 0;
+        break;
     }
 
     return result;
@@ -186,10 +186,10 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
 
     switch (whichaddr)
     {
-        case CHRMAP:
-            result = tms.ChrTab[addr];
-            break;
-        case CHRGEN:
+    case CHRMAP:
+        result = tms.ChrTab[addr];
+        break;
+    case CHRGEN:
             switch(mode) {
                 case 0:
                 case 1:
@@ -210,9 +210,9 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
                     }
                     break;
             }
-            result = tms.ChrGen[addr];
-            break;
-        case CHRCOL:
+        result = tms.ChrGen[addr];
+        break;
+    case CHRCOL:
             switch(mode) {
                 case 0:
                 case 1:
@@ -234,30 +234,29 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
                     }
                     break;
             }
-            result = tms.ColTab[addr];
-            break;
-        case SPRATTR:
-            result = tms.SprTab[addr];
-            break;
-        case SPRGEN:
-            result = tms.SprGen[addr];
-            break;
-        case VRAM:
-            result = tms.ram[addr];
-            break;
-/*        case SGMRAM:
-            result = cvexpram[addr];
-            break;
-        case RAM:
-            result = RAM_BASE[addr];
-            break;
-*/
-        case EEPROM:
-            result = SRAM_Memory[addr];
-            break;
-/*        case SRAM:
-            result = cartrom[0xE800+addr];
-            break;                        */
+        result = tms.ColTab[addr];
+        break;
+    case SPRATTR:
+        result = tms.SprTab[addr];
+        break;
+    case SPRGEN:
+        result = tms.SprGen[addr];
+        break;
+    case VRAM:
+        result = tms.ram[addr];
+        break;
+    case SGMRAM:
+        result = RAM_Memory[addr];
+        break;
+    case RAM:
+        result = RAM_Memory[addr];
+        break;
+    case EEPROM:
+        result = SRAM_Memory[addr];
+        break;
+    case SRAM:
+        result = RAM_Memory[0xE800+addr];
+        break;
     }
 
     return result;
@@ -267,36 +266,32 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
 // Set a value
 void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
 {
-#if 0
-        switch (whichaddr)
-        {
-                case VRAM:
-                        tms.ram[addr] = y;
-                        break;
-/*TODO        case SGMRAM:
-            cvexpram[addr] = y;
-            break;
-            */
-                case RAM:
-                        addr&=0x03FF;
-                        RAM_BASE[addr]       =RAM_BASE[0x0400+addr]=
-                        RAM_BASE[0x0800+addr]=RAM_BASE[0x0C00+addr]=
-                        RAM_BASE[0x1000+addr]=RAM_BASE[0x1400+addr]=
-                        RAM_BASE[0x1800+addr]=RAM_BASE[0x1C00+addr]=y;
-                        break;
-                case ROM:
-                        ROM_CARTRIDGE[addr]=y;
-                        break;
-                case EEPROM:
-                        SRAM_Memory[addr]=y;
-                        break;
-/*        case SRAM:
-            addr&=0x07FF;
-            cartrom[0xE800+addr]=y;
-            break;
-*/
+    switch (whichaddr)
+    {
+    case VRAM:
+        tms.ram[addr] = y;
+        break;
+    case SGMRAM:
+        RAM_Memory[addr] = y;
+        break;
+    case RAM:
+        addr&=0x03FF;
+        RAM_Memory[addr]       =RAM_Memory[0x0400+addr]=
+        RAM_Memory[0x0800+addr]=RAM_Memory[0x0C00+addr]=
+        RAM_Memory[0x1000+addr]=RAM_Memory[0x1400+addr]=
+        RAM_Memory[0x1800+addr]=RAM_Memory[0x1C00+addr]=y;
+        break;
+    case ROM:
+        RAM_Memory[addr]=y;
+        break;
+    case EEPROM:
+        SRAM_Memory[addr]=y;
+        break;
+    case SRAM:
+        addr&=0x07FF;
+        RAM_Memory[0xE800+addr]=y;
+        break;
     }
-#endif
 }
 
 //---------------------------------------------------------------------------
@@ -916,15 +911,15 @@ void coleco_writeport(int Address, int Data, int *tstates)
     case 0xA0:
         coleco_updatetms=1; // to update screen if needed
         if(!(Address&0x01)) tms9918_writedata(Data);
-        else
-        {
+        else tms9918_writectrl(Data);
+/*        {
             if (tms9918_writectrl(Data))
             {
                 z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
             }
             else
                 z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
-        }
+        }*/
         break;
     case 0x40:
         if((emul2.machine == MACHINEADAM)&&(Address==0x40)) Printer(Data);

@@ -144,11 +144,6 @@ void __fastcall Tcartprofile::ShowProfile(void)
             sprintf(text,"Header Type: MegaCart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
             Memo1->Lines->Add(text);
         }
-        else if ((emul2.romCartridge == ROMCARTRIDGEZX81) )
-        {
-            sprintf(text,"Header Type: ZX81Cart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
-            Memo1->Lines->Add(text);
-        }
         else
             Memo1->Lines->Add("Header Type: Invalid (InsertCartridge message)");
         strcpy(text,"Game Name  : ....................................");

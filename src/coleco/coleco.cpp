@@ -643,7 +643,7 @@ void coleco_reset(void)
     {
         ay8910_init(emul2.NTSC ? CLOCK_NTSC : CLOCK_PAL, 44100);
     }
-    SoundPrepSmpTab(tms.ScanLines);
+    Sound.SoundPrepSmpTab(tms.ScanLines);
     if (emul2.typebackup!=NOBACKUP)
         c24xx_reset(SRAM_Memory,emul2.typebackup==EEP24C08 ? C24XX_24C08 : emul2.typebackup==EEP24C256 ? C24XX_24C256 : 0);
     z80_reset();
@@ -1031,7 +1031,7 @@ int coleco_do_scanline(void)
             if (CurScanLine_len<=0)
             {
                 CurScanLine_len+=MaxScanLen;
-                SoundUpdate(tms.CurLine);
+                Sound.Frame(tms.CurLine); // SoundUpdate(tms.CurLine);
                 AccurateDraw(tms.CurLine);
 
 

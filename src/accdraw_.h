@@ -34,6 +34,7 @@ extern void RecalcWinSize(void);
 extern void AccurateInit(int resize);
 extern void AccurateUpdateDisplay(bool singlestep);
 extern void AccurateBGDisplay(HWND hWnd, int w, int h);
+extern void AccurateDraw(unsigned int Line);
 
 extern void RenderCalcPalette(unsigned char *palette);
 

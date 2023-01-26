@@ -750,23 +750,6 @@ void _TMS9928A_mode3(unsigned char uY) {
     RefreshBorder(uY);
 }
 
-
-// Graphics paint function
-void coleco_paint(void) {
-    int ix,iy;
-    unsigned char *pcv_display=cv_display;
-    unsigned int *LinePtr;
-
-    // Fill screen
-    for (iy=0;iy<TVH;iy++) {
-        LinePtr=cv_screen[iy];
-        for (ix=0;ix<TVW;ix++) {
-        unsigned char colour = *(pcv_display+TVW*iy+ix);
-        *(LinePtr++)=cv_pal32[colour];
-        }
-    }
-}
-
 // Call this routine on every scanline to update the screen buffer.
 unsigned char tms9918_loop(void) {
 	unsigned char bIRQ;
@@ -798,7 +781,7 @@ unsigned char tms9918_loop(void) {
 		if(tms.UCount>=100)
         {
 			// Refresh all screen
-			coleco_paint();
+			//coleco_paint();
 			// Reset update counter
 			tms.UCount-=100;
 		}

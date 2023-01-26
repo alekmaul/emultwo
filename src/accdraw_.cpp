@@ -52,6 +52,10 @@ int WinB=NoWinB;
 Graphics::TBitmap *GDIFrame;
 
 TRect rcsource, rcdest;
+BYTE *dest=NULL,*buffer=NULL;
+int RasterX,TVP;
+
+#define Plot(x,c) { *(DWORD *)(dest+(x)) = cv_pal32[(c)]; }
 
 /* DirectDraw NOT WORKING ON WINDOWS 11    */
 
@@ -219,8 +223,12 @@ void DDAccurateInit(int resize)
     DDFrameSurface.dwSize = sizeof(DDFrameSurface);
     DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
 
-    for (int i=0;i<TVH;i++)
+/*    for (int i=0;i<TVH;i++)
         cv_screen[i]=(unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4;
+*/
+    dest=buffer=(BYTE*)DDFrameSurface.lpSurface;
+    RasterX=0;
+    TVP=DDFrameSurface.lPitch;
 
     RecalcWinSize();
 }
@@ -260,7 +268,8 @@ void DDAccurateUpdateDisplay(bool singlestep)
         }
         else if(hRet != DDERR_WASSTILLDRAWING) return;
     }
-        DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
+    DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
+    dest=buffer=(BYTE*)DDFrameSurface.lpSurface;
 }
 
 int DDGetMaskInfo (DWORD Bitmask, int* lpShift)
@@ -317,11 +326,13 @@ void GDIAccurateInit(int resize)
 
     GDIFrame->Width=TVW;
     GDIFrame->Height=TVH;
-    GDIFrame->PixelFormat=pf32bit; // pf16bit;
+    GDIFrame->PixelFormat=pf16bit;//pf32bit; //
 
-    // Init Coleco screen with GDI Handle
-    for (int i=0;i<TVH;i++)
-      cv_screen[i]=(unsigned int *)GDIFrame->ScanLine[i];
+    BPP = 2; //2
+    RasterX=0;
+
+    dest=buffer=(unsigned char *) GDIFrame->ScanLine[0];
+    TVP = ((char *)GDIFrame->ScanLine[1]) - ((char *)GDIFrame->ScanLine[0]);
 
     if (resize)
     {
@@ -354,7 +365,8 @@ void GDIAccurateUpdateDisplay(bool singlestep)
                         (rcdest.Bottom-rcdest.Top),
                         GDIFrame->Canvas->Handle, 0, 0, TVW, TVH,SRCCOPY);
 
-    if (!ret) ShowMessage(SysErrorMessage(GetLastError()));
+    //if (!ret) ShowMessage(SysErrorMessage(GetLastError()));
+    dest=buffer=(unsigned char *) GDIFrame->ScanLine[0];
 }
 
 // -----------------------------------------------------------------------------
@@ -426,7 +438,7 @@ void RenderCalcPalette(unsigned char *palette)
         g=palette[i+1];
         b=palette[i+2];
 
-#if 1
+#if 0
         cv_pal32[i/3]=(DWORD) ( (r<<16) | (g<<8) | (b));
 #else
         r >>= (8-rsz);	//keep only the MSB bits of component
@@ -441,6 +453,8 @@ void RenderCalcPalette(unsigned char *palette)
 #endif
     }
 }
+// -----------------------------------------------------------------------------
+
 void AccurateInit(int resize)
 {
         if (Form1->RenderMode==RENDERDDRAW)
@@ -456,67 +470,29 @@ void AccurateUpdateDisplay(bool singlestep)
     else
         GDIAccurateUpdateDisplay(singlestep);
 }
+// -----------------------------------------------------------------------------
 
-/*
-int AccurateDraw(SCANLINE *Line)
+void AccurateDraw(unsigned int Line)
 {
-        static int FrameNo=0;
-        static int LastVSyncLen=0, Shade=0;
-        register int i,c;
+    unsigned char c;
+    unsigned char *pcv_display=cv_display+TVW*Line;
+    int i;
 
-        for(i=0; i<Line->scanline_len; i++)
+    if (Line<TVH)
+    {
+        for(i=0; i<TVW; i++)
         {
-                c=Line->scanline[i];
-
-                Plot(FrameNo*TVP, c); -> #define Plot(x,c) { *(DWORD *)(dest+RasterX+(x)) = Colours[(c)]; }
-
-        LinePtr=cv_screen[iy];
-                            unsigned char colour = *(pcv_display+TVW*iy+ix);
-            *(LinePtr++)=cv_pal32[colour];
-
-
-                RasterX += BPP;
-
-                if (RasterX > ScanLen)
-                {
-                        RasterX=0;
-                        RasterY += 1;
-                        if (RasterY>=TVH)
-                        {
-                                i=Line->scanline_len+1;
-                                Line->sync_valid=true;
-                        }
-                }
+            c = *(pcv_display+i);
+            Plot(i*BPP,c);
         }
-        if (Line->sync_len<HSYNC_MINLEN) Line->sync_valid=0;
-        if (Line->sync_valid)
-        {
-                if (RasterX>(HSYNC_TOLLERANCE*BPP))
-                {
-                        RasterX=0;
-                        RasterY+= 1;
-                        dest += TVP;
-                }
-                if (RasterY>=TVH ||  RasterY>=VSYNC_TOLLERANCEMAX
-                                      ||  (Line->sync_len>VSYNC_MINLEN
-                                          && RasterY>VSYNC_TOLLERANCEMIN))
-                {
-                        RasterX=RasterY=0;
-                        FrameNo=0;
-                        AccurateUpdateDisplay(false);
-                }
-        }
-
-        if (zx81.single_step)
-        {
-                int i;
-
-                for(i=0;i<8;i++) *(DWORD *)(dest+RasterX+i*BPP) = Colours[15];
-                AccurateUpdateDisplay(true);
-        }
-        return(0);
+        dest+=TVP;
+    }
+    if (Line==TVH)
+    {
+        RasterX=0;
+        dest=buffer;
+    }
 }
-*/
 // -----------------------------------------------------------------------------
 
 void RenderSaveScreenBMP(AnsiString filename)

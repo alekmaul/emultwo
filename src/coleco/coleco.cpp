@@ -49,7 +49,6 @@ extern void DebugUpdate(void);
 BYTE cv_display[TVW*TVH];                       // Coleco display buffer
 BYTE cv_palette[16*3];                          // Coleco display palette
 int cv_pal32[16];                               // Coleco display palette in 32 bits RGB
-unsigned int *cv_screen[TVH];                   // Coleco display buffer in 32 bits RGB
 
 BYTE ROM_Memory[MAX_CART_SIZE * 1024];          // ROM Carts up to 512K
 BYTE RAM_Memory[MAX_RAM_SIZE * 1024];           // RAM up to 128K (for the ADAM... )
@@ -1033,6 +1032,8 @@ int coleco_do_scanline(void)
             {
                 CurScanLine_len+=MaxScanLen;
                 SoundUpdate(tms.CurLine);
+                AccurateDraw(tms.CurLine);
+
 
                 // go to next line and check nmi
                 if (tms9918_loop())

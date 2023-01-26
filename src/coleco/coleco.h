@@ -44,7 +44,6 @@ enum
 extern BYTE cv_palette[16*3];                           // Coleco display palette
 extern BYTE cv_display[TVW*TVH];                        // Coleco display buffer
 extern int cv_pal32[16];                                // Coleco display palette in 32 bits RGB
-extern unsigned int *cv_screen[TVH];                    // Coleco display buffer in 32 bits RGB
 
 extern BYTE ROM_Memory[MAX_CART_SIZE * 1024];          // ROM Carts up to 512K
 extern BYTE RAM_Memory[MAX_RAM_SIZE * 1024];           // RAM up to 128K (for the ADAM... )

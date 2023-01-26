@@ -566,7 +566,7 @@ void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 
     // Update emulation
     machine.do_scanline();
-    AccurateUpdateDisplay(emul2.singlestep ? false : true);
+    AccurateUpdateDisplay(emul2.singlestep ? true : false);//false : true);
 }
 //---------------------------------------------------------------------------
 

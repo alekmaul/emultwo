@@ -201,7 +201,6 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
         emul2.stop=1;
 
         RunFrameEnable=false;
-        //AnimTimer1->Enabled=false;
 
         // Eject all disks and tapes
         for(J=0;J<MAX_DISKS;++J) EjectFDI(&Disks[J]);
@@ -231,29 +230,26 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
 
     RunFrameEnable=false;
 
-    //AnimTimer1->Enabled=false;
+    nosound = false;
 
-        nosound = false;
+    Application->OnMessage = AppMessage;
 
-        Application->OnMessage = AppMessage;
+    load_config();
 
-        load_config();
+    // Load current ini config
+    ini = new TIniFile(emul2.inipath);
+    iniFileExists = FileExists(emul2.inipath);
+    LoadSettings(ini);
+    delete ini;
 
-        // Load current ini config
-        ini = new TIniFile(emul2.inipath);
-        iniFileExists = FileExists(emul2.inipath);
-        LoadSettings(ini);
-        delete ini;
+    // Init joystick if possible
+    JoystickInit(Form1->Handle, g_hwndMain);
 
-        // Init joystick if possible
-        JoystickInit(Form1->Handle, g_hwndMain);
+    // Prepare timer for emulation
+    Timer2->Interval=1000;
 
-        // Prepare timer for emulation: 17=1/60 & 20=1/50
-        //AnimTimer1->Interval=17;
-        Timer2->Interval=1000;
-
-        // Prepare sound
-        if ( Sound.Initialise(Form1->Handle, machine.fps,0,0,0 )) MessageBox(NULL, "","Sound Error",0);
+    // Prepare sound
+    if ( Sound.Initialise(Form1->Handle, machine.fps,0,0,0 )) MessageBox(NULL, "","Sound Error",0);
 }
 
 //---------------------------------------------------------------------------
@@ -591,7 +587,6 @@ void __fastcall TForm1::Emulation1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::RunFrame()
-//void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 {
     if (emul2.stop)
     {

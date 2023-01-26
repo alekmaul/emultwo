@@ -29,7 +29,6 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 #include <Menus.hpp>
-//#include "AnimTimer.h"
 #include <ComCtrls.hpp>
 #include <ExtCtrls.hpp>
 #include <IniFiles.hpp>
@@ -125,7 +124,6 @@ __published:	// IDE-managed Components
         void __fastcall Open1Click(TObject *Sender);
         void __fastcall Emulation1Click(TObject *Sender);
         void __fastcall Donate1Click(TObject *Sender);
-//        void __fastcall AnimTimer1Timer(TObject *Sender);
         void __fastcall SoftReset1Click(TObject *Sender);
         void __fastcall HardReset1Click(TObject *Sender);
         void __fastcall FormResize(TObject *Sender);

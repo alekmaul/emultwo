@@ -61,8 +61,6 @@ void __fastcall Thardware::OKClick(TObject *Sender)
 
     emul2.NTSC = 1-cSEPalNtsc->ItemIndex;
     machine.fps = emul2.NTSC ? 60 : 50;
-    if (emul2.NTSC) Form1->AnimTimer1->Interval=17;  // 17=1/60 & 20=1/50
-    else Form1->AnimTimer1->Interval=20;
 
     emul2.palette=cboPal->ItemIndex;
 
@@ -94,7 +92,11 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     machine.nmi = NULL;
     machine.exit = NULL;
 
+    AccurateInit(false);
+
     if (ResetRequired) machine.initialise();
+
+    Sound.ReInitialise(NULL, machine.fps,0,0,0);
 
     if (Sender) Close();
 }

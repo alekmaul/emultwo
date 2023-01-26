@@ -56,11 +56,12 @@ USEFORM("src\setbreakpoint_.cpp", setbreakpoint);
 USEFORM("src\searchsequence_.cpp", searchsequence);
 USEFORM("src\dumpmem_.cpp", dumpmem);
 USEFORM("src\printviewer_.cpp", printviewer);
-USEUNIT("src\accsound_.c");
+USEUNIT("src\accsound_.cpp");
 USEFORM("src\palviewer_.cpp", paletteviewer);
 USEFORM("src\joyconf_.cpp", joyconf);
 USEFORM("src\ioviewer_.cpp", iomapviewer);
 USEFORM("src\soundviewer_.cpp", soundviewer);
+USELIB("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\libs\directsound\dsound.lib");
 //---------------------------------------------------------------------------
 #include "main_.h"
 
@@ -133,8 +134,8 @@ WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
 
                 Form1->Enabled = true;
                 Form1->GatherWindowsIfRequired();
-                Form1->AnimTimer1->Enabled=true;
                 Form1->Timer2->Enabled=true;
+                Form1->RunFrameEnable=1;
                 Application->Run();
         }
         catch (Exception &exception)

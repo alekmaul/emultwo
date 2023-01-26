@@ -29,7 +29,7 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 #include <Menus.hpp>
-#include "AnimTimer.h"
+//#include "AnimTimer.h"
 #include <ComCtrls.hpp>
 #include <ExtCtrls.hpp>
 #include <IniFiles.hpp>
@@ -112,7 +112,6 @@ __published:	// IDE-managed Components
         TMenuItem *Reportabug1;
         TMenuItem *Chatwithcommunity1;
         TMenuItem *N1;
-        TAnimTimer *AnimTimer1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall Exit1Click(TObject *Sender);
@@ -126,7 +125,7 @@ __published:	// IDE-managed Components
         void __fastcall Open1Click(TObject *Sender);
         void __fastcall Emulation1Click(TObject *Sender);
         void __fastcall Donate1Click(TObject *Sender);
-        void __fastcall AnimTimer1Timer(TObject *Sender);
+//        void __fastcall AnimTimer1Timer(TObject *Sender);
         void __fastcall SoftReset1Click(TObject *Sender);
         void __fastcall HardReset1Click(TObject *Sender);
         void __fastcall FormResize(TObject *Sender);
@@ -169,16 +168,19 @@ private:	// User declarations
         void __fastcall OnJoyUp(TMessage &msg);
 
 public:		// User declarations
-        int BaseWidth;
-        int BaseHeight;
-        int RenderMode;
         __fastcall TForm1(TComponent* Owner);
+        virtual void __fastcall WndProc(TMessage &Msg);
+
+        int BaseHeight;
+        int BaseWidth;
+        int RenderMode;
         void __fastcall AppMessage(TMsg &Msg, bool &Handled);
         void UpdateMruMenu(void);
         void LoadSettings(TIniFile *ini);
         void SaveSettings(TIniFile *ini);
         void GatherWindowsIfRequired();
         void __fastcall RunFrame();
+        int RunFrameEnable;
 
         BEGIN_MESSAGE_MAP
                 MESSAGE_HANDLER(MM_JOY1MOVE,TMessage,OnJoyMove);

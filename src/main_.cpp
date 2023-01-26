@@ -63,53 +63,69 @@ static bool iniFileExists = false;
 bool nosound;
 
 //---------------------------------------------------------------------------
+
+void __fastcall TForm1::WndProc(TMessage &Message)
+{
+    switch(Message.Msg)
+    {
+    case WM_USER:
+        if (RunFrameEnable)
+            Form1->RunFrame();
+            break;
+
+    default:
+        break;
+    }
+	TForm::WndProc(Message);
+}
+
+//---------------------------------------------------------------------------
+
 __fastcall TForm1::TForm1(TComponent* Owner)
         : TForm(Owner)
 {
-        AnsiString IniPath;
-        char path[256];
-        int i;
+    AnsiString IniPath;
+    char path[256];
+    int i;
 
-        strcpy(emul2.cwd, (FileNameGetPath(Application->ExeName)).c_str());
-        if (emul2.cwd[strlen(emul2.cwd)-1]!='\\')
+    RunFrameEnable=false;
+
+    strcpy(emul2.cwd, (FileNameGetPath(Application->ExeName)).c_str());
+    if (emul2.cwd[strlen(emul2.cwd)-1]!='\\')
+    {
+        emul2.cwd[strlen(emul2.cwd)-1]='\\';
+        emul2.cwd[strlen(emul2.cwd)]='\0';
+    }
+
+    IniPath=ChangeFileExt(Application->ExeName, ".ini" );
+    strcpy(emul2.inipath, IniPath.c_str());
+    IniPath=FileNameGetPath(Application->ExeName);
+    strcpy(emul2.configpath, IniPath.c_str());
+    strcpy(emul2.mydocs, emul2.cwd);
+
+    for(i=0; CommandLine[i]!=NULL; i++)
+    {
+        if (FileNameGetExt(CommandLine[i]) == ".INI")
         {
-            emul2.cwd[strlen(emul2.cwd)-1]='\\';
-            emul2.cwd[strlen(emul2.cwd)]='\0';
+            IniPath=CommandLine[i];
+            if (IniPath.Pos("\\")==0)
+                IniPath=emul2.configpath + IniPath;
+            strcpy(emul2.inipath, IniPath.c_str());
         }
+    }
 
-        IniPath=ChangeFileExt(Application->ExeName, ".ini" );
-        strcpy(emul2.inipath, IniPath.c_str());
-        IniPath=FileNameGetPath(Application->ExeName);
-        strcpy(emul2.configpath, IniPath.c_str());
-        strcpy(emul2.mydocs, emul2.cwd);
+    MruList = new TStringList;
 
-        for(i=0; CommandLine[i]!=NULL; i++)
-        {
-            if (FileNameGetExt(CommandLine[i]) == ".INI")
-            {
-                IniPath=CommandLine[i];
-                if (IniPath.Pos("\\")==0)
-                    IniPath=emul2.configpath + IniPath;
-                strcpy(emul2.inipath, IniPath.c_str());
-            }
-        }
-
-        MruList = new TStringList;
-
-        RenderMode=RENDERGDI;
-//    Application->OnDeactivate=FormDeactivate;
-//    BuildLine=&Video[0];
-//    DisplayLine=&Video[1];
-
+    RenderMode=RENDERGDI;
 }
 //---------------------------------------------------------------------------
 
 void TForm1::GatherWindowsIfRequired()
 {
-        if (!iniFileExists)
-        {
-            Form1->GatherWindows1Click(this);
-        }
+    if (!iniFileExists)
+    {
+        Form1->GatherWindows1Click(this);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -161,16 +177,16 @@ void __fastcall TForm1::About1Click(TObject *Sender)
     int stopped=emul2.stop;
 
     emul2.stop=1;
-    SoundSuspend();
+    Sound.SoundSuspend();
     about->ShowModal();
-    SoundResume();
+    Sound.SoundResume();
     emul2.stop=stopped;
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::Donate1Click(TObject *Sender)
 {
-        ShellExecute(NULL, "open", "https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=Y5USKF23DQVLC", "", NULL, SW_RESTORE);
+    ShellExecute(NULL, "open", "https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=Y5USKF23DQVLC", "", NULL, SW_RESTORE);
 }
 
 //---------------------------------------------------------------------------
@@ -184,20 +200,23 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
         if (machine.exit) machine.exit();
         emul2.stop=1;
 
-        AnimTimer1->Enabled=false;
+        RunFrameEnable=false;
+        //AnimTimer1->Enabled=false;
 
         // Eject all disks and tapes
         for(J=0;J<MAX_DISKS;++J) EjectFDI(&Disks[J]);
-        for(J=0;J<MAX_TAPES;++J) EjectFDI(&Tapes[J]); 
+        for(J=0;J<MAX_TAPES;++J) EjectFDI(&Tapes[J]);
+
+        // Release sound
+        if (!nosound) Sound.End();
 
         // Save current settings
         ini = new TIniFile(emul2.inipath);
         SaveSettings(ini);
         delete ini;
 
-        // Release video, sound and input
+        // Release video and input
         RenderEnd();
-        //SoundEnd();
         JoystickEnd();
 
         delete MruList;
@@ -207,10 +226,12 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
-        TIniFile *ini;
-        char soundfile[256];
+    TIniFile *ini;
+    char soundfile[256];
 
-        AnimTimer1->Enabled=false;
+    RunFrameEnable=false;
+
+    //AnimTimer1->Enabled=false;
 
         nosound = false;
 
@@ -228,8 +249,11 @@ void __fastcall TForm1::FormCreate(TObject *Sender)
         JoystickInit(Form1->Handle, g_hwndMain);
 
         // Prepare timer for emulation: 17=1/60 & 20=1/50
-        AnimTimer1->Interval=17;  
+        //AnimTimer1->Interval=17;
         Timer2->Interval=1000;
+
+        // Prepare sound
+        if ( Sound.Initialise(Form1->Handle, machine.fps,0,0,0 )) MessageBox(NULL, "","Sound Error",0);
 }
 
 //---------------------------------------------------------------------------
@@ -307,6 +331,9 @@ void TForm1::LoadSettings(TIniFile *ini)
 
         KeysRead(ini);
 
+        Sound.ReInitialise(0, 0, 8, 44100, 1);
+
+/*
         if (!SoundInit(44100,60))
         {
             Application->MessageBox("Count not initialise Direct\nPlease ensure DirectX 5 or greater is installed.",
@@ -315,6 +342,7 @@ void TForm1::LoadSettings(TIniFile *ini)
             SoundEnd();
             nosound = true;
         }
+*/
 
         // Most recent files management
         MruList->Add(ini->ReadString("RecentFiles","MRU1",""));
@@ -399,10 +427,22 @@ void TForm1::UpdateStatusBar(void)
 
 void __fastcall TForm1::Timer2Timer(TObject *Sender)
 {
-        static int startup=0;
-        AnsiString Filename, Ext;
-        int i=0;
-        int targetfps;
+    static int startup=0;
+    AnsiString Filename, Ext;
+    int i=0;
+    int targetfps;
+
+    static HWND OldhWnd=NULL;
+
+    if (Form1->Handle != OldhWnd)
+    {
+        OldhWnd=Form1->Handle;
+        Sound.ReInitialise(OldhWnd, 0,0,0,0);
+
+        RenderEnd();
+        RenderInit();
+        AccurateInit(true);
+    }
 
         // Manage startup for size & load command line rom
         if (startup<=2) startup++;
@@ -541,16 +581,17 @@ void __fastcall TForm1::Emulation1Click(TObject *Sender)
     int stopped=emul2.stop;
 
     emul2.stop=1;
-    SoundSuspend();
+    Sound.SoundSuspend();
     hardware->ShowModal();
-    SoundResume();
+    Sound.SoundResume();
     emul2.stop=stopped;
 
     // Refresh StatusBar if needed
     UpdateStatusBar();
 }
 //---------------------------------------------------------------------------
-void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
+void __fastcall TForm1::RunFrame()
+//void __fastcall TForm1::AnimTimer1Timer(TObject *Sender)
 {
     if (emul2.stop)
     {
@@ -650,7 +691,7 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 {
         int stopped=emul2.stop;
 
-        SoundSuspend();
+        Sound.SoundSuspend();
         try
         {
             emul2.stop=1;
@@ -673,7 +714,7 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
             // occured, but also quits the message handler
             Application->ShowException(&exception);
         }
-        SoundResume();
+        Sound.SoundResume();
         emul2.stop=stopped;
 }
 
@@ -681,17 +722,17 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 
 void __fastcall TForm1::Cartprofile1Click(TObject *Sender)
 {
-        Cartprofile1->Checked = !Cartprofile1->Checked;
-        if (Cartprofile1->Checked) cartprofile->Show();
-        else cartprofile->Close();
+    Cartprofile1->Checked = !Cartprofile1->Checked;
+    if (Cartprofile1->Checked) cartprofile->Show();
+    else cartprofile->Close();
 }
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::TilemapViewer1Click(TObject *Sender)
 {
-        TilemapViewer1->Checked = !TilemapViewer1->Checked;
-        if (TilemapViewer1->Checked) nametabviewer->Show();
-        else nametabviewer->Close();
+    TilemapViewer1->Checked = !TilemapViewer1->Checked;
+    if (TilemapViewer1->Checked) nametabviewer->Show();
+    else nametabviewer->Close();
 }
 //---------------------------------------------------------------------------
 
@@ -881,7 +922,7 @@ void __fastcall TForm1::Open1Click(TObject *Sender)
         AnsiString Extension, Filename;
         int stopped=emul2.stop;
 
-        SoundSuspend();
+        Sound.SoundSuspend();
         try
         {
             emul2.stop=1;
@@ -903,7 +944,7 @@ void __fastcall TForm1::Open1Click(TObject *Sender)
             Application->ShowException(&exception);
         }
         emul2.stop=stopped;
-        SoundResume();
+        Sound.SoundResume();
 }
 
 //---------------------------------------------------------------------------
@@ -914,7 +955,7 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
         int stopped;
         TMenuItem *m;
 
-        SoundSuspend();
+        Sound.SoundSuspend();
         try
         {
             stopped=emul2.stop;
@@ -957,7 +998,7 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
             Application->ShowException(&exception);
         }
 
-        SoundResume();
+        Sound.SoundResume();
 }
 
 //---------------------------------------------------------------------------
@@ -966,7 +1007,7 @@ void __fastcall TForm1::LoadState1Click(TObject *Sender)
 {
         int stopped=emul2.stop;
 
-        SoundSuspend();
+        Sound.SoundSuspend();
         try
         {
             emul2.stop=1;
@@ -987,7 +1028,7 @@ void __fastcall TForm1::LoadState1Click(TObject *Sender)
             Application->ShowException(&exception);
         }
         emul2.stop=stopped;
-        SoundResume();
+        Sound.SoundResume();
 }
 //---------------------------------------------------------------------------
 
@@ -995,7 +1036,7 @@ void __fastcall TForm1::SaveState1Click(TObject *Sender)
 {
         int stopped=emul2.stop;
 
-        SoundSuspend();
+        Sound.SoundSuspend();
         try
         {
             emul2.stop=1;
@@ -1016,7 +1057,7 @@ void __fastcall TForm1::SaveState1Click(TObject *Sender)
             Application->ShowException(&exception);
         }
         emul2.stop=stopped;
-        SoundResume();
+        Sound.SoundResume();
 }
 //---------------------------------------------------------------------------
 
@@ -1094,10 +1135,10 @@ void __fastcall TForm1::JoystickEditor1Click(TObject *Sender)
     int stopped=emul2.stop;
 
     emul2.stop=1;
-    SoundSuspend();
+    Sound.SoundSuspend();
     joyconf->ShowModal();
-    SoundResume();
     emul2.stop=stopped;
+    Sound.SoundResume();
 }
 
 //---------------------------------------------------------------------------

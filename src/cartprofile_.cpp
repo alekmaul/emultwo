@@ -124,7 +124,7 @@ void __fastcall Tcartprofile::FormShow(TObject *Sender)
 
 void __fastcall Tcartprofile::ShowProfile(void)
 {
-    char text[256],tVal[16];
+    char text[384],tVal[16];
     int ix,iy,tlen;
     unsigned char bval;
 	char str[128];
@@ -134,83 +134,86 @@ void __fastcall Tcartprofile::ShowProfile(void)
     Memo1->Lines->Add("Cartridge Identifier");
 
     // Check regarding Coleco or other machines
-        // Hearder type & name
-        if ((coleco_getbyte(0x8000)==0xAA) && (coleco_getbyte(0x8001)==0x55))
-            Memo1->Lines->Add("Header Type: Game (0xAA55)");
-        else if ((coleco_getbyte(0x8000)==0x55) && (coleco_getbyte(0x8001)==0xAA) )
-            Memo1->Lines->Add("Header Type: Test (0x55AA)");
-        else if ((emul2.romCartridge == ROMCARTRIDGEMEGA) )
+    sprintf(text,"Name: %s",emul2.currentrom);
+    Memo1->Lines->Add(text);
+
+    // Hearder type & name
+    if ((coleco_getbyte(0x8000)==0xAA) && (coleco_getbyte(0x8001)==0x55))
+        Memo1->Lines->Add("Header Type: Game (0xAA55)");
+    else if ((coleco_getbyte(0x8000)==0x55) && (coleco_getbyte(0x8001)==0xAA) )
+        Memo1->Lines->Add("Header Type: Test (0x55AA)");
+    else if ((emul2.romCartridge == ROMCARTRIDGEMEGA) )
+    {
+        sprintf(text,"Header Type: MegaCart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
+        Memo1->Lines->Add(text);
+    }
+    else
+        Memo1->Lines->Add("Header Type: Invalid (InsertCartridge message)");
+    strcpy(text,"Game Name  : ....................................");
+    for (ix=0;ix<36;ix++)
+    {
+        bval=coleco_getbyte(0x8024+ix);
+        if ( (bval>=32) && (bval<=127) ) // between 32..127
+            text[ix+13]=bval;
+    }
+    Memo1->Lines->Add(text);
+    if (emul2.typebackup==EEP24C08) Memo1->Lines->Add("256-byte EEPROM");
+    else if (emul2.typebackup==EEP24C256) Memo1->Lines->Add("32kB EEPROM");
+    else if (emul2.typebackup==EEPSRAM) Memo1->Lines->Add("2kB SRAM");
+
+    // Vector entries
+    Memo1->Lines->Add(" ");
+    Memo1->Lines->Add("Pointers");
+    sprintf(text,"Sprite Table  : %04Xh",coleco_getbyte(0x8002)+coleco_getbyte(0x8003)*256);
+    Memo1->Lines->Add(text);
+    sprintf(text,"Sprite Order  : %04Xh",coleco_getbyte(0x8004)+coleco_getbyte(0x8005)*256);
+    Memo1->Lines->Add(text);
+    sprintf(text,"Work Buffer   : %04Xh",coleco_getbyte(0x8006)+coleco_getbyte(0x8007)*256);
+    Memo1->Lines->Add(text);
+    sprintf(text,"Controller Map: %04Xh",coleco_getbyte(0x8008)+coleco_getbyte(0x8009)*256);
+    Memo1->Lines->Add(text);
+    sprintf(text,"Game Start    : %04Xh",coleco_getbyte(0x800A)+coleco_getbyte(0x800B)*256);
+    Memo1->Lines->Add(text);
+
+    Memo1->Lines->Add(" ");
+    Memo1->Lines->Add("Restart Vectors");
+    for (iy=0x800C;iy<0x801D;iy+=3) {
+        sprintf(text,"Rst%02XH      : %04Xh",(iy-0x800C)*8+8,coleco_getbyte(iy)+coleco_getbyte(iy+1)*256);
+        Memo1->Lines->Add(text);
+    }
+
+    Memo1->Lines->Add(" ");
+    Memo1->Lines->Add("Interrupt Vectors");
+    sprintf(text,"IRQ Vertor  : %04Xh",coleco_getbyte(0x801E)+coleco_getbyte(0x801F)*256);
+    Memo1->Lines->Add(text);
+    sprintf(text,"NMI Vertor  : %04Xh",coleco_getbyte(0x8021)+coleco_getbyte(0x8022)*256);
+    Memo1->Lines->Add(text);
+
+    // Do a dump of header
+    Memo1->Lines->Add(" ");
+    Memo1->Lines->Add("Header Dump");
+    for (iy=0x8000;iy<0x8040;iy+=8)
+    {
+        sprintf(text,"%04X: ",iy);
+        for (ix=0;ix<8;ix++)
         {
-            sprintf(text,"Header Type: MegaCart (%04X)",coleco_getbyte(0x8000)+coleco_getbyte(0x8001)*256);
-            Memo1->Lines->Add(text);
+            sprintf(tVal,"%02X ",coleco_getbyte(iy+ix));
+            strcat(text,tVal);
         }
-        else
-            Memo1->Lines->Add("Header Type: Invalid (InsertCartridge message)");
-        strcpy(text,"Game Name  : ....................................");
-        for (ix=0;ix<36;ix++)
+        for (ix=0;ix<8;ix++)
         {
-            bval=coleco_getbyte(0x8024+ix);
+            bval=coleco_getbyte(iy+ix);
             if ( (bval>=32) && (bval<=127) ) // between 32..127
-                text[ix+13]=bval;
-        }
-        Memo1->Lines->Add(text);
-        if (emul2.typebackup==EEP24C08) Memo1->Lines->Add("256-byte EEPROM");
-        else if (emul2.typebackup==EEP24C256) Memo1->Lines->Add("32kB EEPROM");
-        else if (emul2.typebackup==EEPSRAM) Memo1->Lines->Add("2kB SRAM");
-
-        // Vector entries
-        Memo1->Lines->Add(" ");
-        Memo1->Lines->Add("Pointers");
-        sprintf(text,"Sprite Table  : %04Xh",coleco_getbyte(0x8002)+coleco_getbyte(0x8003)*256);
-        Memo1->Lines->Add(text);
-        sprintf(text,"Sprite Order  : %04Xh",coleco_getbyte(0x8004)+coleco_getbyte(0x8005)*256);
-        Memo1->Lines->Add(text);
-        sprintf(text,"Work Buffer   : %04Xh",coleco_getbyte(0x8006)+coleco_getbyte(0x8007)*256);
-        Memo1->Lines->Add(text);
-        sprintf(text,"Controller Map: %04Xh",coleco_getbyte(0x8008)+coleco_getbyte(0x8009)*256);
-        Memo1->Lines->Add(text);
-        sprintf(text,"Game Start    : %04Xh",coleco_getbyte(0x800A)+coleco_getbyte(0x800B)*256);
-        Memo1->Lines->Add(text);
-
-        Memo1->Lines->Add(" ");
-        Memo1->Lines->Add("Restart Vectors");
-        for (iy=0x800C;iy<0x801D;iy+=3) {
-            sprintf(text,"Rst%02XH      : %04Xh",(iy-0x800C)*8+8,coleco_getbyte(iy)+coleco_getbyte(iy+1)*256);
-            Memo1->Lines->Add(text);
-        }
-
-        Memo1->Lines->Add(" ");
-        Memo1->Lines->Add("Interrupt Vectors");
-        sprintf(text,"IRQ Vertor  : %04Xh",coleco_getbyte(0x801E)+coleco_getbyte(0x801F)*256);
-        Memo1->Lines->Add(text);
-        sprintf(text,"NMI Vertor  : %04Xh",coleco_getbyte(0x8021)+coleco_getbyte(0x8022)*256);
-        Memo1->Lines->Add(text);
-
-        // Do a dump of header
-        Memo1->Lines->Add(" ");
-        Memo1->Lines->Add("Header Dump");
-        for (iy=0x8000;iy<0x8040;iy+=8)
-        {
-            sprintf(text,"%04X: ",iy);
-            for (ix=0;ix<8;ix++)
             {
-                sprintf(tVal,"%02X ",coleco_getbyte(iy+ix));
-                strcat(text,tVal);
+                tlen=strlen(text);
+                text[tlen]=bval;
+                text[tlen+1]=0;
             }
-            for (ix=0;ix<8;ix++)
-            {
-                bval=coleco_getbyte(iy+ix);
-                if ( (bval>=32) && (bval<=127) ) // between 32..127
-                {
-                    tlen=strlen(text);
-                    text[tlen]=bval;
-                    text[tlen+1]=0;
-                }
-                else
-                    strcat(text,".");
-            }
-            Memo1->Lines->Add(text);
+            else
+                strcat(text,".");
         }
+        Memo1->Lines->Add(text);
+    }
 }
 
 //---------------------------------------------------------------------------

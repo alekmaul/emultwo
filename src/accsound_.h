@@ -25,23 +25,93 @@
 #ifndef accsound_H
 #define accsound_H
 
-//---------------------------------------------------------------------------
-#ifdef __cplusplus
-extern "C" int SoundPrepSmpTab(int linesperframe);
-extern "C" int SoundInit(int freq, int speed);
-extern "C" void SoundEnd(void);
-extern "C" void SoundUpdate(unsigned int lineupdate );
-extern "C" void SoundSuspend(void);
-extern "C" void SoundResume(void);
-#else
-extern int SoundPrepSmpTab(int linesperframe);
-extern int SoundInit(int freq, int speed);
-extern void SoundEnd(void);
-extern void SoundUpdate(unsigned int lineupdate );
-extern void SoundSuspend(void);
-extern void SoundResume(void);
+#include <windows.h>
+#include <mmreg.h>
+#include <dsound.h>
 
-#endif
+typedef enum {
+    DX_SOUND_DISABLED,
+    DX_SOUND_ENABLED,
+    DX_SOUND_RUNNING
+} CDstate;
+
+class CDSnd
+{
+public:
+    CDSnd();
+	int Initialise(HWND hWnd, int FPS, int BitsPerSample, int SampleRate, int Channels);
+    int Play();
+	int End();
+
+    void Suspend(void);
+    void Resume(void);
+
+    void Frame(unsigned char *data, unsigned int len);
+private:
+    void ThreadFN(void);
+    static DWORD WINAPI CallThread(LPVOID Param);
+
+    HWND m_hWnd;
+    int m_BitsPerSample;
+    int m_SampleRate;
+    int m_Channels;
+    int m_FPS;
+
+    DWORD m_ThreadID;
+    HANDLE m_ThreadHandle;
+
+    CDstate m_state;
+
+    // DirectSound
+	WAVEFORMATEX m_WFE;
+	LPDIRECTSOUND m_lpDS;
+	LPDIRECTSOUNDBUFFER m_lpDSB;
+	HANDLE m_pHEvent[2];
+    DWORD m_DXBufLen;
+
+	// Audio Buffer
+	// LPGETAUDIOSAMPLES_PROGRESS m_lpGETAUDIOSAMPLES;
+	LPBYTE m_lpAudioQueue;
+    DWORD m_QueueLen;
+    DWORD m_QueueSize;
+    DWORD m_QueueStart;
+};
+
+class CSound
+{
+public:
+    int Initialise(HWND hWnd, int FPS, int BitsPerSample, int SampleRate, int Channels);
+    void ReInitialise(HWND hWnd, int FPS, int BitsPerSample, int SampleRate, int Channels);
+    int SoundPrepSmpTab(int linesperframe);
+
+	void End(void);
+	void Frame(unsigned int lineupdate );
+
+    void SoundSuspend(void);
+    void SoundResume(void);
+
+    int VolumeLevel[4];
+private:
+    CDSnd DXSound;
+
+    HWND m_hWnd;
+    int m_BitsPerSample;
+    int m_SampleRate;
+    int m_Channels;
+    int m_FPS;
+
+    int FrameSize;
+    int FramesPerSecond;
+
+    int smptab_len;
+
+    unsigned char *Buffer;
+    short *Buffersn, *Bufferay;
+    int *smptab;
+    int OldPos,FillPos,OldVal,OldValOrig;
+};
+
+extern CSound Sound;
 
 #endif
 

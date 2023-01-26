@@ -1127,10 +1127,10 @@ void __fastcall Tdebug::RunStop1Click(TObject *Sender)
     if(!emul2.stop)
     {
         ClearChanges();
-        SoundResume();
+        Sound.SoundResume();
     }
     else {
-        SoundSuspend();
+        Sound.SoundSuspend();
     }
     UpdateVals();
     StepOutRequested = 0;

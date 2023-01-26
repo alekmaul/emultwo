@@ -53,7 +53,7 @@ Graphics::TBitmap *GDIFrame;
 
 TRect rcsource, rcdest;
 BYTE *dest=NULL,*buffer=NULL;
-int RasterX,TVP;
+int TVP;
 
 #define Plot(x,c) { *(DWORD *)(dest+(x)) = cv_pal32[(c)]; }
 
@@ -68,7 +68,7 @@ DDSURFACEDESC2       DDFrameSurface;
 LPDIRECTDRAWCLIPPER pcClipper=NULL;          // Clipper for windowed mode
 HWND                hWnd;                     // Handle of window
 
-int BPP,Paletteised;
+int BPP;
 
 // -----------------------------------------------------------------------------
 // DirectDraw Functions
@@ -187,7 +187,6 @@ void DDAccurateInit(int resize)
     DDpf.dwSize = sizeof(DDpf);
     m_pddsFrontBuffer->GetPixelFormat(&DDpf);
     BPP = DDpf.dwRGBBitCount/8;
-    Paletteised = (BPP==1) ? true:false;
 
     WinL=NoWinL; WinR=NoWinR; WinT=NoWinT; WinB=NoWinB;
     if (emul2.NTSC) { WinT-=24; WinB-=24; }
@@ -223,13 +222,10 @@ void DDAccurateInit(int resize)
     DDFrameSurface.dwSize = sizeof(DDFrameSurface);
     DDFrame->Lock(NULL, &DDFrameSurface, DDLOCK_WAIT |  DDLOCK_NOSYSLOCK, NULL);
 
-/*    for (int i=0;i<TVH;i++)
-        cv_screen[i]=(unsigned int *) DDFrameSurface.lpSurface + (DDFrameSurface.lPitch * i)/4;
-*/
     dest=buffer=(BYTE*)DDFrameSurface.lpSurface;
-    RasterX=0;
     TVP=DDFrameSurface.lPitch;
 
+    RenderCalcPalette(cv_palette);
     RecalcWinSize();
 }
 
@@ -328,8 +324,7 @@ void GDIAccurateInit(int resize)
     GDIFrame->Height=TVH;
     GDIFrame->PixelFormat=pf16bit;//pf32bit; //
 
-    BPP = 2; //2
-    RasterX=0;
+    BPP = 2; //4
 
     dest=buffer=(unsigned char *) GDIFrame->ScanLine[0];
     TVP = ((char *)GDIFrame->ScanLine[1]) - ((char *)GDIFrame->ScanLine[0]);
@@ -346,6 +341,8 @@ void GDIAccurateInit(int resize)
         Form1->ClientWidth = OrigW;
         Form1->ClientHeight = OrigH;
     }
+
+    RenderCalcPalette(cv_palette);
     RecalcWinSize();
 }
 
@@ -489,7 +486,6 @@ void AccurateDraw(unsigned int Line)
     }
     if (Line==TVH)
     {
-        RasterX=0;
         dest=buffer;
     }
 }

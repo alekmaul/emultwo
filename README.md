@@ -3,7 +3,7 @@ E.mul T.wo - A Colecovision and ADAM Emulator for Windows
 The aim of this emulator is to help developers to make Colecovision games. 
 The aim is not to add a great emulator to play colecovision games, but to help me and others debugging our code.
 
-If you find a bug or want new features, you can help me [openning an issue](https://github.com/alekmaul/emultwo/issues).
+If you find a bug or want new features, you can help me [opening an issue](https://github.com/alekmaul/emultwo/issues).
 
 This is an open source project.
 

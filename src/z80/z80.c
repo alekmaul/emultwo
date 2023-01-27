@@ -3389,7 +3389,7 @@ void z80_reset(void)
     WZ=PCD;
 
     z80_reset_cycle_count();
-    z80_set_irq_line (INPUT_LINE_NMI, CLEAR_LINE);
+    z80_set_irq_line (0, CLEAR_LINE);
 }
 
 /*
@@ -3419,10 +3419,10 @@ int z80_checknmi(void) {
         PUSH( pc );
         PCD = 0x0066;
         WZ=PCD;
-        z80_ICount -= 11;
+        z80_ICount = 11;
         Z80.nmi_pending = 0;
     }
-    return -z80_ICount;
+    return z80_ICount;
 }
 
 int z80_do_opcode(void) {

@@ -695,8 +695,9 @@ void coleco_initialise(void)
     }
     else
     {
-        // Load COLECO.ROM ColecoVision BIOS
+        // Load COLECO.ROM ColecoVision BIOS in RAM and BIOS (for SGM swapping low 8k)
         memcpy(RAM_Memory,colecobios_rom,0x2000);
+        memcpy(BIOS_Memory,colecobios_rom,0x2000);
 
         // Hack 50/60 Bios & NO delay Bios
         RAM_Memory[0x0069]=emul2.hackbiospal ? 50 : 60;
@@ -910,21 +911,22 @@ void coleco_writeport(int Address, int Data, int *tstates)
     case 0xA0:
         coleco_updatetms=1; // to update screen if needed
         if(!(Address&0x01)) tms9918_writedata(Data);
-        else tms9918_writectrl(Data);
-/*        {
+        else {
+            //tms9918_writectrl(Data);
             if (tms9918_writectrl(Data))
             {
                 z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
             }
             else
                 z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
-        }*/
+
+        }
         break;
     case 0x40:
         if((emul2.machine == MACHINEADAM)&&(Address==0x40)) Printer(Data);
         else if(emul2.SGM)
         {
-            if(Address==0x53) { coleco_port53 = Data; coleco_setupsgm(); } 
+            if(Address==0x53) { coleco_port53 = Data; coleco_setupsgm(); }
             else if (Address==0x50) ay8910_write(0,Data); // Control data
             else if (Address==0x51) ay8910_write(1,Data); // Write data
         }
@@ -1005,7 +1007,8 @@ int coleco_do_scanline(void)
         {
 
             // Check nmi before each line
-            z80_checknmi();
+            ts=z80_checknmi();
+            CurScanLine_len -= ts;
 
             // For each line
             do
@@ -1031,16 +1034,19 @@ int coleco_do_scanline(void)
             if (CurScanLine_len<=0)
             {
                 CurScanLine_len+=MaxScanLen;
-                Sound.Frame(tms.CurLine); // SoundUpdate(tms.CurLine);
-                AccurateDraw(tms.CurLine);
 
+                // Update sound and screen
+                Sound.Frame(tms.CurLine);
+                AccurateDraw(tms.CurLine);
 
                 // go to next line and check nmi
                 if (tms9918_loop())
+                {
                     z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
+                }
 
                 // end of screen, update sound and go outside
-                if (tms.CurLine==TMS9918_END_LINE /*tms.ScanLines-1*/)
+                if (tms.CurLine==TMS9918_END_LINE)
                 {
                     //SoundUpdate(tms.ScanLines-1);
                     break;

@@ -34,7 +34,6 @@ Not yet !<a href=""><img src="https://img.shields.io/badge/release-windows32-gre
 - F18A support.
 - DirectX support for drawing, currently not working.
 - Super Action Controller, Spinner and Roller Controller (Trackball) mapping.
-- Better sound support.
 
 ## Credits
 

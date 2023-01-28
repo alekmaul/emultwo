@@ -322,9 +322,9 @@ void GDIAccurateInit(int resize)
 
     GDIFrame->Width=TVW;
     GDIFrame->Height=TVH;
-    GDIFrame->PixelFormat=pf16bit;//pf32bit; //
+    GDIFrame->PixelFormat=pf32bit; //pf16bit;//
 
-    BPP = 2; //4
+    BPP = 4; //2; //
 
     dest=buffer=(unsigned char *) GDIFrame->ScanLine[0];
     TVP = ((char *)GDIFrame->ScanLine[1]) - ((char *)GDIFrame->ScanLine[0]);
@@ -421,11 +421,11 @@ void RenderCalcPalette(unsigned char *palette)
     }
     else
     {
-        rsz=5;
-        gsz=6;
-        bsz=5;
-        rsh=11;
-        gsh=5;
+        rsz=8; //5;
+        gsz=8; // 6;
+        bsz=8; // 5;
+        rsh=16; //11;
+        gsh=8; // 5;
         bsh=0;
     }
 
@@ -435,9 +435,6 @@ void RenderCalcPalette(unsigned char *palette)
         g=palette[i+1];
         b=palette[i+2];
 
-#if 0
-        cv_pal32[i/3]=(DWORD) ( (r<<16) | (g<<8) | (b));
-#else
         r >>= (8-rsz);	//keep only the MSB bits of component
         g >>= (8-gsz);
         b >>= (8-bsz);
@@ -447,7 +444,6 @@ void RenderCalcPalette(unsigned char *palette)
 
         CompiledPixel = (DWORD)(r | g | b);
         cv_pal32[i/3]=CompiledPixel;
-#endif
     }
 }
 // -----------------------------------------------------------------------------

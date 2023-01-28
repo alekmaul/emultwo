@@ -13,7 +13,10 @@ _**Your Vision Is Our Vision...  COLECOVISION**_
 
 ## Downloads
 
-<a href="https://github.com/alekmaul/emultwo/releases/download/V1.0.0/emultwo_win32_1_0_0.zip</a>"><img src="https://img.shields.io/badge/release-windows32-green?style=flat&logo=github" alt="E.mul T.wo Windows32 Release">![Downloads](https://img.shields.io/github/downloads/alekmaul/emultwo/total?label=Total%20Downloads)
+[![Current Release](https://img.shields.io/github/v/release/alekmaul/emultwo?label=Current%20Release)](https://github.com/alekmaul/emultwo/releases/latest)
+![Downloads]([https://img.shields.io/github/downloads/alekmaul/emultwo//total?label=Total%20Downloads](https://img.shields.io/github/downloads/alekmaul/emultwo/total?label=Total%20Downloads))
+
+<a href="https://github.com/alekmaul/emultwo/releases/download/V1.0.0/emultwo_win32_1_0_0.zip</a>"><img src="https://img.shields.io/badge/release-windows32-green?style=flat&logo=github" alt="E.mul T.wo Windows32 Release"> ![Downloads](https://img.shields.io/github/downloads/alekmaul/emultwo/total?label=Total%20Downloads)
 
 ## Features
 

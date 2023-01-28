@@ -25,6 +25,8 @@ Not yet !<a href=""><img src="https://img.shields.io/badge/release-windows32-gre
 - Save/Load Game State.
 - Lots of viewers to track bugs in your developments.
 
+<img width="400" alt="Featrures" src="assets/screenshot.png"><img width="400">
+
 ## Features
 
 - You need C++Builder 5.0 to build the project
@@ -32,7 +34,6 @@ Not yet !<a href=""><img src="https://img.shields.io/badge/release-windows32-gre
 ## Todo
 
 - F18A support.
-- DirectX support for drawing, currently not working.
 - Super Action Controller, Spinner and Roller Controller (Trackball) mapping.
 
 ## Credits

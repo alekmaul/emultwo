@@ -61,34 +61,38 @@
 
 typedef struct
 {
-        CFGBYTE emuid, major,minor,testver;
-        CFGBYTE machine;
-        CFGBYTE NTSC;
-        CFGBYTE SGM;
-        CFGBYTE F18A;
-        CFGBYTE singlestep;                         // (1) if debug mode on and doing single step
-        CFGBYTE startdebug;                         // (1) if start debug mode on 
-        CFGBYTE stop;                               // to stop (1) or not (0) emulation
-        CFGBYTE vsyncsound;
-        CFGBYTE palette;
-        CFGBYTE hackbiospal;
-        CFGBYTE biosnodelay;
+    CFGBYTE emuid, major,minor,testver;
+    CFGBYTE machine;
+    CFGBYTE NTSC;
+    CFGBYTE SGM;
+    CFGBYTE F18A;
+    CFGBYTE steerwheel;
+    CFGBYTE rollercontrol;
+    CFGBYTE superaction;
 
-        CFGBYTE romCartridge;
-        CFGBYTE typebackup;
+    CFGBYTE singlestep;                         // (1) if debug mode on and doing single step
+    CFGBYTE startdebug;                         // (1) if start debug mode on
+    CFGBYTE stop;                               // to stop (1) or not (0) emulation
 
-        int cardcrc;
-        int cardsize;
-        
-        int frameskip;
+    CFGBYTE palette;
+    CFGBYTE hackbiospal;
+    CFGBYTE biosnodelay;
 
-        char cwd[256];
-        char inipath[256];
-        char configpath[256];
-        char mydocs[256];
-        char machinename[256];
+    CFGBYTE romCartridge;
+    CFGBYTE typebackup;
 
-        char currentrom[256];
+    int cardcrc;
+    int cardsize;
+
+    int frameskip;
+
+    char cwd[256];
+    char inipath[256];
+    char configpath[256];
+    char mydocs[256];
+    char machinename[256];
+
+    char currentrom[256];
 } EMUL2;
 
 typedef struct

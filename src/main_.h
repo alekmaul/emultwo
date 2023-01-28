@@ -23,6 +23,10 @@
 
 #ifndef main_H
 #define main_H
+
+#include <dinput.h>
+#include <mmsystem.h>
+
 //---------------------------------------------------------------------------
 #include <Classes.hpp>
 #include <Controls.hpp>

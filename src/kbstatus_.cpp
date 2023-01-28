@@ -21,27 +21,32 @@
  */
 
 /*
-
     EXTRA CONTROLLERS INFO:
-    -Driving Controller (Expansion Module #2). It consist of a steering wheel and a gas pedal. Only one
-    can be used on a real ColecoVision. The gas pedal is not analog, internally it is just a switch.
-    On a real ColecoVision, when the Driving Controller is enabled, the controller 1 do not work because
-    have been replaced by the Driving Controller, and controller 2 have to be used to start game, gear
-    shift, etc.
-    Driving Controller is just a spinner on controller 1 socket similar to the one on Roller Controller
-    and Super Action Controllers so you can use Roller Controller or Super Action Controllers to play
-    games requiring Driving Controller.
-    -Roller Controller. Basically a trackball with four buttons (the two fire buttons from player 1 and
-    the two fire buttons from player 2). Only one Roller Controller can be used on a real ColecoVision.
-    Roller Controller is connected to both controller sockets and both controllers are conected to the Roller
-    Controller, it uses the spinner pins of both sockets to generate the X and Y signals (X from controller 1
-    and the Y from controller 2)
-    -Super Action Controllers. It is a hand controller with a keypad, four buttons (the two from
-    the player pad and two more), and a spinner. This was made primarily for two player sport games, but
-    will work for every other ColecoVision game.
+    -Driving Controller (Expansion Module #2). It consist of a steering wheel and
+    a gas pedal. Only one can be used on a real ColecoVision. The gas pedal is not
+    analog, internally it is just a switch.
+    On a real ColecoVision, when the Driving Controller is enabled, the controller 1
+    do not work because have been replaced by the Driving Controller, and controller 2
+    have to be used to start game, gear shift, etc.
+    Driving Controller is just a spinner on controller 1 socket similar to the one
+    on Roller Controller and Super Action Controllers so you can use Roller Controller
+    or Super Action Controllers to play games requiring Driving Controller.
+
+    -Roller Controller. Basically a trackball with four buttons (the two fire buttons
+    from player 1 and the two fire buttons from player 2). Only one Roller Controller
+    can be used on a real ColecoVision.
+    Roller Controller is connected to both controller sockets and both controllers
+    are connected to the Roller Controller, it uses the spinner pins of both sockets
+    to generate the X and Y signals (X from controller 1 and the Y from controller 2)
+
+    -Super Action Controllers. It is a hand controller with a keypad, four buttons
+    (the two from the player pad and two more), and a spinner. This was made primarily
+    for two player sport games, but will work for every other ColecoVision game.
 */
 
 //---------------------------------------------------------------------------
+#include <dinput.h>
+#include <mmsystem.h>
 
 #include <vcl.h>
 #pragma hdrstop
@@ -51,6 +56,7 @@
 
 #include "adamnet.h"
 #include "coleco.h"
+#include "z80.h"
 
 //---------------------------------------------------------------------------
 JOYINFO JoyInfo;
@@ -330,134 +336,92 @@ void JoystickEnd(void)
 
 void CheckMouseMove(int X, int Y)
 {
-    int x,y,y2,x1,y1,i,j;
+    int x,y;
     float ScaleW, ScaleH;
-    signed short valSpin;
-    signed int mouse_x, mouse_y;
-    static int mouse_oldxpos,mouse_oldypos;
+    //AnsiString text="";
 
-        AnsiString text="";
+    // Get mouse positions and scale them
+    ScaleW=Form1->ClientWidth/Form1->BaseWidth; ScaleH=((Form1->ClientHeight-Form1->StatusBar1->Height)/Form1->BaseHeight);
+    x=(X/ScaleW); y=(Y/ScaleH);
+    x = ((x*1024)/Form1->BaseWidth-512);
+    y = ((y*1024)/Form1->BaseHeight-512);
 
-            mouse_xpos=x; mouse_ypos=y;
-    mouse_x=mouse_xpos-mouse_oldxpos;
-    mouse_y=mouse_ypos-mouse_oldypos;
+    // IF driving module, no Y value
+    if (emul2.steerwheel)
+        y=0;
 
-        // Get mouse position and button states in the following  format: RMB.LMB.Y[29-16].X[15-0]
-        ScaleW=Form1->ClientWidth/Form1->BaseWidth; ScaleH=((Form1->ClientHeight-Form1->StatusBar1->Height)/Form1->BaseHeight);
-        x=(mouse_x/ScaleW); y=(mouse_y/ScaleH);
-        j=(y<<16) | x;
+    // emulate Super Action & Driving module values
+    coleco_spinpos[0] = x<-512? -512:x>512? 512:x;
+    coleco_spinparam[0]  = coleco_spinpos[0]>=0? (coleco_spinpos[0]>32? coleco_spinpos[0]:0):(coleco_spinpos[0]<-32? -coleco_spinpos[0]:0);
+    coleco_spinstate[0] = coleco_spinpos[0]>0? 0x00003000:coleco_spinpos[0]<0? 0x00001000:0;
+    coleco_spinpos[1] = x<-512? -512:x>512? 512:x;
+    coleco_spinparam[1]  = coleco_spinpos[1]>=0? (coleco_spinpos[1]>32? coleco_spinpos[1]:0):(coleco_spinpos[1]<-32? -coleco_spinpos[1]:0);
+    coleco_spinstate[1] = coleco_spinpos[1]>0? 0x00003000:coleco_spinpos[1]<0? 0x00001000:0;
 
-
-
-    if (mouse_x || mouse_y)
-    {
-        mouse_oldxpos=mouse_xpos;mouse_oldypos=mouse_ypos;
-    }
-
-
-    /*
-     switch (expansionmode)
- {
-  case 4:                         // emulate driving module
-   if (mouse_buttons&7)
-    MouseJoyState[0]&=0xFEFF;
-   mouse_x/=4;
-   mouse_y=0;
-   mouse_buttons=0;
-   break;
-  case 5:                         // emulate SA speed roller on both ports
-   mouse_x=(-mouse_x)/4;
-   mouse_y=-mouse_x;
-   mouse_buttons=0;
-   break;
-  case 6:                         // emulate SA speed roller on port 1
-   mouse_x=(-mouse_x)/4;
-   mouse_y=0;
-   mouse_buttons=0;
-   break;
-  case 7:                         // emulate SA speed roller on port 2
-   mouse_y=mouse_x/4;
-   mouse_x=0;
-   mouse_buttons=0;
-   break;
- }
- */
-
-    // emulate Super Action on port 1
-    mouse_x=(mouse_x)/4;
-    mouse_y=0;
-    //mouse_buttons=0;
-    coleco_spinpos=(200*mouse_x*(abs(mouse_x)+200))/(200*200);
-    //SpinnerPosition[1]=(default_mouse_sens*mouse_y*(abs(mouse_y)+mouse_sens))/(mouse_sens*mouse_sens);
-
-
-
-        /*
-        
-  X = GetMouse();
-  Y = ((((X>>16)&0x0FFF)<<10)/200-512)&0x3FFF;
-  Y = (Y<<16)|((((X&0x0FFF)<<10)/320-512)&0xFFFF);
-  return(Y|(X&MSE_BUTTONS));
-*/
-
-        x1 = (((x<<10)/Form1->BaseWidth-512)&0xFFFF);
-        y1 = (((y&0x0FFF)<<10)/Form1->BaseHeight-512)&0xFFFF;
-        i=x1;
-
-        // Adapt to spinner
-    //valSpin = (Mode&CV_SPINNER1Y? (I<<2):Mode&CV_SPINNER1X? (I<<16):0)>>16;
-        valSpin = i; //(i<<16)>>16;
-        valSpin = valSpin<-512? -512:valSpin>512? 512:valSpin;
-        coleco_spinstep  = valSpin>=0? (valSpin>32? valSpin:0):(valSpin<-32? -valSpin:0);
-        coleco_spinstate = valSpin>0? 0x00003000:valSpin<0? 0x00001000:0;
-
-        Form1->StatusBar1->Panels->Items[3]->Text = IntToStr(valSpin)+" "+IntToHex((int) coleco_spinstate,4)+" "+IntToHex((int) coleco_spinstep,4);
+    //Form1->StatusBar1->Panels->Items[3]->Text = IntToStr((int) coleco_spinpos[0])+" " +IntToStr((int) coleco_spinparam[0]);
 }
 
 //---------------------------------------------------------------------------
 
 void KeybJoyUpdate(void)
 {
-        // Get joystick values if possible
-        if ((JoyCaps.wMid != 0) && JoystickState)
-        {
-                if (JoystickState & JOY_BUTTON_1) coleco_joystat |=  keyCoresp[4]; // but #1
-                if (JoystickState & JOY_BUTTON_2) coleco_joystat |=  keyCoresp[5]; // but #2
-                if (JoystickState & JOY_BUTTON_3) coleco_joystat |=  keyCoresp[6]; // but ##
-                if (JoystickState & JOY_BUTTON_4) coleco_joystat |=  keyCoresp[7]; // but #*
+    // Get joystick values if possible
+    if ((JoyCaps.wMid != 0) && JoystickState)
+    {
+        if (JoystickState & JOY_BUTTON_1) coleco_joystat |=  keyCoresp[4]; // but #1
+        if (JoystickState & JOY_BUTTON_2) coleco_joystat |=  keyCoresp[5]; // but #2
+        if (JoystickState & JOY_BUTTON_3) coleco_joystat |=  keyCoresp[6]; // but ##
+        if (JoystickState & JOY_BUTTON_4) coleco_joystat |=  keyCoresp[7]; // but #*
 
-                if (JoystickState & JOY_BUTTON_5) coleco_joystat |=  keyCoresp[8]; // 0
-                if (JoystickState & JOY_BUTTON_6) coleco_joystat |=  keyCoresp[9]; // 1
-                if (JoystickState & JOY_BUTTON_7) coleco_joystat |=  keyCoresp[10]; // 2
-                if (JoystickState & JOY_BUTTON_8) coleco_joystat |=  keyCoresp[11]; // 3
-                if (JoystickState & JOY_BUTTON_9) coleco_joystat |=  keyCoresp[12]; // 4
-                if (JoystickState & JOY_BUTTON_10) coleco_joystat |=  keyCoresp[13]; // 5
-                if (JoystickState & JOY_BUTTON_11) coleco_joystat |=  keyCoresp[14]; // 6
-                if (JoystickState & JOY_BUTTON_12) coleco_joystat |=  keyCoresp[15]; // 7*/
+        if (JoystickState & JOY_BUTTON_5) coleco_joystat |=  keyCoresp[8]; // 0
+        if (JoystickState & JOY_BUTTON_6) coleco_joystat |=  keyCoresp[9]; // 1
+        if (JoystickState & JOY_BUTTON_7) coleco_joystat |=  keyCoresp[10]; // 2
+        if (JoystickState & JOY_BUTTON_8) coleco_joystat |=  keyCoresp[11]; // 3
+        if (JoystickState & JOY_BUTTON_9) coleco_joystat |=  keyCoresp[12]; // 4
+        if (JoystickState & JOY_BUTTON_10) coleco_joystat |=  keyCoresp[13]; // 5
+        if (JoystickState & JOY_BUTTON_11) coleco_joystat |=  keyCoresp[14]; // 6
+        if (JoystickState & JOY_BUTTON_12) coleco_joystat |=  keyCoresp[15]; // 7*/
 
-                if (JoystickState & JOY_PAD_UP) coleco_joystat |=  keyCoresp[0]; // UP
-                else coleco_joystat &= ~keyCoresp[0];
-                if (JoystickState & JOY_PAD_DOWN) coleco_joystat |=  keyCoresp[1]; // DOWN
-                else coleco_joystat &= ~keyCoresp[1];
-                if (JoystickState & JOY_PAD_LEFT) coleco_joystat |=  keyCoresp[2]; // LEFT
-                else coleco_joystat &= ~keyCoresp[2];
-                if (JoystickState & JOY_PAD_RIGHT) coleco_joystat |=  keyCoresp[3]; // RIGHT
-                else coleco_joystat &= ~keyCoresp[3];
-        }
+        if (JoystickState & JOY_PAD_UP) coleco_joystat |=  keyCoresp[0]; // UP
+        else coleco_joystat &= ~keyCoresp[0];
+        if (JoystickState & JOY_PAD_DOWN) coleco_joystat |=  keyCoresp[1]; // DOWN
+        else coleco_joystat &= ~keyCoresp[1];
+        if (JoystickState & JOY_PAD_LEFT) coleco_joystat |=  keyCoresp[2]; // LEFT
+        else coleco_joystat &= ~keyCoresp[2];
+        if (JoystickState & JOY_PAD_RIGHT) coleco_joystat |=  keyCoresp[3]; // RIGHT
+        else coleco_joystat &= ~keyCoresp[3];
+    }
+}
 
+//---------------------------------------------------------------------------
 
-        // Reset spinner bits
-        coleco_joystat&=~0x30003000;
+// DOne during each line end
+void RCUpdate(void)
+{
+    // No interrupt for  the moment
+    z80_set_irq_line(INPUT_LINE_IRQ0, CLEAR_LINE);
 
-        // Count ticks for spinners
-        coleco_spincount+=coleco_spinstep;
+    // Reset spinner bits
+    coleco_joystat&=~0x30003000;
 
-        // Process spinner
-        if (coleco_spincount&0x00008000)
-        {
-                coleco_spincount&=~0x00008000;
-                coleco_joystat |= coleco_spinstate&0x00003000;
-                //coleco_intpending=1;
-        }
+    // Count ticks for spinners
+    coleco_spinrecur[0]+=coleco_spinparam[0];
+    coleco_spinrecur[1]+=coleco_spinparam[1];
+
+    // Process spinner 1
+    if (coleco_spinrecur[0]&0x00008000)
+    {
+        coleco_spinrecur[0]&=~0x00008000;
+        coleco_joystat|=coleco_spinstate[0];
+        z80_set_irq_line(INPUT_LINE_IRQ0, ASSERT_LINE);
+    }
+
+    // Process spinner 2
+    if (coleco_spinrecur[1]&0x00008000)
+    {
+        coleco_spinrecur[1]&=~0x00008000;
+        coleco_joystat|=(coleco_spinstate[1]<<16);
+        z80_set_irq_line(INPUT_LINE_IRQ0, ASSERT_LINE);
+    }
 }
 

@@ -41,7 +41,7 @@
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
     <RELEASELIBPATH value="$(BCB)\lib\release"/>
     <LINKER value="tlink32"/>
-    <USERDEFINES value="_DEBUG"/>
+    <USERDEFINES value=""/>
     <SYSDEFINES value="NO_STRICT"/>
     <MAINSOURCE value="emultwo.cpp"/>
     <INCLUDEPATH value="emultwo\src;F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl"/>
@@ -58,13 +58,12 @@
       -I\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a 
       -Isrc\sn76489 -Isrc\tms9928a -Isrc\coleco -Isrc\z80 -Ilibs\animtimer5\lib 
       -Ilibs\libpngstat -Isrc -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix 
-      cpp -D_DEBUG -boa"/>
-    <CFLAG1 value="-Od -H=$(BCB)\lib\vcl50.csm -Hc -Vx -Ve -X- -r- -a8 -b- -k -y -v -vi- -c 
-      -tW -tWM"/>
-    <PFLAGS value="-$Y+ -$W -$O- -v -JPHNE -M"/>
+      cpp -boa"/>
+    <CFLAG1 value="-O2 -H=$(BCB)\lib\vcl50.csm -Hc -Vx -Ve -X- -a8 -b- -k- -vi -c -tW -tWM"/>
+    <PFLAGS value="-$Y- -$L- -$D- -v -JPHNE -M"/>
     <RFLAGS value=""/>
-    <AFLAGS value="/mx /w2 /zi"/>
-    <LFLAGS value="-D&quot;&quot; -aa -Tpe -x -Gn -v"/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;&quot; -aa -Tpe -x -Gn"/>
   </OPTIONS>
   <LINKER>
     <ALLOBJ value="c0w32.obj sysinit.obj $(OBJFILES)"/>
@@ -75,10 +74,10 @@
 [Version Info]
 IncludeVerInfo=1
 AutoIncBuild=0
-MajorVer=0
+MajorVer=1
 MinorVer=0
 Release=0
-Build=1
+Build=0
 Debug=0
 PreRelease=0
 Special=0
@@ -90,14 +89,14 @@ CodePage=1252
 [Version Info Keys]
 CompanyName=PortableDev
 FileDescription=ColecoVision / Adam emulator
-FileVersion=0.0.0.1
+FileVersion=1.0.0.0
 InternalName=EmulTwo
-LegalCopyright=
-LegalTrademarks=
-OriginalFilename=
-ProductName=
-ProductVersion=2.0.0.0
-Comments=
+LegalCopyright=None
+LegalTrademarks=None
+OriginalFilename=emultwo.exe
+ProductName=E.mul T.wo
+ProductVersion=1.0.0.0
+Comments=Use at your own risk ;) !
 
 [HistoryLists\hlIncludePath]
 Count=20

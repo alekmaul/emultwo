@@ -62,10 +62,10 @@ extern BYTE coleco_megacart;                           // <>0 if mega cart rom d
 
 extern unsigned int coleco_joystat;                     // Joystick / Paddle management
 
-extern int coleco_spinpos;                             // Spinner position
-extern unsigned int coleco_spincount;                  // Spinner counters
-extern unsigned int coleco_spinstep;                   // Spinner steps
-extern unsigned int coleco_spinstate;                  // Spinner bit states
+extern int coleco_spinpos[2];                          // Spinner position
+extern unsigned int coleco_spinrecur[2];               // Spinner generates INT when >=0x10000
+extern unsigned int coleco_spinparam[2];               // Spinner value to add to spinrecur
+extern unsigned int coleco_spinstate[2];               // Spinner status
 
 extern FDIDisk Disks[MAX_DISKS];                        // Adam disk drives
 extern FDIDisk Tapes[MAX_TAPES];                        // Adam tape drives

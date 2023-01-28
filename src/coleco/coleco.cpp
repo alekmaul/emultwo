@@ -36,12 +36,13 @@
 #include "c24xx.h"
 #include "adamnet.h"
 
+#include "printviewer_.h"
+#include "soundviewer_.h"
+#include "kbstatus_.h"
+
 // include roms files
 #include "bios_coleco.h"
 #include "bios_adam.h"
-
-#include "printviewer_.h"
-#include "soundviewer_.h"
 
 extern void DebugUpdate(void);
 
@@ -79,10 +80,10 @@ BYTE coleco_megacart;                           // <>0 if mega cart rom detected
 BYTE coleco_joymode;                            // Joystick / Paddle management
 unsigned int coleco_joystat;                    // Joystick / Paddle management
 
-int coleco_spinpos;                             // Spinner position
-unsigned int coleco_spincount;                  // Spinner counters
-unsigned int coleco_spinstep;                   // Spinner steps
-unsigned int coleco_spinstate;                  // Spinner bit states
+int coleco_spinpos[2];                          // Spinner position
+unsigned int coleco_spinrecur[2];               // Spinner generates INT when >=0x10000
+unsigned int coleco_spinparam[2];               // Spinner value to add to spinrecur
+unsigned int coleco_spinstate[2];               // Spinner status
 
 int tstates,frametstates;                       // count of instruction  times
 int tStatesCount;                               // count of instruction  times
@@ -612,6 +613,12 @@ void coleco_reset(void)
         adam_128k_mode=0; // Normal 64K ADAM to start
         coleco_setadammemory(false);
     }
+    // Init Coleco with default memory (without SGM)
+    else
+    {
+        memcpy(RAM_Memory,colecobios_rom,0x2000);
+        MemoryMap[0] = BIOS_Memory+0x0000;
+    }
 
     // check for SRAM && EEPROM and force type
     switch (emul2.cardcrc)
@@ -654,9 +661,10 @@ void coleco_reset(void)
     // Init joystick/spinner mode and states
     coleco_joymode=0;
     coleco_joystat=0x00000000;
-    coleco_spincount=0;
-    coleco_spinstep=0;
-    coleco_spinstate=0x00000000;
+    coleco_spinpos[0]=coleco_spinpos[1]=0;
+    coleco_spinrecur[0]=coleco_spinrecur[1]=0;
+    coleco_spinparam[0]=coleco_spinparam[1]=0;
+    coleco_spinstate[0]=coleco_spinstate[1]=0;
     //coleco_steerwheel=machine.steerwheel ? 1 : 0;
     //coleco_rollercontrol=machine.rollercontrol ? 1 : 0;
     //coleco_superaction=machine.superaction ? 1 : 0;
@@ -696,7 +704,6 @@ void coleco_initialise(void)
     else
     {
         // Load COLECO.ROM ColecoVision BIOS in RAM and BIOS (for SGM swapping low 8k)
-        memcpy(RAM_Memory,colecobios_rom,0x2000);
         memcpy(BIOS_Memory,colecobios_rom,0x2000);
 
         // Hack 50/60 Bios & NO delay Bios
@@ -1005,6 +1012,9 @@ int coleco_do_scanline(void)
     {
         while (!emul2.stop)
         {
+            // Check irq for Spinner or roller before each line
+            if ( (emul2.steerwheel) || (emul2.rollercontrol))
+                RCUpdate();
 
             // Check nmi before each line
             ts=z80_checknmi();
@@ -1116,9 +1126,14 @@ BYTE coleco_savestate(char *filename)
     statesave[i++] = coleco_port53;
     statesave[i++] = coleco_joymode;
     statesave[i++] = coleco_joystat;
-    statesave[i++] = coleco_spincount;
-    statesave[i++] = coleco_spinstep;
-    statesave[i++] = coleco_spinstate;
+    statesave[i++] = coleco_spinpos[0];
+    statesave[i++] = coleco_spinpos[1];
+    statesave[i++] = coleco_spinrecur[0];
+    statesave[i++] = coleco_spinrecur[1];
+    statesave[i++] = coleco_spinparam[0];
+    statesave[i++] = coleco_spinparam[1];
+    statesave[i++] = coleco_spinstate[0];
+    statesave[i++] = coleco_spinstate[1];
     statesave[i++] = coleco_updatetms;
     statesave[i++] = tstates;
     statesave[i++] = frametstates;
@@ -1256,9 +1271,14 @@ BYTE coleco_loadstate(char *filename)
         coleco_port53=statesave[i++];
         coleco_joymode=statesave[i++];
         coleco_joystat=statesave[i++];
-        coleco_spincount=statesave[i++];
-        coleco_spinstep=statesave[i++];
-        coleco_spinstate=statesave[i++];
+        coleco_spinpos[0]=statesave[i++];
+        coleco_spinpos[1]=statesave[i++];
+        coleco_spinrecur[0]=statesave[i++];
+        coleco_spinrecur[1]=statesave[i++];
+        coleco_spinparam[0]=statesave[i++];
+        coleco_spinparam[1]=statesave[i++];
+        coleco_spinstate[0]=statesave[i++];
+        coleco_spinstate[1]=statesave[i++];
         coleco_updatetms=statesave[i++];
         tstates=statesave[i++];
         frametstates=statesave[i++];

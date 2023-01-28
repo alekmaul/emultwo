@@ -51,8 +51,12 @@ void load_config(void)
     emul2.NTSC=1;
     emul2.SGM=0;
     emul2.F18A=0;
+    emul2.steerwheel=0;
+    emul2.rollercontrol=0;
+    emul2.superaction=0;
+
     emul2.frameskip=0;
-    emul2.vsyncsound=0;
+
     emul2.cardcrc=-1;
     emul2.cardsize=0;
     emul2.startdebug=0;

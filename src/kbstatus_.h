@@ -25,11 +25,6 @@
 #ifndef kbstatusH
 #define kbstatusH
 
-//---------------------------------------------------------------------------
-#include <dinput.h>
-#include <mmsystem.h>
-
-//---------------------------------------------------------------------------
 #include <IniFiles.hpp>
 
 #define NBKEYCV 20
@@ -85,9 +80,6 @@
 extern unsigned short  JoyP1[NBKEYCV],JoyP2[NBKEYCV];
 
 //---------------------------------------------------------------------------
-extern JOYINFO JoyInfo;
-extern JOYCAPS JoyCaps;
-
 extern void KeysRead(TIniFile *ini);
 extern void KeysWrite(TIniFile *ini);
 extern void CheckKeyDown(WORD key);
@@ -102,5 +94,6 @@ extern void JoystickEnd(void);
 
 extern void CheckMouseMove(int X, int Y);
 extern void KeybJoyUpdate(void);
+extern void RCUpdate(void);
 
 #endif

@@ -71,6 +71,10 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     emul2.SGM = spSGM->Down ? 1 : 0;
     emul2.F18A = spF18A->Down ? 1 : 0;
 
+    emul2.steerwheel = coSteWhe->Down ? 1 : 0;
+    emul2.rollercontrol = coRolCon->Down ? 1 : 0;
+    emul2.superaction = coSupAct->Down ? 1 : 0;
+
     machine.clockspeed=emul2.NTSC ? CLOCK_NTSC : CLOCK_PAL;
     machine.tperscanline=emul2.NTSC ? TMS9918_LINE : TMS9929_LINE;
     machine.scanlines=emul2.NTSC ? TMS9918_LINES : TMS9929_LINES;
@@ -143,7 +147,11 @@ void Thardware::SaveSettings(TIniFile *ini)
 
 
     ini->WriteBool("HWARE","F18A",spF18A->Down);
-    ini->WriteInteger("HWARE","SGM",spSGM->Down);
+    ini->WriteBool("HWARE","SGM",spSGM->Down);
+
+    ini->WriteBool("HWARE","STEWHE",coSteWhe->Down);
+    ini->WriteBool("HWARE","ROLCON",coRolCon->Down);
+    ini->WriteBool("HWARE","SUPACT",coSupAct->Down);
 }
 
 void Thardware::LoadSettings(TIniFile *ini)
@@ -170,6 +178,10 @@ void Thardware::LoadSettings(TIniFile *ini)
 
     spF18A->Down=ini->ReadBool("HWARE","F18A",spF18A->Down);
     spSGM->Down=ini->ReadBool("HWARE","SGM",spSGM->Down);
+
+    coSteWhe->Down=ini->ReadBool("HWARE","STEWHE",coSteWhe->Down);
+    coRolCon->Down=ini->ReadBool("HWARE","ROLCON",coRolCon->Down);
+    coSupAct->Down=ini->ReadBool("HWARE","SUPACT",coSupAct->Down);
 }
 
 //---------------------------------------------------------------------------

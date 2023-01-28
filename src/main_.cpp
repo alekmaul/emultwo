@@ -21,7 +21,6 @@
 
 
 //---------------------------------------------------------------------------
-
 #include <vcl.h>
 
 #pragma hdrstop
@@ -597,7 +596,7 @@ void __fastcall TForm1::RunFrame()
     fps++;
     frametstates=0;
 
-    // Update Joystick, spinner
+    // Update Joystick, spinner once per frame
     KeybJoyUpdate();
 
     // Update emulation

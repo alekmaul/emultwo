@@ -36,6 +36,10 @@ __published:	// IDE-managed Components
         TComboBox *cboPal;
     TComboBox *cboSEDispD;
     TLabel *lSEDispD;
+    TGroupBox *GroupBox2;
+    TSpeedButton *coSteWhe;
+    TSpeedButton *coRolCon;
+    TSpeedButton *coSupAct;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);

@@ -34,6 +34,7 @@ _**Your Vision Is Our Vision...  COLECOVISION**_
 
 ## Todo
 
+- Joypad emulation
 - F18A support.
 - Super Action Controller, Spinner and Roller Controller (Trackball) mapping.
 

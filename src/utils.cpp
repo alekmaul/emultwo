@@ -23,6 +23,9 @@
  */
 
 //---------------------------------------------------------------------------
+#include <iostream>
+#include <string>
+#include <fstream>
 
 #include <vcl.h>
 #include <ctype.h>
@@ -152,9 +155,9 @@ AnsiString GetExt(AnsiString Fname)
         for(pos=1; pos<=Ext.Length(); pos++) Ext[pos]=toupper(Ext[pos]);
         return(Ext);
 }
-
 // ----------------------------------------------------------------------------------------
 // cal crc32 of a file
+
 unsigned int CRC32Block (const unsigned char *buf, unsigned int len) {
     unsigned int crc=0;
   if (buf == 0) return 0L;
@@ -168,9 +171,8 @@ unsigned int CRC32Block (const unsigned char *buf, unsigned int len) {
   } while (--len);
   return crc ^ 0xffffffffL;
 }
-
 // ----------------------------------------------------------------------------------------
-//bool ImageToPNG(AnsiString name,TImage* image)
+
 bool ImageToPNG(AnsiString name,Graphics::TBitmap *bitmap)
 {
 	FILE *fp;
@@ -263,5 +265,38 @@ bool ImageToPNG(AnsiString name,Graphics::TBitmap *bitmap)
 	}
 
 	return true;
+}
+// ----------------------------------------------------------------------------------------
+
+String LoggerCurrentDateTime( String s ){
+    time_t now = time(0);
+    struct tm  tstruct;
+    char  buf[80];
+    
+    tstruct = *localtime(&now);
+    if(s=="now") strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+    else if(s=="date") strftime(buf, sizeof(buf), "%Y-%m-%d", &tstruct);
+    return String(buf);
+};
+// ----------------------------------------------------------------------------------------
+
+void Logger( String logMsg )
+{
+    //FILE *file;
+    char pathline[512];
+    //std::filebuf file;
+
+    strcpy(pathline, (FileNameGetPath(Application->ExeName)).c_str());
+    if (pathline[strlen(pathline)-1]!='\\')
+    {
+        pathline[strlen(pathline)-1]='\\';
+        pathline[strlen(pathline)]='\0';
+    }
+
+    String filePath = pathline+LoggerCurrentDateTime("date")+"-emultwo.txt";
+    String now = LoggerCurrentDateTime("now");
+    ofstream ofs(filePath.c_str(), std::ios_base::out | std::ios_base::app );
+    ofs << now << '\t' << logMsg << '\n';
+    ofs.close();
 }
 

@@ -135,11 +135,11 @@ int CDSnd::Initialise(HWND hWnd, int FPS, int BitsPerSample, int SampleRate, int
 	//New audio Queue
 	if (m_lpAudioQueue !=NULL)
         {
-	       	delete []m_lpAudioQueue;
+	       	delete []m_lpAudioQueue; // free (m_lpAudioQueue); //
 		m_lpAudioQueue = NULL;
 	}
 
-	m_lpAudioQueue = new BYTE[m_QueueLen];
+	m_lpAudioQueue = new BYTE[m_QueueLen]; // (char *) malloc (m_QueueLen); //
 
 	//Initialise Audio Queue
         m_QueueStart = 0;
@@ -215,7 +215,7 @@ int CDSnd::End()
 
 	if (m_lpAudioQueue != NULL)
     {
-		delete []m_lpAudioQueue;
+		delete []m_lpAudioQueue;// free(m_lpAudioQueue);//
 		m_lpAudioQueue = NULL;
 	}
 
@@ -392,21 +392,21 @@ int CSound::Initialise(HWND hWnd, int FPS, int BitsPerSample, int SampleRate, in
     // get a 1 frame size buffer
     FrameSize=m_SampleRate/m_FPS;
 
-    Buffer = new BYTE[FrameSize*m_Channels];
+    Buffer = new BYTE[FrameSize*m_Channels];  // (char *) malloc(FrameSize*m_Channels); //
     if(Buffer==NULL)
     {
         DXSound.End();
         return(1); // Oh dear, malloc failed
     }
 
-    Buffersn = new SHORT[FrameSize*m_Channels];
+    Buffersn = new SHORT[FrameSize*m_Channels]; // (short *) malloc(FrameSize*m_Channels); //
     if(Buffersn==NULL)
     {
         DXSound.End();
         return(1); // Oh dear, malloc failed
     }
 
-    Bufferay = new SHORT[FrameSize*m_Channels];
+    Bufferay = new SHORT[FrameSize*m_Channels]; // (short *) malloc(FrameSize*m_Channels); //
     if(Bufferay==NULL)
     {
         DXSound.End();
@@ -446,10 +446,26 @@ void CSound::ReInitialise(HWND hWnd, int FPS, int BitsPerSample, int SampleRate,
 void CSound::End(void)
 {
     DXSound.End();
-    if(Buffer) delete []Buffer;
-    if(Buffersn) delete []Buffersn;
-    if(Bufferay) delete []Bufferay;
-    if(smptab) delete []smptab;
+    if(Buffer != NULL)
+    {
+        delete []Buffer; // free(Buffer); //
+        Buffer= NULL;
+    }
+    if(Buffersn != NULL)
+    {
+        delete []Buffersn; // free(Buffersn); //
+        Buffersn=NULL;
+    }
+    if(Bufferay != NULL)
+    {
+        delete []Bufferay; // free(Bufferay); //
+        Bufferay=NULL;
+    }
+    if(smptab != NULL)
+    {
+        delete []smptab; // free(smptab); //
+        smptab=NULL;
+    }
 }
 
 void CSound::SoundSuspend(void)
@@ -524,11 +540,15 @@ int CSound::SoundPrepSmpTab(int linesperframe)
     int i;
 
     // Free sample buffer position table if previously allocated
-    if(smptab) delete []smptab;
+    if(smptab!=NULL)
+    {
+        delete []smptab;
+        smptab=NULL;
+    }
 
     // Redo it regarding number of lines per frame
     smptab_len = linesperframe;
-    smptab = new INT[smptab_len];
+    smptab = new INT[smptab_len]; // (int *) malloc(smptab_len); //
     if (smptab==NULL)
     {
         DXSound.End();

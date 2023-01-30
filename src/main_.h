@@ -188,7 +188,7 @@ public:		// User declarations
                 MESSAGE_HANDLER(MM_JOY1MOVE,TMessage,OnJoyMove);
                 MESSAGE_HANDLER(MM_JOY1BUTTONDOWN,TMessage,OnJoyDown);
                 MESSAGE_HANDLER(MM_JOY1BUTTONUP,TMessage,OnJoyUp);
-        END_MESSAGE_MAP(TForm)
+        END_MESSAGE_MAP(TForm) 
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TForm1 *Form1;

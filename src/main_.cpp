@@ -276,6 +276,14 @@ void __fastcall TForm1::AppMessage(TMsg &Msg, bool &Handled)
                 {
                     LoadProgram(Filename);
                 }
+                else if (Ext==".DDP")
+                {
+                    LoadDiskTape(1, 0,Filename);
+                }
+                else if (Ext==".DSK")
+                {
+                    LoadDiskTape(0, 0,Filename);
+                }
             }
 
             DragFinish((void *)Msg.wParam);

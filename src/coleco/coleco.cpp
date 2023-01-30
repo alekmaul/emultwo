@@ -670,6 +670,32 @@ void coleco_reset(void)
     //coleco_superaction=machine.superaction ? 1 : 0;
 }
 //---------------------------------------------------------------------------
+int loadBios(char *filename, BYTE *memory, int sizerm)
+{
+    FILE *fbios;
+
+    try
+    {
+        fbios = fopen(filename,"rb");
+        if (fbios)
+        {
+            fread((void*) (memory), sizerm, 1, fbios);
+            fclose(fbios);
+
+            return (1);
+        }
+    }
+    catch (Exception &exception)
+    {
+        // The default exception handler not only shows the exception that
+        // occured, but also quits the message handler
+        Application->ShowException(&exception);
+    }
+
+    return (0);
+}
+
+//---------------------------------------------------------------------------
 
 void coleco_initialise(void)
 {
@@ -693,18 +719,58 @@ void coleco_initialise(void)
     if (emul2.machine == MACHINEADAM)
     {
         // Load COLECO.ROM: OS7 (ColecoVision BIOS)
-        memcpy(BIOS_Memory+0xA000, colecobios_rom, 0x2000);
+        if (strcmp(emul2.colecobios,"Internal"))
+        {
+            if (!loadBios(emul2.colecobios, BIOS_Memory+0xA000, 0x2000))
+            {
+                Application->MessageBox("Can't open coleco bios, load default","Error",
+            	        MB_OK | MB_ICONERROR);
+                memcpy(BIOS_Memory,colecobios_rom,0x2000);
+            }
+        }
+        else
+            memcpy(BIOS_Memory+0xA000, colecobios_rom, 0x2000);
 
         // Load EOS.ROM: EOS (Adam BIOS)
-        memcpy(BIOS_Memory+0x8000, adambios_eos,0x2000);
+        if (strcmp(emul2.adameos,"Internal"))
+        {
+            if (!loadBios(emul2.adameos, BIOS_Memory+0x8000, 0x2000))
+            {
+                Application->MessageBox("Can't open EOS bios, load default","Error",
+            	        MB_OK | MB_ICONERROR);
+                memcpy(BIOS_Memory+0x8000, adambios_eos,0x2000);
+            }
+        }
+        else
+            memcpy(BIOS_Memory+0x8000, adambios_eos,0x2000);
 
         // Load WRITER.ROM: SmartWriter (Adam bootup)
-        memcpy(BIOS_Memory+0x0000, adambios_writer, 0x8000);
+        if (strcmp(emul2.adamwriter,"Internal"))
+        {
+            if (!loadBios(emul2.adamwriter, BIOS_Memory, 0x8000))
+            {
+                Application->MessageBox("Can't open WRITER bios, load default","Error",
+            	        MB_OK | MB_ICONERROR);
+                memcpy(BIOS_Memory+0x0000, adambios_writer, 0x8000);
+            }
+        }
+        else
+            memcpy(BIOS_Memory+0x0000, adambios_writer, 0x8000);
     }
     else
     {
         // Load COLECO.ROM ColecoVision BIOS in RAM and BIOS (for SGM swapping low 8k)
-        memcpy(BIOS_Memory,colecobios_rom,0x2000);
+        if (strcmp(emul2.colecobios,"Internal"))
+        {
+            if (!loadBios(emul2.colecobios, BIOS_Memory, 0x2000))
+            {
+                Application->MessageBox("Can't open coleco bios, load default","Error",
+            	        MB_OK | MB_ICONERROR);
+                memcpy(BIOS_Memory,colecobios_rom,0x2000);
+            }
+        }
+        else
+            memcpy(BIOS_Memory,colecobios_rom,0x2000);
 
         // Hack 50/60 Bios & NO delay Bios
         RAM_Memory[0x0069]=emul2.hackbiospal ? 50 : 60;

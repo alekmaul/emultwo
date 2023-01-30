@@ -62,8 +62,10 @@ USEFORM("src\joyconf_.cpp", joyconf);
 USEFORM("src\ioviewer_.cpp", iomapviewer);
 USEFORM("src\soundviewer_.cpp", soundviewer);
 USELIB("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\libs\directsound\dsound.lib");
+USEUNIT("src\f18a\f18a.cpp");
 //---------------------------------------------------------------------------
 #include "main_.h"
+#include "utils.h"
 
 //---------------------------------------------------------------------------
 char **CommandLine;

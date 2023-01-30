@@ -75,6 +75,10 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     emul2.rollercontrol = coRolCon->Down ? 1 : 0;
     emul2.superaction = coSupAct->Down ? 1 : 0;
 
+    strcpy(emul2.colecobios,stBios->Caption.c_str());
+    strcpy(emul2.adameos,stEos->Caption.c_str());
+    strcpy(emul2.adamwriter,stWriter->Caption.c_str());
+
     machine.clockspeed=emul2.NTSC ? CLOCK_NTSC : CLOCK_PAL;
     machine.tperscanline=emul2.NTSC ? TMS9918_LINE : TMS9929_LINE;
     machine.scanlines=emul2.NTSC ? TMS9918_LINES : TMS9929_LINES;
@@ -152,6 +156,10 @@ void Thardware::SaveSettings(TIniFile *ini)
     ini->WriteBool("HWARE","STEWHE",coSteWhe->Down);
     ini->WriteBool("HWARE","ROLCON",coRolCon->Down);
     ini->WriteBool("HWARE","SUPACT",coSupAct->Down);
+
+    ini->WriteString("HWARE","BIOSCOLECO",stBios->Caption);
+    ini->WriteString("HWARE","BIOSEOS",stEos->Caption);
+    ini->WriteString("HWARE","BIOSWRITER",stWriter->Caption);
 }
 
 void Thardware::LoadSettings(TIniFile *ini)
@@ -182,8 +190,11 @@ void Thardware::LoadSettings(TIniFile *ini)
     coSteWhe->Down=ini->ReadBool("HWARE","STEWHE",coSteWhe->Down);
     coRolCon->Down=ini->ReadBool("HWARE","ROLCON",coRolCon->Down);
     coSupAct->Down=ini->ReadBool("HWARE","SUPACT",coSupAct->Down);
-}
 
+    stBios->Caption=ini->ReadString("HWARE","BIOSCOLECO",stBios->Caption);
+    stEos->Caption=ini->ReadString("HWARE","BIOSEOS",stEos->Caption);
+    stWriter->Caption=ini->ReadString("HWARE","BIOSWRITER",stWriter->Caption);
+}
 //---------------------------------------------------------------------------
 
 void __fastcall Thardware::chkNTSCClick(TObject *Sender)
@@ -274,6 +285,46 @@ void __fastcall Thardware::cboSEDispDChange(TObject *Sender)
         Form1->RenderMode=NewRenderMode;
         RenderInit();
         AccurateInit(true);
+    }
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Thardware::bBiosClick(TObject *Sender)
+{
+    TButton *b;
+
+    try
+    {
+        odBIOS->DefaultExt="rom";
+        odBIOS->FileName="*";
+        odBIOS->Filter="Bios Files (*.ROM,*.BIN)|*.rom;*.bin";
+        if (odBIOS->Execute())
+        {
+            b = (TButton *) Sender;
+            if (b->Tag==0)
+            {
+                stBios->Caption=odBIOS->FileName;
+                strcpy(emul2.colecobios,stBios->Caption.c_str());
+            }
+            else if (b->Tag==1)
+            {
+                stEos->Caption=odBIOS->FileName;
+                strcpy(emul2.adameos,stEos->Caption.c_str());
+
+            }
+            else
+            {
+                stWriter->Caption=odBIOS->FileName;
+                strcpy(emul2.adamwriter,stWriter->Caption.c_str());
+            }
+            ResetRequired=true;
+        }
+    }
+    catch (Exception &exception)
+    {
+        // The default exception handler not only shows the exception that
+        // occured, but also quits the message handler
+        Application->ShowException(&exception);
     }
 }
 //---------------------------------------------------------------------------

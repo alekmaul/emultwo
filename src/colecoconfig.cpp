@@ -67,7 +67,13 @@ void load_config(void)
     emul2.biosnodelay;
     emul2.singlestep=0;
     emul2.stop=0;
+
     strcpy(emul2.machinename, "E.mul T.wo");
+
+    strcpy(emul2.colecobios,"Internal");
+    strcpy(emul2.adameos,"Internal");
+    strcpy(emul2.adamwriter,"Internal");
+
     strcpy(emul2.currentrom,"");
 
     machine.clockspeed=CLOCK_NTSC;

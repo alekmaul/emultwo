@@ -1,8 +1,9 @@
 object hardware: Thardware
-  Left = 786
-  Top = 231
-  Width = 550
-  Height = 390
+  Left = 517
+  Top = 114
+  Width = 567
+  Height = 420
+  Anchors = [akTop]
   Caption = 'Hardware'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -15,11 +16,11 @@ object hardware: Thardware
   PixelsPerInch = 96
   TextHeight = 13
   object OK: TButton
-    Left = 375
-    Top = 319
+    Left = 377
+    Top = 351
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop]
     Caption = 'OK'
     Default = True
     TabOrder = 0
@@ -1229,26 +1230,26 @@ object hardware: Thardware
     end
   end
   object bCancel: TButton
-    Left = 454
-    Top = 319
+    Left = 462
+    Top = 351
     Width = 75
     Height = 25
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop]
     Cancel = True
     Caption = 'Cancel'
     TabOrder = 2
     OnClick = bCancelClick
   end
   object tSCExpMod: TGroupBox
-    Left = 2
-    Top = 228
+    Left = 326
+    Top = 2
     Width = 218
-    Height = 117
+    Height = 112
     Caption = 'Additionnal Hardware'
     TabOrder = 3
     object spSGM: TSpeedButton
       Left = 8
-      Top = 20
+      Top = 16
       Width = 96
       Height = 88
       AllowAllUp = True
@@ -1647,13 +1648,12 @@ object hardware: Thardware
     end
     object spF18A: TSpeedButton
       Left = 112
-      Top = 20
+      Top = 16
       Width = 96
       Height = 88
       AllowAllUp = True
       GroupIndex = 3
       Caption = 'F18A VGA Adapter'
-      Enabled = False
       Glyph.Data = {
         36300000424D3630000000000000360000002800000040000000400000000100
         1800000000000030000000000000000000000000000000000000C8D0D4C8D0D4
@@ -2046,9 +2046,9 @@ object hardware: Thardware
     end
   end
   object gSEEmul: TGroupBox
-    Left = 328
+    Left = 326
     Top = 116
-    Width = 204
+    Width = 218
     Height = 112
     Caption = 'Emulation'
     TabOrder = 4
@@ -2100,8 +2100,8 @@ object hardware: Thardware
     end
   end
   object gSEVideo: TGroupBox
-    Left = 328
-    Top = 2
+    Left = 2
+    Top = 230
     Width = 204
     Height = 112
     Caption = 'Video'
@@ -3359,5 +3359,103 @@ object hardware: Thardware
       Layout = blGlyphTop
       Margin = 0
     end
+  end
+  object gBios: TGroupBox
+    Left = 208
+    Top = 230
+    Width = 337
+    Height = 112
+    Caption = 'Bios'
+    TabOrder = 7
+    object lCOleco: TLabel
+      Left = 8
+      Top = 16
+      Width = 33
+      Height = 13
+      Caption = 'Coleco'
+    end
+    object lEOS: TLabel
+      Left = 8
+      Top = 48
+      Width = 22
+      Height = 13
+      Caption = 'EOS'
+    end
+    object Label2: TLabel
+      Left = 8
+      Top = 80
+      Width = 28
+      Height = 13
+      Caption = 'Writer'
+    end
+    object stBios: TStaticText
+      Left = 48
+      Top = 16
+      Width = 217
+      Height = 17
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Caption = 'Internal'
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 0
+    end
+    object bBios: TButton
+      Left = 272
+      Top = 12
+      Width = 57
+      Height = 25
+      Caption = 'Change'
+      TabOrder = 1
+      OnClick = bBiosClick
+    end
+    object stEos: TStaticText
+      Left = 48
+      Top = 48
+      Width = 217
+      Height = 17
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Caption = 'Internal'
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 2
+    end
+    object bEos: TButton
+      Tag = 1
+      Left = 272
+      Top = 44
+      Width = 57
+      Height = 25
+      Caption = 'Change'
+      TabOrder = 3
+      OnClick = bBiosClick
+    end
+    object stWriter: TStaticText
+      Left = 48
+      Top = 80
+      Width = 217
+      Height = 17
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Caption = 'Internal'
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 4
+    end
+    object bWriter: TButton
+      Tag = 2
+      Left = 272
+      Top = 76
+      Width = 57
+      Height = 25
+      Caption = 'Change'
+      TabOrder = 5
+      OnClick = bBiosClick
+    end
+  end
+  object odBIOS: TOpenDialog
+    Left = 8
+    Top = 344
   end
 end

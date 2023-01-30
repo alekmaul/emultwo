@@ -10,6 +10,7 @@
 #include <IniFiles.hpp>
 #include <Buttons.hpp>
 #include <ExtCtrls.hpp>
+#include <Dialogs.hpp>
 
 //---------------------------------------------------------------------------
 class Thardware : public TForm
@@ -40,6 +41,17 @@ __published:	// IDE-managed Components
     TSpeedButton *coSteWhe;
     TSpeedButton *coRolCon;
     TSpeedButton *coSupAct;
+    TGroupBox *gBios;
+    TStaticText *stBios;
+    TLabel *lCOleco;
+    TButton *bBios;
+    TLabel *lEOS;
+    TStaticText *stEos;
+    TButton *bEos;
+    TLabel *Label2;
+    TStaticText *stWriter;
+    TButton *bWriter;
+    TOpenDialog *odBIOS;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);
@@ -51,6 +63,7 @@ __published:	// IDE-managed Components
         void __fastcall pboxPaint(TObject *Sender);
     void __fastcall bCancelClick(TObject *Sender);
     void __fastcall cboSEDispDChange(TObject *Sender);
+    void __fastcall bBiosClick(TObject *Sender);
 private:	// User declarations
         int NewMachine;
         AnsiString NewMachineName;

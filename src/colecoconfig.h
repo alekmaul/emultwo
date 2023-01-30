@@ -92,6 +92,10 @@ typedef struct
     char mydocs[256];
     char machinename[256];
 
+    char colecobios[256];
+    char adameos[256];
+    char adamwriter[256];
+
     char currentrom[256];
 } EMUL2;
 

@@ -232,10 +232,16 @@ void CheckKeyDown(WORD key)
                         case VK_F4 : adamkey=KEY_F4; break;
                         case VK_F5 : adamkey=KEY_F5; break;
                         case VK_F6 : adamkey=KEY_F6; break;
-                        case VK_RETURN: adamkey=KEY_ENTER; break;
+                        case VK_UP: adamkey=KEY_UP; break;
+                        case VK_DOWN: adamkey=KEY_DOWN; break;
+                        case VK_LEFT: adamkey=KEY_LEFT; break;
+                        case VK_RIGHT: adamkey=KEY_RIGHT; break;
+                        case VK_TAB: adamkey=KEY_TAB; break;
                         case VK_BACK: adamkey=KEY_BS; break;
-                        case VK_PRIOR : adamkey=KEY_MOVE; break; // PageUp
-                        case VK_ESCAPE : adamkey=KEY_MOVE; break;
+                        case VK_INSERT: adamkey=KEY_INS; break;
+                        case VK_DELETE: adamkey=KEY_DEL; break;
+                        case VK_PRINT : adamkey=KEY_PRINT; break;
+                        case VK_ESCAPE : adamkey=KEY_ESC; break;
                         default:
                                 // Assume any key in 0x00..0x7E range an ASCII code
                                 if(key<='~') adamkey=key;

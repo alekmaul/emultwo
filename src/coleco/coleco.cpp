@@ -725,7 +725,7 @@ void coleco_initialise(void)
             {
                 Application->MessageBox("Can't open coleco bios, load default","Error",
             	        MB_OK | MB_ICONERROR);
-                memcpy(BIOS_Memory,colecobios_rom,0x2000);
+                memcpy(BIOS_Memory+0xA000,colecobios_rom,0x2000);
             }
         }
         else

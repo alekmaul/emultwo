@@ -991,6 +991,8 @@ void __fastcall TForm1::DDAInsertClick(TObject *Sender)
                     LoadDiskTape(0, 1,Filename);
                 else if (m->Tag == 2)
                     LoadDiskTape(1, 0,Filename);
+                else if (m->Tag == 3)
+                    LoadDiskTape(1, 1,Filename);
             }
         }
         catch (Exception &exception)
@@ -1074,6 +1076,8 @@ void __fastcall TForm1::DDAEjectClick(TObject *Sender)
             EjectFDI(&Disks[1]);
         else if (m->Tag == 2)
             EjectFDI(&Tapes[0]);
+        else if (m->Tag == 3)
+            EjectFDI(&Tapes[1]);
 }
 //---------------------------------------------------------------------------
 

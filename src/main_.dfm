@@ -354,8 +354,8 @@ object Form1: TForm1
           OnClick = DDAEjectClick
         end
       end
-      object OpenTA: TMenuItem
-        Caption = 'Tape Drive'
+      object OpenTA1: TMenuItem
+        Caption = 'Tape Drive 1'
         object TDAInsert: TMenuItem
           Tag = 2
           Caption = 'Insert Tape...'
@@ -363,6 +363,19 @@ object Form1: TForm1
         end
         object TDAEject: TMenuItem
           Tag = 2
+          Caption = 'Eject Tape'
+          OnClick = DDAEjectClick
+        end
+      end
+      object OpenTA2: TMenuItem
+        Caption = 'Tape Drive 2'
+        object InsertTape1: TMenuItem
+          Tag = 3
+          Caption = 'Insert Tape'
+          OnClick = DDAInsertClick
+        end
+        object EjectTape1: TMenuItem
+          Tag = 3
           Caption = 'Eject Tape'
           OnClick = DDAEjectClick
         end

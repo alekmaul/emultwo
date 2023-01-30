@@ -107,7 +107,7 @@ __published:	// IDE-managed Components
         TMenuItem *DDAEject;
         TMenuItem *OpenRecent1;
         TMenuItem *mRU4;
-        TMenuItem *OpenTA;
+    TMenuItem *OpenTA1;
         TMenuItem *TDAInsert;
         TMenuItem *TDAEject;
         TMenuItem *DDBInsert;
@@ -115,6 +115,9 @@ __published:	// IDE-managed Components
         TMenuItem *Reportabug1;
         TMenuItem *Chatwithcommunity1;
         TMenuItem *N1;
+    TMenuItem *OpenTA2;
+    TMenuItem *InsertTape1;
+    TMenuItem *EjectTape1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall Exit1Click(TObject *Sender);

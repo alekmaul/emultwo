@@ -13,7 +13,6 @@ __published:	// Composants gérés par l'EDI
     TListBox *ListBox1;
     void __fastcall FormShow(TObject *Sender);
     void __fastcall ListBox1DblClick(TObject *Sender);
-        void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
 private:	// Déclarations de l'utilisateur
 public:		// Déclarations de l'utilisateur
     __fastcall Tsymbbrows(TComponent* Owner);

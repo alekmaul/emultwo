@@ -80,11 +80,5 @@ void __fastcall Tsymbbrows::ListBox1DblClick(TObject *Sender)
     debug->AddBreakPoint(bp);
 }
 //---------------------------------------------------------------------------
-void __fastcall Tsymbbrows::FormClose(TObject *Sender,
-      TCloseAction &Action)
-{
-    debug->ShowSymbols1->Caption="Show Symbols";
-}
-//---------------------------------------------------------------------------
 
 

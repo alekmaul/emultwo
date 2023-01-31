@@ -63,6 +63,7 @@ USEFORM("src\ioviewer_.cpp", iomapviewer);
 USEFORM("src\soundviewer_.cpp", soundviewer);
 USELIB("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\libs\directsound\dsound.lib");
 USEUNIT("src\f18a\f18a.cpp");
+USEFORM("src\memory_.cpp", memory);
 //---------------------------------------------------------------------------
 #include "main_.h"
 #include "utils.h"
@@ -130,7 +131,8 @@ WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
 
                 Application->Initialize();
                 Application->Title = "E.mul T.wo";
-                #include "allformsImpl.cpp"
+                Application->CreateForm(__classid(Tmemory), &memory);
+         #include "allformsImpl.cpp"
 
                 Application->ProcessMessages();
 

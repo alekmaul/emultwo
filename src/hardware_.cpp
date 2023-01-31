@@ -329,3 +329,14 @@ void __fastcall Thardware::bBiosClick(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall Thardware::Button1Click(TObject *Sender)
+{
+    strcpy(emul2.colecobios,"Internal");
+    strcpy(emul2.adameos,"Internal");
+    strcpy(emul2.adamwriter,"Internal");
+    stBios->Caption=emul2.colecobios;
+    stEos->Caption=emul2.adameos;
+    stWriter->Caption=emul2.adamwriter;
+}
+//---------------------------------------------------------------------------
+

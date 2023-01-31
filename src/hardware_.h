@@ -52,6 +52,7 @@ __published:	// IDE-managed Components
     TStaticText *stWriter;
     TButton *bWriter;
     TOpenDialog *odBIOS;
+    TButton *Button1;
         void __fastcall OKClick(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall chkNTSCClick(TObject *Sender);
@@ -64,6 +65,7 @@ __published:	// IDE-managed Components
     void __fastcall bCancelClick(TObject *Sender);
     void __fastcall cboSEDispDChange(TObject *Sender);
     void __fastcall bBiosClick(TObject *Sender);
+    void __fastcall Button1Click(TObject *Sender);
 private:	// User declarations
         int NewMachine;
         AnsiString NewMachineName;

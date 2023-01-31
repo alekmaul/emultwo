@@ -2,7 +2,7 @@ object hardware: Thardware
   Left = 517
   Top = 114
   Width = 567
-  Height = 420
+  Height = 452
   Anchors = [akTop]
   Caption = 'Hardware'
   Color = clBtnFace
@@ -12,12 +12,13 @@ object hardware: Thardware
   Font.Name = 'MS Sans Serif'
   Font.Style = []
   OldCreateOrder = False
+  OnClick = spSGMClick
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object OK: TButton
     Left = 377
-    Top = 351
+    Top = 383
     Width = 75
     Height = 25
     Anchors = [akTop]
@@ -1231,7 +1232,7 @@ object hardware: Thardware
   end
   object bCancel: TButton
     Left = 462
-    Top = 351
+    Top = 383
     Width = 75
     Height = 25
     Anchors = [akTop]
@@ -3364,7 +3365,7 @@ object hardware: Thardware
     Left = 208
     Top = 230
     Width = 337
-    Height = 112
+    Height = 139
     Caption = 'Bios'
     TabOrder = 7
     object lCOleco: TLabel
@@ -3453,9 +3454,19 @@ object hardware: Thardware
       TabOrder = 5
       OnClick = bBiosClick
     end
+    object Button1: TButton
+      Tag = 2
+      Left = 8
+      Top = 108
+      Width = 113
+      Height = 25
+      Caption = 'Reset to Internal'
+      TabOrder = 6
+      OnClick = Button1Click
+    end
   end
   object odBIOS: TOpenDialog
     Left = 8
-    Top = 344
+    Top = 384
   end
 end

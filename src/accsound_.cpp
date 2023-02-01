@@ -473,21 +473,11 @@ void CSound::SoundSuspend(void)
     memset(Buffer,0x00,FrameSize);
     DXSound.Frame(Buffer, FrameSize);
     DXSound.Suspend();
-/*
-    if (!sound_enabled)
-        return;
-    DSsuspend();
-*/
 }
 
 void CSound::SoundResume(void)
 {
     DXSound.Resume();
-/*
-    if (!sound_enabled)
-        return;
-    DSresume();
-*/
 }
 
 void CSound::Frame(unsigned int lineupdate )

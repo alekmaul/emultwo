@@ -131,8 +131,7 @@ WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR cmdline, int)
 
                 Application->Initialize();
                 Application->Title = "E.mul T.wo";
-                Application->CreateForm(__classid(Tmemory), &memory);
-         #include "allformsImpl.cpp"
+                #include "allformsImpl.cpp"
 
                 Application->ProcessMessages();
 

@@ -83,8 +83,7 @@ typedef struct {
     unsigned char maxSprites;                                   // Stop Sprite to limit the total number of sprites to process, defaults to 32
     unsigned char gpuAddressLatch;
 
-    unsigned short palette[64];                                 // 64 colors palette registers
-    unsigned char SR[16];                                       // Status Regiters
+    unsigned short palette[64][3];                              // 64 colors palette registers
     unsigned char VDPR[64];                                     // VDP registers (only 58 used)
 } tF18A;
 

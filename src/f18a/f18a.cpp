@@ -17,6 +17,8 @@
  *
  * f18a.cpp
  *
+ * Based on js99'er - TI-99/4A emulator written in JavaScript
+ *  written by Rasmus Moustgaard <rasmus.moustgaard@gmail.com>
  *
  */
 //---------------------------------------------------------------------------
@@ -31,74 +33,76 @@ tF18A f18a;
 //---------------------------------------------------------------------------
 const unsigned char F18A_palette[4*16*3] = {
     // Palette 0, original 9918A NTSC color approximations
-/*"000", //  0 Transparent
-"000", //  1 Black
-"2C3", //  2 Medium Green
-"5D6", //  3 Light Green
-"54F", //  4 Dark Blue
-"76F", //  5 Light Blue
-"D54", //  6 Dark Red
-"4EF", //  7 Cyan
-"F54", //  8 Medium Red
-"F76", //  9 Light Red
-"DC3", // 10 Dark Yellow
-"ED6", // 11 Light Yellow
-"2B2", // 12 Dark Green
-"C5C", // 13 Magenta
-"CCC", // 14 Gray
-"FFF", // 15 White*/
+    0,0,0,      //  0 Transparent
+    0,0,0,      //  1 Black
+    2,0xC,3,    //  2 Medium Green
+    5,0xD,6, //  3 Light Green
+    5,4,0xF, //  4 Dark Blue
+    7,6,0xF, //  5 Light Blue
+    0xD,5,4, //  6 Dark Red
+    4,0xE,0xF, //  7 Cyan
+    0xF,0x5,0x4, //  8 Medium Red
+    0xF,7,6, //  9 Light Red
+    0xD,0xC,3, // 10 Dark Yellow
+    0xE,0xD,6, // 11 Light Yellow
+    2,0xB,2, // 12 Dark Green
+    0xC,5,0xC, // 13 Magenta
+    0xC,0xC,0xC, // 14 Gray
+    0xF,0xF,0xF, // 15 White*/
+
     // Palette 1, ECM1 (0 index is always 000) version of palette 0
-/*"000", //  0 Black
-"2C3", //  1 Medium Green
-"000", //  2 Black
-"54F", //  3 Dark Blue
-"000", //  4 Black
-"D54", //  5 Dark Red
-"000", //  6 Black
-"4EF", //  7 Cyan
-"000", //  8 Black
-"CCC", //  9 Gray
-"000", // 10 Black
-"DC3", // 11 Dark Yellow
-"000", // 12 Black
-"C5C", // 13 Magenta
-"000", // 14 Black
-"FFF", // 15 White*/
+    0,0,0, //  0 Black
+    2,0xC,3, //  1 Medium Green
+    0,0,0, //  2 Black
+    5,4,0xF, //  3 Dark Blue
+    0,0,0, //  4 Black
+    0xD,5,4, //  5 Dark Red
+    0,0,0, //  6 Black
+    4,0xE,0xF, //  7 Cyan
+    0,0,0, //  8 Black
+    0xC,0xC,0xC, //  9 Gray
+    0,0,0, // 10 Black
+    0xD,0xC,3, // 11 Dark Yellow
+    0,0,0, // 12 Black
+    0xC,5,0xC, // 13 Magenta
+    0,0,0, // 14 Black
+    0xF,0xF,0xF, // 15 White*/
+
     // Palette 2, CGA colors
-    0,  0,   0, //  black
-    0,   0, 170, //  blue
-    0, 170,   0, //  green
-    0, 170, 170, //  cyan
-    170,   0,   0, //  red
-    170,   0, 170, //  magenta
-    170,  85,   0, //  brown
-    170, 170, 170, //  light gray
-    85,  85,  85, //  gray
-    85,  85, 255, //  light blue
-    85, 255,  85, //  light green
-    85, 255, 255, //  light cyan
-    255,  85,  85, //  light red
-    255,  85, 255, //  light magenta
-    255, 255,  85, //  yellow
-    255, 255, 255, //  white
+    0,0,0, //  0 >000000 (  0   0   0) black
+    0,0,0xA, //  1 >0000AA (  0   0 170) blue
+    0,0xA,0, //  2 >00AA00 (  0 170   0) green
+    0,0xA,0xA, //  3 >00AAAA (  0 170 170) cyan
+    0xA,0,0, //  4 >AA0000 (170   0   0) red
+    0xA,0,0xA, //  5 >AA00AA (170   0 170) magenta
+    0xA,5,0, //  6 >AA5500 (170  85   0) brown
+    0xA,0xA,0xA, //  7 >AAAAAA (170 170 170) light gray
+    5,5,5, //  8 >555555 ( 85  85  85) gray
+    5,5,0xF, //  9 >5555FF ( 85  85 255) light blue
+    5,0xF,5, // 10 >55FF55 ( 85 255  85) light green
+    5,0xF,0xF, // 11 >55FFFF ( 85 255 255) light cyan
+    0xF,5,5, // 12 >FF5555 (255  85  85) light red
+    0xF,5,0xF, // 13 >FF55FF (255  85 255) light magenta
+    0xF,0xF,5, // 14 >FFFF55 (255 255  85) yellow
+    0xF,0xF,0xF, // 15 >FFFFFF (255 255 255) white
 
     // Palette 3, ECM1 (0 index is always 000) version of palette 2
-    0,   0,   0, //  black
-    85,  85,  85, //  gray
-    0,   0,   0, //  black
-    0,   0, 170, //  blue
-    0,   0,   0, //  black
-    0, 170,   0, //  green
-    0,   0,   0, //  black
-    0, 170, 170, //  cyan
-    0,   0,   0, //  black
-    170,   0,   0, //  red
-    0,   0,   0, //  black
-    170,   0, 170, //  magenta
-    0,   0,   0, //  black
-    170,  85,   0, //  brown
-    0,   0,   0, //  black
-    255, 255, 255, //  white
+    0,0,0, //  0 >000000 (  0   0   0) black
+    5,5,5, //  1 >555555 ( 85  85  85) gray
+    0,0,0, //  2 >000000 (  0   0   0) black
+    0,0,0xA, //  3 >0000AA (  0   0 170) blue
+    0,0,0, //  4 >000000 (  0   0   0) black
+    0,0xA,0, //  5 >00AA00 (  0 170   0) green
+    0,0,0, //  6 >000000 (  0   0   0) black
+    0,0xA,0xA, //  7 >00AAAA (  0 170 170) cyan
+    0,0,0, //  8 >000000 (  0   0   0) black
+    0xA,0,0, //  9 >AA0000 (170   0   0) red
+    0,0,0, // 10 >000000 (  0   0   0) black
+    0xA,0,0xA, // 11 >AA00AA (170   0 170) magenta
+    0,0,0, // 12 >000000 (  0   0   0) black
+    0xA,5,0, // 13 >AA5500 (170  85   0) brown
+    0,0,0, // 14 >000000 (  0   0   0) black
+    0xF,0xF,0xF  // 15 >FFFFFF (255 255 255) white
 };
 
 #pragma package(smart_init)
@@ -106,6 +110,8 @@ const unsigned char F18A_palette[4*16*3] = {
 
 // Reset the tms.VR
 void f18a_reset(void) {
+    int i,j;
+
     // 1st, reset tms 9918
     tms9918_reset();
 
@@ -120,26 +126,26 @@ void f18a_reset(void) {
         this.addressRegister = 0;
         this.statusRegister = 0;
         this.palette = [];
-        for (i = 0; i < 64; i++) {
-            var rgbColor = F18A.PALETTE[i];
-            this.palette[i] = [
-                parseInt(rgbColor.charAt(0), 16) * 17,
-                parseInt(rgbColor.charAt(1), 16) * 17,
-                parseInt(rgbColor.charAt(2), 16) * 17
-            ];
-        }
-
-        this.prefetchByte = 0;
-        this.latch = false;
+        */
+    j=0;
+    for (i = 0; i < 64; i++,j+=3)
+    {
+        f18a.palette[i][0]=F18A_palette[j];
+        f18a.palette[i][1]=F18A_palette[j+1];
+        f18a.palette[i][2]=F18A_palette[j+2];
+    }
+/*
+    this.prefetchByte = 0;
+    this.latch = false;
 */
-        f18a.addressIncrement = 1;
-        f18a.unlocked = 0;
-        f18a.statusRegisterNo = 0;
-        f18a.dataPortMode = 0;
-        f18a.autoIncPaletteReg = 0;
-        f18a.paletteRegisterNo = 0;
-        f18a.paletteRegisterData = 255;
-        f18a.gpuAddressLatch = 0;
+    f18a.addressIncrement = 1;
+    f18a.unlocked = 0;
+    f18a.statusRegisterNo = 0;
+    f18a.dataPortMode = 0;
+    f18a.autoIncPaletteReg = 0;
+    f18a.paletteRegisterNo = 0;
+    f18a.paletteRegisterData = 255;
+    f18a.gpuAddressLatch = 0;
 /*
         f18a.currentScanline = 0;
         f18a.fakeScanline = null;
@@ -255,6 +261,16 @@ void WriteF18A(int iReg,unsigned char value) {
 	// Depending on the register, do...
     switch (iReg)
     {
+    case 0x00: // Do it with TMS
+        Write9918(iReg,Value);
+        break;
+    case 0x0A: // Name table 2 base address
+    case 0x0A: // Name table 2 base address
+    case 0x0A: // Name table 2 base address
+    case 0x0A: // Name table 2 base address
+    case 0x0A: // Name table 2 base address
+    case 0x0A: // Name table 2 base address
+
     case 0x0A: // Name table 2 base address
         f18a.nameTable2 = (f18a.VDPR[0x0A] & 0x0f) << 10;
         break;
@@ -473,9 +489,8 @@ void f18a_writedata(unsigned char value)
         }
         else
         {
-        /*
             // Read second byte
-            f18a.palette[f18a.paletteRegisterNo][0] = this.paletteRegisterData * 17;
+            f18a.palette[f18a.paletteRegisterNo][0] = f18a.paletteRegisterData * 17;
             f18a.palette[f18a.paletteRegisterNo][1] = ((value & 0xf0) >> 4) * 17;
             f18a.palette[f18a.paletteRegisterNo][2] = (value & 0x0f) * 17;
             if (f18a.autoIncPaletteReg)
@@ -489,7 +504,6 @@ void f18a_writedata(unsigned char value)
                 f18a.paletteRegisterNo = 0;
             }
             f18a.paletteRegisterData = -1;
-*/
         }
     }
 };
@@ -504,11 +518,117 @@ unsigned char f18a_readdata(void)
 
 unsigned char f18a_writectrl(unsigned char value)
 {
+    if (tms.VKey)
+    {
+	    tms.VKey=0;
+        tms.VAddr=((tms.VAddr&0xFF00)|value)&0x3FFF;
+	}
+	else
+        {
+		tms.VKey=1;
+        tms.VAddr = ((tms.VAddr&0x00FF)|((int)value<<8))&0x3FFF;
+		switch(value&0xC0)
+        {
+        case 0x00:
+            // In READ mode, read the first unsigned char from VRAM
+            tms.DLatch = tms.ram[tms.VAddr];
+            tms.VAddr  = (tms.VAddr+1)&0x3FFF;
+			break;
+        case 0x80:
+            // Enabling IRQs may cause an IRQ here
+            return( Write9918(value&0x0F,tms.VAddr&0x00FF) );
+		}
+/*
+        else {
+            var cmd = (i & 0xc0) >> 6;
+            var msb = i & 0x3f;
+            switch (cmd) {
+                // Set read address
+                case 0:
+                    this.addressRegister = (msb << 8) | (this.addressRegister & 0x00FF);
+                    this.prefetchByte = this.ram[this.addressRegister];
+                    this.addressRegister += this.addressIncrement;
+                    this.addressRegister &= 0x3FFF;
+                    this.registers[15] = this.registers[msb];
+                    break;
+                // Set write address
+                case 1:
+                    this.addressRegister =  (msb << 8) | (this.addressRegister & 0x00FF);
+                    break;
+                // Write register
+                case 2:
+                case 3:
+                    var reg = msb;
+                    if (this.unlocked || reg < 8 || reg === 57) {
+                        this.writeRegister(reg, this.addressRegister & 0x00FF);
+                    }
+                    else {
+                        this.log.info("Write " + (this.addressRegister & 0x00FF).toHexByte() + " to F18A register " + reg + " (" + reg.toHexByte() + ") without unlocking.");
+                        if ((this.registers[0] & 0x04) === 0) {  // 1.8 firmware: writes to registers > 7 are masked if 80 columns mode is not enabled
+                            this.writeRegister(reg & 0x07, this.addressRegister & 0x00FF);
+                        }
+                        else {
+                            this.log.info("Register write ignored.");
+                        }
+                    }
+                    break;
+            }
+            */
+
+	}
+
+	// No interrupts
+	return(0);
 };
 // ----------------------------------------------------------------------------------------
 
 unsigned char f18a_readctrl(void)
 {
+    unsigned char retval=0xFF;
+
+    // check which Status register is active
+    if (f18a.statusRegisterNo==0)
+    {
+        // default TMS register
+        retval = tms.SR;
+        tms.SR &= TMS9918_STAT_5THNUM|TMS9918_STAT_5THSPR;
+
+        z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
+    }
+    else
+    {
+    case 1: // ID
+        return 0xe0;
+    case 2: // GPU status
+        return (f18a.gpu.isIdle() ? 0 : 0x80) | (this.ram[0xb000] & 0x7f);
+    case 3: // Current scanline
+        return f18a.getCurrentScanline();
+    case 4: // Counter nanos LSB
+        return (Math.floor((this.counterSnap * 1000000) / 10) * 10 % 1000) & 0x00ff;
+    case 5:
+        // Counter nanos MSB
+        return ((Math.floor((this.counterSnap * 1000000) / 10) * 10 % 1000) & 0x0300) >> 8;
+    case 6: // Counter micros LSB
+        return ((f18a.counterSnap * 1000) % 1000) & 0x00ff;
+    case 7: // Counter micros MSB
+        return (((f18a.counterSnap * 1000) % 1000) & 0x0300) >> 8;
+    case 8: // Counter millis LSB
+        return (f18a.counterSnap % 1000) & 0x00ff;
+    case 9: // Counter millis MSB
+        return ((f18a.counterSnap % 1000) & 0x0300) >> 8;
+    case 10: // Counter seconds LSB
+        return (f18a.counterSnap / 1000) & 0x00ff;
+    case 11: // Counter seconds MSB
+        return ((f18a.counterSnap / 1000) & 0xff00) >> 8;
+    case 14: // Major/Minor version, 00011000 = v1.8
+        return F18A_VERSION;
+    case 15: // VDP read register value (see VR15).  Updated any time a VRAM address is set
+        return f18a.VDPR[15];
+    }
+
+    tms.VKey = 0; // According to Matthew
+    
+    return(retval);
 };
 // ----------------------------------------------------------------------------------------
 

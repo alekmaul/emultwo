@@ -4,10 +4,10 @@
     Application->CreateForm(__classid(Tcartprofile), &cartprofile);
     Application->CreateForm(__classid(Tdebug), &debug);
     Application->CreateForm(__classid(Tdumpmem),&dumpmem);
-    Application->CreateForm(__classid(Tdumpmem), &dumpmem);
     Application->CreateForm(__classid(Teditvalue), &editvalue);
     Application->CreateForm(__classid(Tiomapviewer), &iomapviewer);
     Application->CreateForm(__classid(Tjoyconf), &joyconf);
+    Application->CreateForm(__classid(Tmemory), &memory);
     Application->CreateForm(__classid(Tnametabviewer), &nametabviewer);
     Application->CreateForm(__classid(Tpaletteviewer), &paletteviewer);
     Application->CreateForm(__classid(Tpatternviewer), &patternviewer);

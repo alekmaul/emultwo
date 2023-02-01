@@ -136,7 +136,8 @@ void DebugUpdate(void)
 #if 0
     Profiler->DebugTick(&z80);
 #endif
-    if (debug->AutoRefresh1->Checked==true && debug->Visible==true)
+//    if (debug->AutoRefresh1->Checked==true && debug->Visible==true)
+    if (emul2.stop && debug->Visible==true)
         debug->UpdateVals();
 }
 //---------------------------------------------------------------------------
@@ -191,15 +192,12 @@ void Tdebug::EnableValues(bool enable)
     Interrupts->Enabled = enable;
     IM->Enabled = enable;
 
-/*
-    cboMemory->Enabled = enable;
-    udMemory->Enabled = enable;
-    ButtonFirstChange->Enabled = enable;
-    ButtonPrevChange->Enabled = enable;
-    ButtonNextChange->Enabled = enable;
-    ButtonLastChange->Enabled = enable;
-  */
-  TStatesCount->Enabled = enable;
+    TStatesCount->Enabled = enable;
+
+    bStepIn->Enabled = enable;
+    bStepOv->Enabled = enable;
+    bStepOu->Enabled = enable;
+
 }
 //---------------------------------------------------------------------------
 
@@ -849,7 +847,7 @@ void Tdebug::SetLabelInfo(TLabel* label, int value, int valueWidth)
     label->Tag = value;
 
     // the caption is fairly standard
-    label->Caption = AnsiString::IntToHex(label->Tag, valueWidth);
+    label->Caption = "$"+AnsiString::IntToHex(label->Tag, valueWidth);
     if (valueWidth == 4)
     {
         // ahaa!
@@ -888,20 +886,20 @@ void Tdebug::UpdateVals(void)
 
     // Update stack memory
     i=Z80.sp.d;
-    Stack00->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack01->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack02->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack03->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack04->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack05->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack06->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack07->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack08->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack09->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack10->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack11->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack12->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
-    Stack13->Caption = Hex16(i)+" " +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack00->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack01->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack02->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack03->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack04->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack05->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack06->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack07->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack08->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack09->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack10->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack11->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack12->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
+    Stack13->Caption = "$"+Hex16(i)+" $" +Hex16( getbyte(i)+256*getbyte(i+1) ); i+=2;
 
     // Put history back instructions
     i = recentHistory[(recentHistoryPos+0)&3]; Disass0->Caption = Disassemble(&i);
@@ -1045,10 +1043,10 @@ void __fastcall Tdebug::FormClose(TObject *Sender, TCloseAction &Action)
 
 void __fastcall Tdebug::FormShow(TObject *Sender)
 {
-    AutoRefresh1->Enabled = true;
+/*    AutoRefresh1->Enabled = true;
 
     if (AutoRefresh1->Checked==true) emul2.singlestep=1;
-    UpdateVals();
+    UpdateVals();*/
 }
 //---------------------------------------------------------------------------
 
@@ -1082,9 +1080,11 @@ void __fastcall Tdebug::RunStop1Click(TObject *Sender)
     {
         //TODO ClearChanges();
         Sound.SoundResume();
+        DisableVals();
     }
     else {
         Sound.SoundSuspend();
+        EnableVals();
     }
     UpdateVals();
     StepOutRequested = 0;
@@ -1132,16 +1132,16 @@ void __fastcall Tdebug::Exit1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
-void __fastcall Tdebug::ShowSymbols1Click(TObject *Sender)
+void __fastcall Tdebug::Symbols1Click(TObject *Sender)
 {
     if (symbbrows->Visible)
     {
-        ShowSymbols1->Checked=false;
+        Symbols1->Checked=false;
         symbbrows->Close();
         return;
     }
     symbbrows->Show();
-    ShowSymbols1->Checked=true;
+    Symbols1->Checked=true;
 }
 //---------------------------------------------------------------------------
 
@@ -1551,12 +1551,18 @@ void __fastcall Tdebug::Memory1Click(TObject *Sender)
 {
     if (memory->Visible)
     {
-        ShowSymbols1->Checked=false;
+        Memory1->Checked=false;
         memory->Close();
         return;
     }
     memory->Show();
-    ShowSymbols1->Checked=true;
+    Memory1->Checked=true;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall Tdebug::FormCreate(TObject *Sender)
+{
+    DisableVals();
 }
 //---------------------------------------------------------------------------
 

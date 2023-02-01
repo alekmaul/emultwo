@@ -18,7 +18,7 @@
 class Tdebug : public TForm
 {
 __published:	// Composants gérés par l'EDI
-    TGroupBox *GroupBox1;
+    TGroupBox *grRegisters;
     TLabel *HLL;
     TLabel *BCL;
     TLabel *DEL;
@@ -75,7 +75,7 @@ __published:	// Composants gérés par l'EDI
     TLabel *PGLBL;
     TLabel *Disass10;
     TLabel *Disass11;
-    TGroupBox *GroupBox5;
+    TGroupBox *grStack;
         TLabel *Stack00;
         TLabel *Stack01;
         TLabel *Stack02;
@@ -100,7 +100,7 @@ __published:	// Composants gérés par l'EDI
     TMenuItem *LoadSymbolFile1;
     TMenuItem *N1;
     TMenuItem *Exit1;
-    TMenuItem *ShowSymbols1;
+    TMenuItem *Symbols1;
     TOpenDialog *OpenDialog1;
     TMenuItem *View;
     TMenuItem *AutoRefresh1;
@@ -113,9 +113,16 @@ __published:	// Composants gérés par l'EDI
     TLabel *Stack12;
     TLabel *Stack13;
         TMenuItem *RunStop3;
-    TButton *btMemory;
     TMenuItem *N2;
     TMenuItem *Memory1;
+    TGroupBox *GroupBox3;
+    TButton *btMemory;
+    TButton *Button1;
+    TGroupBox *GroupBox6;
+    TButton *Button2;
+    TButton *bStepIn;
+    TButton *bStepOv;
+    TButton *bStepOu;
     void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
     void __fastcall FormShow(TObject *Sender);
     void __fastcall RunStop1Click(TObject *Sender);
@@ -123,7 +130,7 @@ __published:	// Composants gérés par l'EDI
     void __fastcall StepOver1Click(TObject *Sender);
     void __fastcall StepOut1Click(TObject *Sender);
     void __fastcall Exit1Click(TObject *Sender);
-    void __fastcall ShowSymbols1Click(TObject *Sender);
+    void __fastcall Symbols1Click(TObject *Sender);
     void __fastcall LoadSymbolFile1Click(TObject *Sender);
 
     void __fastcall Stack00Click(TObject *Sender);
@@ -179,6 +186,7 @@ __published:	// Composants gérés par l'EDI
     void __fastcall Disass3MouseDown(TObject *Sender, TMouseButton Button,
           TShiftState Shift, int X, int Y);
     void __fastcall Memory1Click(TObject *Sender);
+    void __fastcall FormCreate(TObject *Sender);
 private:	// Déclarations de l'utilisateur
     void EnableValues(bool enable);
     void EnableVals(void);

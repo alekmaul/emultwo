@@ -134,7 +134,7 @@ void f18a_reset(void) {
     f18a.DPM = 0;
     f18a.PalAutoInc = 0;
     f18a.PalRegNo = 0;
-    f18a.paletteRegisterData = 255;
+    f18a.PalRegVal = 255;
     f18a.gpuAddressLatch = 0;
 /*
         f18a.currentScanline = 0;
@@ -524,21 +524,6 @@ unsigned char f18a_writectrl(unsigned char value)
 	}
 	else
     {
-        /*
-		tms.VKey=1;
-        tms.VAddr = ((tms.VAddr&0x00FF)|((int)value<<8))&0x3FFF;
-		switch(value&0xC0)
-        {
-        case 0x00:
-            // In READ mode, read the first unsigned char from VRAM
-            tms.DLatch = tms.ram[tms.VAddr];
-            tms.VAddr  = (tms.VAddr+1)&0x3FFF;
-			break;
-        case 0x80:
-            // Enabling IRQs may cause an IRQ here
-            return( Write9918(value&0x0F,tms.VAddr&0x00FF) );
-		}
-        */
 		tms.VKey=1;
         cmd = (value & 0xc0) >> 6;
         msb = value & 0x3f;

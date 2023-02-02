@@ -32,6 +32,7 @@
 
 #include "ay8910.h"
 #include "sn76489.h"
+#include "f18a.h"
 #include "tms9928a.h"
 #include "c24xx.h"
 #include "adamnet.h"
@@ -642,7 +643,7 @@ void coleco_reset(void)
     }
 
     // Reset hardware and CPU
-    tms9918_reset();
+    machine.vdp_reset();
     tms.ScanLines=emul2.NTSC ? TMS9918_LINES : TMS9929_LINES;
 
     sn76489_init(emul2.NTSC ? CLOCK_NTSC : CLOCK_PAL, 44100);
@@ -983,16 +984,15 @@ void coleco_writeport(int Address, int Data, int *tstates)
         break;
     case 0xA0:
         coleco_updatetms=1; // to update screen if needed
-        if(!(Address&0x01)) tms9918_writedata(Data);
-        else {
-            //tms9918_writectrl(Data);
-            if (tms9918_writectrl(Data))
+        if(!(Address&0x01)) machine.vdp_writedata(Data);
+        else
+        {
+            if (machine.vdp_writectrl(Data))
             {
                 z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
             }
             else
                 z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
-
         }
         break;
     case 0x40:
@@ -1050,7 +1050,7 @@ BYTE ReadInputPort(int Address, int *tstates)
         Address = coleco_joymode?   (Address>>8):Address;
         return(~Address&0x7F);
     case 0xA0: // VDP Status/Data
-        return(Address&0x01? tms9918_readctrl():tms9918_readdata());
+        return(Address&0x01? machine.vdp_readctrl():machine.vdp_readdata());
     }
 
     // No such port

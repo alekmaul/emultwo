@@ -422,7 +422,9 @@ void TForm1::UpdateStatusBar(void)
 
         text="";
         if (emul2.SGM == 1)
-            text = "SGM";
+            text += " SGM";
+        if (emul2.F18A == 1)
+            text += " F18A";
         StatusBar1->Panels->Items[3]->Text = text;
 }
 

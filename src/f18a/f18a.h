@@ -27,11 +27,12 @@ typedef struct {
 
     unsigned char unlocked;                                     // Status locked(0)/unlocked (1)
 
-    unsigned char dataPortMode;                                 // Data port mode
-    unsigned char autoIncPaletteReg;                            // AutoInc palette register
-    unsigned char paletteRegisterNo;                            // Palette resiter number 0..63
-    unsigned char paletteRegisterData;
+    unsigned char DPM;                                          // Data port mode
+    unsigned char PalAutoInc;                                   // AutoInc palette register
+    unsigned char PalRegNo;                                     // Palette register number 0..63
+    unsigned char PalRegVal;                                    // Palette register value
     unsigned char statusRegisterNo;                             // Status register number 0..15
+    signed char VAddrInc;                                       // SIGNED two's-complement increment amount for VRAM address, defaults to 1
 
     unsigned int counterElapsed,counterStart,counterSnap;       // Counter management
 
@@ -63,7 +64,6 @@ typedef struct {
     unsigned short bitmapX,bitmapY;                             // Bitmap x,y
     unsigned short bitmapWidth,bitmapHeight;                    // Bitmap width & height
 
-    signed char addressIncrement;                               // SIGNED two's-complement increment amount for VRAM address, defaults to 1
 
     unsigned char tileLayer2Enabled;                            // ECM = enhanced color mode, (T)ile and (S)prite
     unsigned char row30Enabled;

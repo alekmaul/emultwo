@@ -10,6 +10,7 @@
 #include "accsound_.h"
 #include "coleco.h"
 
+#include "f18a.h"
 #include "tms9928a.h"
 
 //---------------------------------------------------------------------------
@@ -99,6 +100,11 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     machine.reset = coleco_reset;
     machine.nmi = NULL;
     machine.exit = NULL;
+    machine.vdp_reset=(emul2.F18A ? f18a_reset : tms9918_reset);
+    machine.vdp_writedata=(emul2.F18A ? f18a_writedata : tms9918_writedata);
+    machine.vdp_readdata=(emul2.F18A ? f18a_readdata : tms9918_readdata);
+    machine.vdp_writectrl=(emul2.F18A ? f18a_writectrl : tms9918_writectrl);
+    machine.vdp_readctrl=(emul2.F18A ? f18a_readctrl : tms9918_readctrl);
 
     AccurateInit(false);
 

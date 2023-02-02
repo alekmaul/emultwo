@@ -101,31 +101,34 @@ typedef struct
 
 typedef struct
 {
-        void (*initialise)(void);
-        int (*do_scanline)(void);
-        void (*writebyte)(int Address, int Data);
-        void (*setbyte)(int Address, int Data);
-        BYTE (*readbyte)(int Address);
-        BYTE (*readoperandbyte)(int Address);
-        BYTE (*getbyte)(int Address);
-        BYTE (*opcode_fetch)(int Address);
-        void (*writeport)(int Address, int Data, int *tstates);
-        BYTE (*readport)(int Address, int *tstates);
-        int (*contendmem)(int Address, int states, int time);
-        int (*contendio)(int Address, int states, int time);
-        void (*reset)(void);
-        void (*nmi)(void);
-        void (*exit)(void);
+    void (*initialise)(void);
+    int (*do_scanline)(void);
+    void (*writebyte)(int Address, int Data);
+    void (*setbyte)(int Address, int Data);
+    BYTE (*readbyte)(int Address);
+    BYTE (*readoperandbyte)(int Address);
+    BYTE (*getbyte)(int Address);
+    BYTE (*opcode_fetch)(int Address);
+    void (*writeport)(int Address, int Data, int *tstates);
+    BYTE (*readport)(int Address, int *tstates);
+    int (*contendmem)(int Address, int states, int time);
+    int (*contendio)(int Address, int states, int time);
+    void (*reset)(void);
+    void (*nmi)(void);
+    void (*exit)(void);
 
-        int clockspeed;
-        int tperscanline;
-        int tperframe;
-        int intposition;
-        int scanlines;
-        int fps;
+    void (*vdp_reset)(void);
+    void (*vdp_writedata)(unsigned char value);
+    unsigned char (*vdp_readdata)(void);
+    unsigned char (*vdp_writectrl)(unsigned char value);
+    unsigned char (*vdp_readctrl)(void);
 
-        void* cset;
-
+    int clockspeed;
+    int tperscanline;
+    int tperframe;
+    int intposition;
+    int scanlines;
+    int fps;
 } MACHINE;
 
 extern EMUL2 emul2;

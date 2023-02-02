@@ -22,11 +22,15 @@
  *
  */
 //---------------------------------------------------------------------------
+#include <math.h>
 
 #include <vcl.h>
 #pragma hdrstop
 
 #include "f18a.h"
+#include "tms9928a.h"
+
+#include "z80.h"
 
 tF18A f18a;
 
@@ -112,38 +116,24 @@ const unsigned char F18A_palette[4*16*3] = {
 void f18a_reset(void) {
     int i,j;
 
-    // 1st, reset tms 9918
-    tms9918_reset();
-
-    /*
-        var i;
-        for (i = 0; i < 0x4000; i++) {
-            this.ram[i] = 0;
-        }
-        for (i = 0; i < this.registers.length; i++) {
-            this.registers[i] = 0;
-        }
-        this.addressRegister = 0;
-        this.statusRegister = 0;
-        this.palette = [];
-        */
+    // Init palette
     j=0;
     for (i = 0; i < 64; i++,j+=3)
     {
-        f18a.palette[i][0]=F18A_palette[j];
-        f18a.palette[i][1]=F18A_palette[j+1];
-        f18a.palette[i][2]=F18A_palette[j+2];
+        f18a.palette[i][0]=F18A_palette[j]*17;
+        f18a.palette[i][1]=F18A_palette[j+1]*17;
+        f18a.palette[i][2]=F18A_palette[j+2]*17;
     }
 /*
-    this.prefetchByte = 0;
     this.latch = false;
 */
-    f18a.addressIncrement = 1;
+    // Init specific var regarding chipset
+    f18a.VAddrInc = 1;
     f18a.unlocked = 0;
     f18a.statusRegisterNo = 0;
-    f18a.dataPortMode = 0;
-    f18a.autoIncPaletteReg = 0;
-    f18a.paletteRegisterNo = 0;
+    f18a.DPM = 0;
+    f18a.PalAutoInc = 0;
+    f18a.PalRegNo = 0;
     f18a.paletteRegisterData = 255;
     f18a.gpuAddressLatch = 0;
 /*
@@ -211,12 +201,16 @@ void f18a_reset(void) {
         this.counterSnap = 0;
 */
     f18a_resetregs();
+
+    // last, reset tms 9918
+    tms9918_reset();
 }
 // ----------------------------------------------------------------------------------------
 
 void f18a_resetregs(void)
 {
     // 9918 registers
+/*
     WriteF18A(0, 0);
     WriteF18A(1, 0x40);
     WriteF18A(2, 0);
@@ -225,6 +219,7 @@ void f18a_resetregs(void)
     WriteF18A(5, 0x0A);
     WriteF18A(6, 0x02);
     WriteF18A(7, 0xF2);
+*/
 
     // f18a registers
     WriteF18A(10, 0);
@@ -262,15 +257,17 @@ void WriteF18A(int iReg,unsigned char value) {
     switch (iReg)
     {
     case 0x00: // Do it with TMS
-        Write9918(iReg,Value);
+        Write9918(iReg,value);
         break;
-    case 0x0A: // Name table 2 base address
-    case 0x0A: // Name table 2 base address
-    case 0x0A: // Name table 2 base address
-    case 0x0A: // Name table 2 base address
-    case 0x0A: // Name table 2 base address
-    case 0x0A: // Name table 2 base address
-
+    case 0x01: // Name table 2 base address
+    case 0x02: // Do it with TMS
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
+    case 0x07:
+        Write9918(iReg,value);
+        break;
     case 0x0A: // Name table 2 base address
         f18a.nameTable2 = (f18a.VDPR[0x0A] & 0x0f) << 10;
         break;
@@ -384,13 +381,13 @@ void WriteF18A(int iReg,unsigned char value) {
         f18a.bitmapHeight = f18a.VDPR[0x24];
         break;
     case 0x2F: // Palette register
-        f18a.dataPortMode=(f18a.VDPR[0x2F] & 0x80)>>7;
-        f18a.autoIncPaletteReg=(f18a.VDPR[0x2F] & 0x70)>>6;
-        f18a.paletteRegisterNo=(f18a.VDPR[0x2F] & 0x3F);
-        f18a.paletteRegisterData=255;
+        f18a.DPM=(f18a.VDPR[0x2F] & 0x80)>>7;
+        f18a.PalAutoInc=(f18a.VDPR[0x2F] & 0x70)>>6;
+        f18a.PalRegNo=(f18a.VDPR[0x2F] & 0x3F);
+        f18a.PalRegVal=255;
         break;
     case 0x30: // SIGNED two's-complement increment amount for VRAM address, defaults to 1
-        f18a.addressIncrement = f18a.VDPR[0x30] < 128 ? f18a.VDPR[0x30] : f18a.VDPR[0x30] - 256;
+        f18a.VAddrInc = f18a.VDPR[0x30] < 128 ? f18a.VDPR[0x30] : f18a.VDPR[0x30] - 256;
         break;
     case 0x31: // Enhanced color mode
         f18a.tileLayer2Enabled = (f18a.VDPR[0x31] & 0x80) != 0;
@@ -476,34 +473,34 @@ void WriteF18A(int iReg,unsigned char value) {
 void f18a_writedata(unsigned char value)
 {
     // tms9918 mode or not ?
-    if (!f18a.dataPortMode) {
+    if (!f18a.DPM) {
         tms9918_writedata(value);
     }
     else
     {
         // Write data to F18A palette registers
-        if (f18a.paletteRegisterData == 255)
+        if (f18a.PalRegVal == 255)
         {
             // Read first byte
-            f18a.paletteRegisterData = value;
+            f18a.PalRegVal = value;
         }
         else
         {
             // Read second byte
-            f18a.palette[f18a.paletteRegisterNo][0] = f18a.paletteRegisterData * 17;
-            f18a.palette[f18a.paletteRegisterNo][1] = ((value & 0xf0) >> 4) * 17;
-            f18a.palette[f18a.paletteRegisterNo][2] = (value & 0x0f) * 17;
-            if (f18a.autoIncPaletteReg)
+            f18a.palette[f18a.PalRegNo][0] = f18a.PalRegVal * 17;
+            f18a.palette[f18a.PalRegNo][1] = ((value & 0xf0) >> 4) * 17;
+            f18a.palette[f18a.PalRegNo][2] = (value & 0x0f) * 17;
+            if (f18a.PalAutoInc)
             {
-                f18a.paletteRegisterNo++;
+                f18a.PalRegNo++;
             }
             // The F18A turns off DPM after each register is written if auto increment is off
             // or after writing to last register if auto increment in on
-            if (!f18a.autoIncPaletteReg || f18a.paletteRegisterNo == 64) {
-                f18a.dataPortMode = false;
-                f18a.paletteRegisterNo = 0;
+            if (!f18a.PalAutoInc || f18a.PalRegNo == 64) {
+                f18a.DPM = 0;
+                f18a.PalRegNo = 0;
             }
-            f18a.paletteRegisterData = -1;
+            f18a.PalRegVal = 255;
         }
     }
 };
@@ -518,13 +515,16 @@ unsigned char f18a_readdata(void)
 
 unsigned char f18a_writectrl(unsigned char value)
 {
+    BYTE cmd,msb,reg;
+
     if (tms.VKey)
     {
 	    tms.VKey=0;
         tms.VAddr=((tms.VAddr&0xFF00)|value)&0x3FFF;
 	}
 	else
-        {
+    {
+        /*
 		tms.VKey=1;
         tms.VAddr = ((tms.VAddr&0x00FF)|((int)value<<8))&0x3FFF;
 		switch(value&0xC0)
@@ -538,43 +538,38 @@ unsigned char f18a_writectrl(unsigned char value)
             // Enabling IRQs may cause an IRQ here
             return( Write9918(value&0x0F,tms.VAddr&0x00FF) );
 		}
-/*
-        else {
-            var cmd = (i & 0xc0) >> 6;
-            var msb = i & 0x3f;
-            switch (cmd) {
-                // Set read address
-                case 0:
-                    this.addressRegister = (msb << 8) | (this.addressRegister & 0x00FF);
-                    this.prefetchByte = this.ram[this.addressRegister];
-                    this.addressRegister += this.addressIncrement;
-                    this.addressRegister &= 0x3FFF;
-                    this.registers[15] = this.registers[msb];
-                    break;
-                // Set write address
-                case 1:
-                    this.addressRegister =  (msb << 8) | (this.addressRegister & 0x00FF);
-                    break;
-                // Write register
-                case 2:
-                case 3:
-                    var reg = msb;
-                    if (this.unlocked || reg < 8 || reg === 57) {
-                        this.writeRegister(reg, this.addressRegister & 0x00FF);
-                    }
-                    else {
-                        this.log.info("Write " + (this.addressRegister & 0x00FF).toHexByte() + " to F18A register " + reg + " (" + reg.toHexByte() + ") without unlocking.");
-                        if ((this.registers[0] & 0x04) === 0) {  // 1.8 firmware: writes to registers > 7 are masked if 80 columns mode is not enabled
-                            this.writeRegister(reg & 0x07, this.addressRegister & 0x00FF);
-                        }
-                        else {
-                            this.log.info("Register write ignored.");
-                        }
-                    }
-                    break;
+        */
+		tms.VKey=1;
+        cmd = (value & 0xc0) >> 6;
+        msb = value & 0x3f;
+        switch (cmd)
+        {
+        case 0: // Set read address
+            tms.VAddr = (msb << 8) | (tms.VAddr & 0x00FF);
+            tms.DLatch = tms.ram[tms.VAddr];
+            tms.VAddr += f18a.VAddrInc;
+            tms.VAddr &= 0x3FFF;
+            f18a.VDPR[15] = f18a.VDPR[msb];
+            break;
+        case 1: // Set write address
+            tms.VAddr =  (msb << 8) | (tms.VAddr & 0x00FF);
+            break;
+        case 2: // Write register
+        case 3:
+            reg = msb;
+            if (f18a.unlocked || (reg < 8) || (reg == 57))
+            {
+                WriteF18A(reg, tms.VAddr & 0x00FF);
             }
-            */
-
+            else
+            {
+                if ((f18a.VDPR[0] & 0x04) == 0) // 1.8 firmware: writes to registers > 7 are masked if 80 columns mode is not enabled
+                {
+                    Write9918(reg & 0x07, tms.VAddr & 0x00FF);
+                }
+            }
+            break;
+        }
 	}
 
 	// No interrupts
@@ -597,36 +592,39 @@ unsigned char f18a_readctrl(void)
     }
     else
     {
-    case 1: // ID
-        return 0xe0;
-    case 2: // GPU status
-        return (f18a.gpu.isIdle() ? 0 : 0x80) | (this.ram[0xb000] & 0x7f);
-    case 3: // Current scanline
-        return f18a.getCurrentScanline();
-    case 4: // Counter nanos LSB
-        return (Math.floor((this.counterSnap * 1000000) / 10) * 10 % 1000) & 0x00ff;
-    case 5:
-        // Counter nanos MSB
-        return ((Math.floor((this.counterSnap * 1000000) / 10) * 10 % 1000) & 0x0300) >> 8;
-    case 6: // Counter micros LSB
-        return ((f18a.counterSnap * 1000) % 1000) & 0x00ff;
-    case 7: // Counter micros MSB
-        return (((f18a.counterSnap * 1000) % 1000) & 0x0300) >> 8;
-    case 8: // Counter millis LSB
-        return (f18a.counterSnap % 1000) & 0x00ff;
-    case 9: // Counter millis MSB
-        return ((f18a.counterSnap % 1000) & 0x0300) >> 8;
-    case 10: // Counter seconds LSB
-        return (f18a.counterSnap / 1000) & 0x00ff;
-    case 11: // Counter seconds MSB
-        return ((f18a.counterSnap / 1000) & 0xff00) >> 8;
-    case 14: // Major/Minor version, 00011000 = v1.8
-        return F18A_VERSION;
-    case 15: // VDP read register value (see VR15).  Updated any time a VRAM address is set
-        return f18a.VDPR[15];
+        switch (f18a.statusRegisterNo)
+        {
+        case 1: // ID
+            return 0xe0;
+        case 2: // GPU status
+            return 0; //todo (f18a.gpu.isIdle() ? 0 : 0x80) | (this.ram[0xb000] & 0x7f);
+        case 3: // Current scanline
+            return 0; // todo f18a.getCurrentScanline();
+        case 4: // Counter nanos LSB
+            return 0; //(floor((f18a.counterSnap * 1000000) / 10) * 10 % 1000) & 0x00ff;
+        case 5:
+            // Counter nanos MSB
+            return 0; //((floor((f18a.counterSnap * 1000000) / 10) * 10 % 1000) & 0x0300) >> 8;
+        case 6: // Counter micros LSB
+            return ((f18a.counterSnap * 1000) % 1000) & 0x00ff;
+        case 7: // Counter micros MSB
+            return (((f18a.counterSnap * 1000) % 1000) & 0x0300) >> 8;
+        case 8: // Counter millis LSB
+            return (f18a.counterSnap % 1000) & 0x00ff;
+        case 9: // Counter millis MSB
+            return ((f18a.counterSnap % 1000) & 0x0300) >> 8;
+        case 10: // Counter seconds LSB
+            return (f18a.counterSnap / 1000) & 0x00ff;
+        case 11: // Counter seconds MSB
+            return ((f18a.counterSnap / 1000) & 0xff00) >> 8;
+        case 14: // Major/Minor version, 00011000 = v1.8
+            return F18A_VERSION;
+        case 15: // VDP read register value (see VR15).  Updated any time a VRAM address is set
+            return f18a.VDPR[15];
+        }
     }
 
-    tms.VKey = 0; // According to Matthew
+    //tms.VKey = 0; // According to Matthew  -> bug with nothing on screen
     
     return(retval);
 };

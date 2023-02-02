@@ -90,7 +90,8 @@ void __fastcall Tpaletteviewer::pCurCol0MouseMove(TObject *Sender,
 void __fastcall Tpaletteviewer::SetTColor(TPaintBox *Sender, int r, int g, int b)
 {
     Sender->Canvas->Brush->Color=TColor(RGB(r,g,b));
-    Sender->Canvas->Rectangle(0, 0, Sender->Width, Sender->Height);
+    Sender->Canvas->Brush->Style=bsSolid;
+    Sender->Canvas->FillRect(TRect(0,0,Sender->Width,Sender->Height));
 }
 //---------------------------------------------------------------------------
 
@@ -151,8 +152,8 @@ void __fastcall Tpaletteviewer::UpdateChanges()
         SetTColor(paFCol32,f18a.palette[31][0],f18a.palette[32][1],f18a.palette[32][2]);
 
         SetTColor(paFCol33,f18a.palette[32][0],f18a.palette[32][1],f18a.palette[32][2]);
-        SetTColor(paFCol34,f18a.palette[33][0],f18a.palette[33][1],f18a.palette[331][2]);
-        SetTColor(paFCol35,f18a.palette[34][0],f18a.palette[34][1],f18a.palette[34[2]);
+        SetTColor(paFCol34,f18a.palette[33][0],f18a.palette[33][1],f18a.palette[33][2]);
+        SetTColor(paFCol35,f18a.palette[34][0],f18a.palette[34][1],f18a.palette[34][2]);
         SetTColor(paFCol36,f18a.palette[35][0],f18a.palette[35][1],f18a.palette[35][2]);
         SetTColor(paFCol37,f18a.palette[36][0],f18a.palette[36][1],f18a.palette[36][2]);
         SetTColor(paFCol38,f18a.palette[37][0],f18a.palette[37][1],f18a.palette[37][2]);

@@ -2044,6 +2044,7 @@ object hardware: Thardware
         D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4C8D0D4}
       Layout = blGlyphTop
       Margin = 0
+      OnClick = spSGMClick
     end
   end
   object gSEEmul: TGroupBox

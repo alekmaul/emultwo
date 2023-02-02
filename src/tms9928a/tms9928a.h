@@ -96,15 +96,17 @@ typedef struct {
 extern tTMS9981A tms;
 
 #ifdef __cplusplus
+extern "C" void tms9918_reset(void);
 extern "C" unsigned char tms9918_loop(void);
+extern "C" unsigned char Write9918(int iReg,unsigned char value);
 extern "C" void tms9918_writedata(unsigned char value);
 extern "C" unsigned char tms9918_readdata(void);
 extern "C" unsigned char tms9918_writectrl(unsigned char value);
 extern "C" unsigned char tms9918_readctrl(void);
-extern "C" void tms9918_reset(void);
 #else
 extern void tms9918_reset(void);
 extern unsigned char tms9918_loop(void);
+extern unsigned char Write9918(int iReg,unsigned char value);
 extern void tms9918_writedata(unsigned char value);
 extern unsigned char tms9918_readdata(void);
 extern unsigned char tms9918_writectrl(unsigned char value);

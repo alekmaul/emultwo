@@ -1043,10 +1043,11 @@ void __fastcall Tdebug::FormClose(TObject *Sender, TCloseAction &Action)
 
 void __fastcall Tdebug::FormShow(TObject *Sender)
 {
+
 /*    AutoRefresh1->Enabled = true;
 
-    if (AutoRefresh1->Checked==true) emul2.singlestep=1;
-    UpdateVals();*/
+    if (AutoRefresh1->Checked==true) emul2.singlestep=1;*/
+    UpdateVals();
 }
 //---------------------------------------------------------------------------
 

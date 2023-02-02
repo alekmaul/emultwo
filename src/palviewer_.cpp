@@ -242,3 +242,9 @@ void __fastcall Tpaletteviewer::FormShow(TObject *Sender)
 //---------------------------------------------------------------------------
 
 
+void __fastcall Tpaletteviewer::FormPaint(TObject *Sender)
+{
+    UpdateChanges();
+}
+//---------------------------------------------------------------------------
+

@@ -151,6 +151,7 @@ __published:	// IDE-managed Components
     void __fastcall Refresh1Click(TObject *Sender);
     void __fastcall AutoRefresh1Click(TObject *Sender);
     void __fastcall FormShow(TObject *Sender);
+    void __fastcall FormPaint(TObject *Sender);
 private:	// User declarations
     void __fastcall ChangeCurrentColor(int ColorNum);
     void __fastcall UpdateChanges();

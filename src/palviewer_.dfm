@@ -14,6 +14,7 @@ object paletteviewer: Tpaletteviewer
   Menu = MainMenu1
   OldCreateOrder = False
   OnClose = FormClose
+  OnPaint = FormPaint
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13

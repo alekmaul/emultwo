@@ -106,7 +106,10 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     machine.vdp_writectrl=(emul2.F18A ? f18a_writectrl : tms9918_writectrl);
     machine.vdp_readctrl=(emul2.F18A ? f18a_readctrl : tms9918_readctrl);
 
-    AccurateInit(false);
+    TVW=TVW_TMS;
+    TVH=TVH_TMS;
+
+    AccurateInit(true);
 
     if (ResetRequired) machine.initialise();
 

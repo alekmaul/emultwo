@@ -1,3 +1,26 @@
+/* EmulTwo  - A Windows ColecoVision emulator.
+ * Copyright (C) 2014-2023 Alekmaul
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ * f18a.h
+ *
+ * Based on js99'er - TI-99/4A emulator written in JavaScript
+ *  written by Rasmus Moustgaard <rasmus.moustgaard@gmail.com>
+ *
+ */
 //---------------------------------------------------------------------------
 
 #ifndef f18aH
@@ -23,16 +46,18 @@
 
 //---------------------------------------------------------------------------
 typedef struct {
-    unsigned char Version;                                      // Current code version
+    BYTE Version;                                      // Current code version
 
-    unsigned char unlocked;                                     // Status locked(0)/unlocked (1)
+    BYTE Mode;                                         // Current screen mode
+    BYTE unlocked;                                     // Status locked(0)/unlocked (1)
+    BYTE Row30;                                        // Default height (24 or 30 8 pix tiles)
 
-    unsigned char DPM;                                          // Data port mode
-    unsigned char PalAutoInc;                                   // AutoInc palette register
-    unsigned char PalRegNo;                                     // Palette register number 0..63
-    unsigned char PalRegVal;                                    // Palette register value
-    unsigned char statusRegisterNo;                             // Status register number 0..15
-    signed char VAddrInc;                                       // SIGNED two's-complement increment amount for VRAM address, defaults to 1
+    BYTE DPM;                                          // Data port mode
+    BYTE PalAutoInc;                                   // AutoInc palette register
+    BYTE PalRegNo;                                     // Palette register number 0..63
+    BYTE PalRegVal;                                    // Palette register value
+    BYTE statusRegisterNo;                             // Status register number 0..15
+    signed char VAddrInc;                              // SIGNED two's-complement increment amount for VRAM address, defaults to 1
 
     unsigned int counterElapsed,counterStart,counterSnap;       // Counter management
 
@@ -66,7 +91,6 @@ typedef struct {
 
 
     unsigned char tileLayer2Enabled;                            // ECM = enhanced color mode, (T)ile and (S)prite
-    unsigned char row30Enabled;
     unsigned char tileColorMode;
     unsigned char realSpriteYCoord;
     unsigned char spriteLinkingEnabled;
@@ -83,13 +107,15 @@ typedef struct {
     unsigned char maxSprites;                                   // Stop Sprite to limit the total number of sprites to process, defaults to 32
     unsigned char gpuAddressLatch;
 
-    unsigned short palette[64][3];                              // 64 colors palette registers
+    unsigned short palette[64*3];                              // 64 colors palette registers
     unsigned char VDPR[64];                                     // VDP registers (only 58 used)
 } tF18A;
 
 extern tF18A f18a;
 
 //---------------------------------------------------------------------------
+extern void f18a_updatemode(BYTE reg0,BYTE reg1);
+extern void f18a_setwindowsize(void);
 
 extern void WriteF18A(int iReg,unsigned char value);
 

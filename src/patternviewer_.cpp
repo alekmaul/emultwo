@@ -100,29 +100,37 @@ void Tpatternviewer::SaveSettings(TIniFile *ini)
 //---------------------------------------------------------------------------
 void Tpatternviewer::UpdateOfsText(void)
 {
+    unsigned short bgmapsize, bgcolsize, bgtilsize, sprtilsize;
     int bgtil=coleco_gettmsaddr(CHRGEN,0,0);
     int bgmap=coleco_gettmsaddr(CHRMAP,0,0);
     int bgcol=coleco_gettmsaddr(CHRCOL,0,0);
     int sprtil=coleco_gettmsaddr(SPRGEN,0,0);
     int spratr=coleco_gettmsaddr(SPRATTR,0,0);
 
-    if ( (mVramTile >=bgmap) && (mVramTile<bgmap+0x0300) )
+    // check size
+    bgmapsize=0x300; // 768, in F18A mode: 960 bytes when 30 rows enable
+    bgtilsize=0x1800; // 3*2K for 256 tiles, in F18A mode: 4K for 2-bit color mode, 6K for 3-bit color mode
+    bgcolsize=tms.Mode==2 ? 0x1800 : 0x0800; 
+    sprtilsize=0x0800; // 2K for 256 patterns, in F18A mode: 4K for 2-bit color mode, 6K for 3-bit color mode
+
+
+    if ( (mVramTile >=bgmap) && (mVramTile<bgmap+bgmapsize) )
     {
         eVRAMTxt->Caption="BG Map";
     }
-    else if ( (mVramTile >=bgtil) && (mVramTile<bgtil+0x1800) )
+    else if ( (mVramTile >=bgtil) && (mVramTile<bgtil+bgtilsize) )
     {
         eVRAMTxt->Caption="BG Tile";
     }
-    else if ( (mVramTile >=bgcol) && (mVramTile<bgcol+0x1800) )
+    else if ( (mVramTile >=bgcol) && (mVramTile<bgcol+bgcolsize) )
     {
         eVRAMTxt->Caption="BG Col";
     }
-    else if ( (mVramTile >=sprtil) && (mVramTile<sprtil+0x0800) )
+    else if ( (mVramTile >=sprtil) && (mVramTile<sprtil+sprtilsize) )
     {
         eVRAMTxt->Caption="SPR Tile";
     }
-    else if ( (mVramTile >=spratr) && (mVramTile<spratr+0x0400) )
+    else if ( (mVramTile >=spratr) && (mVramTile<spratr+0x0080) ) // always 128 bytes
     {
         eVRAMTxt->Caption="SPR Attr";
     }

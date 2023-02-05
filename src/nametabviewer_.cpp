@@ -342,7 +342,7 @@ void __fastcall Tnametabviewer::UpdateChanges()
     eVDPStatus->Caption=texS;
     eVDPColF->Color=(TColor) cv_pal32[tms.VR[7]>>4];   eVDPColB->Color=(TColor) cv_pal32[tms.VR[7] & 0xF];
 
-    texS=IntToStr(tms.VR[1]>>4)+" " +IntToStr(tms.VR[1]>>3)+" " +IntToStr(tms.VR[0]>>1);
+    texS=IntToStr((tms.VR[1]>>4) & 1)+" " +IntToStr((tms.VR[1]>>3) & 1)+" " +IntToStr((tms.VR[0]>>1) & 1);
     eVDPValMod->Caption=texS;
 }
 //---------------------------------------------------------------------------

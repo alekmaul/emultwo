@@ -72,8 +72,6 @@ typedef struct {
   unsigned char R2,R3,R4,R5,R6,M2,M3,M4,M5;
 } tScrMode;
 
-extern const unsigned char TMS9918A_palette[6*16*3];
-
 typedef struct {
     unsigned short DLatch;                                  // Data register latch
     unsigned char VKey;                                     // VDP address latch key

@@ -817,3 +817,4 @@ unsigned char tms9918_loop(void) {
 	// Return IRQ (1) or not (0)
 	return(bIRQ);
 }
+

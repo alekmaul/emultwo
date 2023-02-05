@@ -222,7 +222,7 @@ void DDAccurateInit(int resize)
     dest=buffer=(BYTE*)DDFrameSurface.lpSurface;
     TVP=DDFrameSurface.lPitch;
 
-    RenderCalcPalette(cv_palette);
+    RenderCalcPalette(cv_palette,16*4);
     RecalcWinSize();
 }
 
@@ -339,7 +339,7 @@ void GDIAccurateInit(int resize)
         Form1->ClientHeight = OrigH;
     }
 
-    RenderCalcPalette(cv_palette);
+    RenderCalcPalette(cv_palette,16*4);
     RecalcWinSize();
 }
 
@@ -399,7 +399,7 @@ void RenderEnd(void)
     DDEnd();
 }
 
-void RenderCalcPalette(unsigned char *palette)
+void RenderCalcPalette(unsigned char *palette, int palsize)
 {
     int rsz, gsz, bsz; 	//bitsize of field
     int rsh, gsh, bsh;	//0’s on left (the shift value)
@@ -427,7 +427,7 @@ void RenderCalcPalette(unsigned char *palette)
         bsh=0;
     }
 
-    for(i=0;i<16*3;i+=3)
+    for(i=0;i<palsize*3;i+=3)
     {
         r=palette[i];
         g=palette[i+1];

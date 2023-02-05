@@ -1,6 +1,6 @@
 object paletteviewer: Tpaletteviewer
   Left = 892
-  Top = 215
+  Top = 217
   BorderStyle = bsToolWindow
   Caption = 'Palette Viewer'
   ClientHeight = 345

@@ -64,6 +64,7 @@ USEFORM("src\soundviewer_.cpp", soundviewer);
 USELIB("\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\libs\directsound\dsound.lib");
 USEUNIT("src\f18a\f18a.cpp");
 USEFORM("src\memory_.cpp", memory);
+USEUNIT("src\f18a\f18agpu.cpp");
 //---------------------------------------------------------------------------
 #include "main_.h"
 #include "utils.h"

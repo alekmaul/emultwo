@@ -32,6 +32,8 @@ int lastMemoryReadValueLo, lastMemoryWriteValueLo;
 int lastMemoryReadAddrHi, lastMemoryWriteAddrHi;
 int lastMemoryReadValueHi, lastMemoryWriteValueHi;
 
+int TVW, TVH;
+
 extern bool GetVersionNumber(int& versionNumberMajor, int& versionNumberMinor, int& versionNumberPart3, int& versionNumberPart4);
 //---------------------------------------------------------------------------
 
@@ -81,5 +83,8 @@ void load_config(void)
     machine.tperframe=312*207;
     machine.fps=50;
     machine.intposition=0;
+
+    TVW=TVW_TMS;
+    TVH=TVH_TMS;
 }
 

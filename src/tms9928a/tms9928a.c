@@ -45,6 +45,7 @@ const tScrMode SCR[MAXSCREEN+1] = {
 tTMS9981A tms;
 
 // ----------------------------------------------------------------------------------------
+
 // Reset the tms.VR
 void tms9918_reset(void) {
 	unsigned char i;
@@ -70,6 +71,10 @@ void tms9918_reset(void) {
 	tms.UCount = 0;
 	tms.VAddr = 0x0000;
 	for (i=0;i<16;i++) tms.IdxPal[i] = i;
+
+    // Init screen size
+    TVW=TVW_TMS;
+    TVH=TVH_TMS;
 }
 
 // ----------------------------------------------------------------------------------------

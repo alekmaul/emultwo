@@ -56,8 +56,10 @@
 #define BDW                     16                  // Screen border width
 #define BDH                     16                  // Screen border height
 
-#define TVW                     (256+BDW)           // Screen buffer width
-#define TVH                     (192+BDH)           // Screen buffer height
+#define TVW_TMS                     (256+BDW)       // Screen buffer width in TMS mode
+#define TVH_TMS                     (192+BDH)       // Screen buffer height in TMS mode
+#define TVW_F18A                    (256+BDW)       // Screen buffer width in F18A mode
+#define TVH_F18A                    (240+BDH)       // Screen buffer height in F18A mode
 
 typedef struct
 {
@@ -131,8 +133,13 @@ typedef struct
     int fps;
 } MACHINE;
 
+// ----------------------------------------------------------------------------------------
+
 extern EMUL2 emul2;
 extern MACHINE machine;
+extern int TVW, TVH;
+
+// ----------------------------------------------------------------------------------------
 
 extern int lastMemoryReadAddrLo, lastMemoryWriteAddrLo;
 extern int lastMemoryReadValueLo, lastMemoryWriteValueLo;

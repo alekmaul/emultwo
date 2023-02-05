@@ -81,19 +81,22 @@ typedef struct {
     unsigned char VR[16];                                   // VDP registers
     unsigned char SR;                                       // VDP status register
     unsigned char Mode;                                     // Current screen mode
-    unsigned char FGColor,BGColor;                          // Colors ForeGroudn and BackGround
+    unsigned char FGColor,BGColor;                          // Colors ForeGround and BackGround
     unsigned char *ChrGen,*ChrTab,*ColTab;                  // VDP tables (screens)
     unsigned char *SprGen,*SprTab;                          // VDP tables (sprites)
     unsigned int ColTabM,ChrGenM;                           // VDP tables mask
-    unsigned char ram[0x4000];                              // VDP video memory
+    unsigned char ram[0x10000];                             // VDP video memory (64K for F18A support)
     unsigned short CurLine;                                 // Current scanline
     unsigned short ScanLines;                               // Scanlines per frame
     unsigned char MaxSprites;                               // Number of sprites/line
     unsigned char IdxPal[16];                               // Palette color index
     unsigned char UCount;                                   // Screen update counter
 } tTMS9981A;
+// ----------------------------------------------------------------------------------------
 
 extern tTMS9981A tms;
+
+// ----------------------------------------------------------------------------------------
 
 #ifdef __cplusplus
 extern "C" void tms9918_reset(void);

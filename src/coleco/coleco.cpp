@@ -33,6 +33,7 @@
 #include "ay8910.h"
 #include "sn76489.h"
 #include "f18a.h"
+#include "f18agpu.h"
 #include "tms9928a.h"
 #include "c24xx.h"
 #include "adamnet.h"
@@ -48,7 +49,7 @@
 extern void DebugUpdate(void);
 
 //---------------------------------------------------------------------------
-BYTE cv_display[TVW*TVH];                       // Coleco display buffer
+BYTE cv_display[TVW_F18A*TVH_F18A];            // Coleco display buffer
 BYTE cv_palette[16*3];                          // Coleco display palette
 int cv_pal32[16];                               // Coleco display palette in 32 bits RGB
 
@@ -702,8 +703,11 @@ void coleco_initialise(void)
 {
     int i, romlen;
 
+    // Init the CPUs
     z80_init();
     tStatesCount = 0;
+
+    f18agpu_init();
 
     // Init rom banking
     coleco_megasize = 2;
@@ -1097,7 +1101,6 @@ int coleco_do_scanline(void)
                 ts = z80_do_opcode();
                 CurScanLine_len -= ts;
 
-
                 frametstates += ts;
                 tStatesCount += ts;
 
@@ -1120,6 +1123,8 @@ int coleco_do_scanline(void)
                 {
                     z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
                 }
+                if (emul2.F18A)
+                    f18agpu_execute(F18AGPU_CYCLES_PER_SCANLINE);
 
                 // end of screen, update sound and go outside
                 if (tms.CurLine==TMS9918_END_LINE)

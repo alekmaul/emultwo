@@ -44,10 +44,7 @@
 #define NoWinL  0 /*42*/
 #define NoWinR  (NoWinL+TVW/*320*/)
 
-int WinR=NoWinR;
-int WinL=NoWinL;
-int WinT=NoWinT;
-int WinB=NoWinB;
+int WinR,WinL,WinT,WinB;
 
 Graphics::TBitmap *GDIFrame;
 
@@ -348,7 +345,7 @@ void GDIAccurateInit(int resize)
 
 void GDIAccurateUpdateDisplay(bool singlestep)
 {
-    int ret;
+//    int ret;
     static int framecounter=0;
 
     if (++framecounter > emul2.frameskip || singlestep)
@@ -356,7 +353,8 @@ void GDIAccurateUpdateDisplay(bool singlestep)
     else
         return;
 
-    ret = StretchBlt(Form1->Canvas->Handle,
+    //ret =
+    StretchBlt(Form1->Canvas->Handle,
                         rcdest.Left, rcdest.Top,
                         (rcdest.Right-rcdest.Left),
                         (rcdest.Bottom-rcdest.Top),

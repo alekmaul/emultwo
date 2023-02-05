@@ -14,7 +14,7 @@
       src\symbbrows_.obj src\setbreakpoint_.obj src\searchsequence_.obj 
       src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj 
       src\joyconf_.obj src\ioviewer_.obj src\soundviewer_.obj src\f18a\f18a.obj 
-      src\memory_.obj"/>
+      src\memory_.obj src\f18a\f18agpu.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>

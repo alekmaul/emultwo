@@ -718,8 +718,8 @@ void f18a_setwindowsize(void)
             this.canvas.height = this.canvasHeight = newCanvasHeight;
         }
     */
-        TVW = (f18a.Mode == F18A_MODE_TEXT_80 ? 512 : 256);
-        TVH = (f18a.Row30 ? 240 : 192);
+        TVW = (f18a.Mode == F18A_MODE_TEXT_80 ? TVW_F18A*2 : TVW_F18A);
+        TVH = (f18a.Row30 ? TVH_F18A : TVH_TMS);
         AccurateInit(true);
 /*
         this.leftBorder = Math.floor((this.canvasWidth - this.drawWidth) >> 1);

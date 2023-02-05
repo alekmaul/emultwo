@@ -124,6 +124,7 @@ typedef struct
     unsigned char (*vdp_readdata)(void);
     unsigned char (*vdp_writectrl)(unsigned char value);
     unsigned char (*vdp_readctrl)(void);
+    unsigned char (*vdp_loop)(void);
 
     int clockspeed;
     int tperscanline;

@@ -105,6 +105,8 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     machine.vdp_readdata=(emul2.F18A ? f18a_readdata : tms9918_readdata);
     machine.vdp_writectrl=(emul2.F18A ? f18a_writectrl : tms9918_writectrl);
     machine.vdp_readctrl=(emul2.F18A ? f18a_readctrl : tms9918_readctrl);
+    machine.vdp_loop=(emul2.F18A ? f18a_loop : tms9918_loop);
+
 
     TVW=TVW_TMS;
     TVH=TVH_TMS;

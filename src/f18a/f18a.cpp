@@ -569,11 +569,11 @@ void f18a_writedata(unsigned char value)
     }
     else
     {
-        // Write data to F18A palette registers
+        // Write data to F18A palette registers | ----rrrr | ggggbbbb |
         if (f18a.PalRegVal == 255)
         {
             // Read first byte
-            f18a.PalRegVal = value;
+            f18a.PalRegVal = value & 0x0F;
         }
         else
         {
@@ -587,7 +587,8 @@ void f18a_writedata(unsigned char value)
             }
             // The F18A turns off DPM after each register is written if auto increment is off
             // or after writing to last register if auto increment in on
-            if (!f18a.PalAutoInc || f18a.PalRegNo == 64) {
+            if (!f18a.PalAutoInc || f18a.PalRegNo == 64)
+            {
                 f18a.DPM = 0;
                 f18a.PalRegNo = 0;
             }
@@ -732,6 +733,65 @@ void f18a_setwindowsize(void)
     },
 */
 };
+// ----------------------------------------------------------------------------------------
+
+// Call this routine on every scanline to update the screen buffer.
+unsigned char f18a_loop(void) {
+	unsigned char bIRQ;
+
+	// No IRQ yet
+	bIRQ=0;
+
+	// Increment scanline
+	if(++tms.CurLine>=tms.ScanLines) tms.CurLine=0;
+
+	// If refreshing display area, call scanline handler
+    if((tms.CurLine>=TMS9918_START_LINE)&&(tms.CurLine<TMS9918_END_LINE))
+    {
+
+		if(tms.UCount>=100)
+        {
+	        (SCR[tms.Mode].Refresh)(tms.CurLine-TMS9918_START_LINE);
+		}
+        else
+            ScanSprites(tms.CurLine-TMS9918_START_LINE,0);
+
+    	// and execute GPU opcodes if needed
+        f18agpu_execute(F18AGPU_CYCLES_PER_SCANLINE);
+	}
+
+	// Check if VBlank
+	if(tms.CurLine==TMS9918_END_LINE)
+    {
+		// Check if we are currently drawing screen
+		if(tms.UCount>=100)
+        {
+			// Refresh all screen
+			//coleco_paint();
+			// Reset update counter
+			tms.UCount-=100;
+		}
+
+		// Decrement/reset update counter
+		tms.UCount+=TMS9918_DRAWFRAMES;
+
+		// Generate IRQ when enabled and when VBlank flag goes up
+		if (TMS9918_VBlankON && !(tms.SR&TMS9918_STAT_VBLANK) )
+        {
+            bIRQ = 1;
+        }
+
+		// Set VBlank status flag
+		tms.SR|=TMS9918_STAT_VBLANK;
+
+		// Set Sprite Collision status flag
+		if(!(tms.SR&TMS9918_STAT_OVRLAP))
+			if(CheckSprites()) tms.SR|=TMS9918_STAT_OVRLAP;
+	}
+
+	// Return IRQ (1) or not (0)
+	return(bIRQ);
+}
 
 // ----------------------------------------------------------------------------------------
 /*

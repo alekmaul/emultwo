@@ -52,7 +52,7 @@ typedef struct {
     BYTE unlocked;                                     // Status locked(0)/unlocked (1)
     BYTE Row30;                                        // Default height (24 or 30 8 pix tiles)
 
-    BYTE DPM;                                          // Data port mode
+    BYTE DPM;                                          // Data Port Mode
     BYTE PalAutoInc;                                   // AutoInc palette register
     BYTE PalRegNo;                                     // Palette register number 0..63
     BYTE PalRegVal;                                    // Palette register value
@@ -125,5 +125,6 @@ extern void f18a_writedata(unsigned char value);
 extern unsigned char f18a_readdata(void);
 extern unsigned char f18a_writectrl(unsigned char value);
 extern unsigned char f18a_readctrl(void);
+extern unsigned char f18a_loop(void);
 
 #endif

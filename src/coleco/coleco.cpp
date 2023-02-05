@@ -50,8 +50,8 @@ extern void DebugUpdate(void);
 
 //---------------------------------------------------------------------------
 BYTE cv_display[TVW_F18A*TVH_F18A];            // Coleco display buffer
-BYTE cv_palette[16*3];                          // Coleco display palette
-int cv_pal32[16];                               // Coleco display palette in 32 bits RGB
+BYTE cv_palette[16*4*3];                       // Coleco display palette 4 palettes for F18A mode
+int cv_pal32[16*4];                            // Coleco display palette in 32 bits RGB
 
 BYTE ROM_Memory[MAX_CART_SIZE * 1024];          // ROM Carts up to 512K
 BYTE RAM_Memory[MAX_RAM_SIZE * 1024];           // RAM up to 128K (for the ADAM... )
@@ -410,7 +410,7 @@ void coleco_setpalette(int palette) {
                 cv_palette[index+1] = TMS9918A_palette[idxpal+index+1];
                 cv_palette[index+2] = TMS9918A_palette[idxpal+index+2];
         }
-        RenderCalcPalette(cv_palette);
+        RenderCalcPalette(cv_palette,16);
 }
 //---------------------------------------------------------------------------
 
@@ -1119,12 +1119,10 @@ int coleco_do_scanline(void)
                 AccurateDraw(tms.CurLine);
 
                 // go to next line and check nmi
-                if (tms9918_loop())
+                if (machine.vdp_loop())
                 {
                     z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
                 }
-                if (emul2.F18A)
-                    f18agpu_execute(F18AGPU_CYCLES_PER_SCANLINE);
 
                 // end of screen, update sound and go outside
                 if (tms.CurLine==TMS9918_END_LINE)

@@ -383,6 +383,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol2: TPaintBox
+      Tag = 1
       Left = 54
       Top = 16
       Width = 24
@@ -390,6 +391,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol3: TPaintBox
+      Tag = 2
       Left = 86
       Top = 16
       Width = 24
@@ -397,6 +399,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol4: TPaintBox
+      Tag = 3
       Left = 118
       Top = 16
       Width = 24
@@ -404,6 +407,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol5: TPaintBox
+      Tag = 4
       Left = 150
       Top = 16
       Width = 24
@@ -411,6 +415,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol6: TPaintBox
+      Tag = 5
       Left = 182
       Top = 16
       Width = 24
@@ -418,6 +423,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol7: TPaintBox
+      Tag = 6
       Left = 214
       Top = 16
       Width = 24
@@ -425,6 +431,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol8: TPaintBox
+      Tag = 7
       Left = 246
       Top = 16
       Width = 24
@@ -432,6 +439,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol9: TPaintBox
+      Tag = 8
       Left = 278
       Top = 16
       Width = 24
@@ -439,6 +447,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol10: TPaintBox
+      Tag = 9
       Left = 308
       Top = 16
       Width = 24
@@ -446,6 +455,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol11: TPaintBox
+      Tag = 10
       Left = 340
       Top = 16
       Width = 24
@@ -453,6 +463,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol12: TPaintBox
+      Tag = 11
       Left = 372
       Top = 16
       Width = 24
@@ -460,6 +471,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol13: TPaintBox
+      Tag = 12
       Left = 404
       Top = 16
       Width = 24
@@ -467,6 +479,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol14: TPaintBox
+      Tag = 13
       Left = 436
       Top = 16
       Width = 24
@@ -474,6 +487,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol15: TPaintBox
+      Tag = 14
       Left = 468
       Top = 16
       Width = 24
@@ -481,6 +495,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol16: TPaintBox
+      Tag = 15
       Left = 500
       Top = 16
       Width = 24
@@ -488,6 +503,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol32: TPaintBox
+      Tag = 31
       Left = 500
       Top = 48
       Width = 24
@@ -495,6 +511,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol31: TPaintBox
+      Tag = 30
       Left = 468
       Top = 48
       Width = 24
@@ -502,6 +519,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol30: TPaintBox
+      Tag = 29
       Left = 436
       Top = 48
       Width = 24
@@ -509,6 +527,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol29: TPaintBox
+      Tag = 28
       Left = 404
       Top = 48
       Width = 24
@@ -516,6 +535,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol28: TPaintBox
+      Tag = 27
       Left = 372
       Top = 48
       Width = 24
@@ -523,6 +543,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol27: TPaintBox
+      Tag = 26
       Left = 340
       Top = 48
       Width = 24
@@ -530,6 +551,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol26: TPaintBox
+      Tag = 25
       Left = 308
       Top = 48
       Width = 24
@@ -537,6 +559,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol25: TPaintBox
+      Tag = 24
       Left = 278
       Top = 48
       Width = 24
@@ -544,6 +567,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol24: TPaintBox
+      Tag = 23
       Left = 246
       Top = 48
       Width = 24
@@ -551,6 +575,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol23: TPaintBox
+      Tag = 22
       Left = 214
       Top = 48
       Width = 24
@@ -558,6 +583,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol22: TPaintBox
+      Tag = 21
       Left = 182
       Top = 48
       Width = 24
@@ -565,6 +591,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol21: TPaintBox
+      Tag = 20
       Left = 150
       Top = 48
       Width = 24
@@ -572,6 +599,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol20: TPaintBox
+      Tag = 19
       Left = 118
       Top = 48
       Width = 24
@@ -579,6 +607,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol19: TPaintBox
+      Tag = 18
       Left = 86
       Top = 48
       Width = 24
@@ -586,6 +615,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol18: TPaintBox
+      Tag = 17
       Left = 54
       Top = 48
       Width = 24
@@ -593,6 +623,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol17: TPaintBox
+      Tag = 16
       Left = 24
       Top = 48
       Width = 24
@@ -600,6 +631,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol48: TPaintBox
+      Tag = 47
       Left = 500
       Top = 80
       Width = 24
@@ -607,6 +639,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol47: TPaintBox
+      Tag = 46
       Left = 468
       Top = 80
       Width = 24
@@ -614,6 +647,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol46: TPaintBox
+      Tag = 45
       Left = 436
       Top = 80
       Width = 24
@@ -621,6 +655,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol45: TPaintBox
+      Tag = 44
       Left = 404
       Top = 80
       Width = 24
@@ -628,6 +663,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol44: TPaintBox
+      Tag = 43
       Left = 372
       Top = 80
       Width = 24
@@ -635,6 +671,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol43: TPaintBox
+      Tag = 42
       Left = 340
       Top = 80
       Width = 24
@@ -642,6 +679,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol42: TPaintBox
+      Tag = 41
       Left = 308
       Top = 80
       Width = 24
@@ -649,6 +687,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol41: TPaintBox
+      Tag = 40
       Left = 278
       Top = 80
       Width = 24
@@ -656,6 +695,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol40: TPaintBox
+      Tag = 39
       Left = 246
       Top = 80
       Width = 24
@@ -663,6 +703,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol39: TPaintBox
+      Tag = 38
       Left = 214
       Top = 80
       Width = 24
@@ -670,6 +711,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol38: TPaintBox
+      Tag = 37
       Left = 182
       Top = 80
       Width = 24
@@ -677,6 +719,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol37: TPaintBox
+      Tag = 36
       Left = 150
       Top = 80
       Width = 24
@@ -684,6 +727,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol36: TPaintBox
+      Tag = 35
       Left = 118
       Top = 80
       Width = 24
@@ -691,6 +735,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol35: TPaintBox
+      Tag = 34
       Left = 86
       Top = 80
       Width = 24
@@ -698,6 +743,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol34: TPaintBox
+      Tag = 33
       Left = 54
       Top = 80
       Width = 24
@@ -705,6 +751,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol33: TPaintBox
+      Tag = 32
       Left = 24
       Top = 80
       Width = 24
@@ -712,6 +759,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol64: TPaintBox
+      Tag = 63
       Left = 500
       Top = 112
       Width = 24
@@ -719,6 +767,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol63: TPaintBox
+      Tag = 62
       Left = 468
       Top = 112
       Width = 24
@@ -726,6 +775,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol62: TPaintBox
+      Tag = 61
       Left = 436
       Top = 112
       Width = 24
@@ -733,6 +783,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol61: TPaintBox
+      Tag = 60
       Left = 404
       Top = 112
       Width = 24
@@ -740,6 +791,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol60: TPaintBox
+      Tag = 59
       Left = 372
       Top = 112
       Width = 24
@@ -747,6 +799,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol59: TPaintBox
+      Tag = 58
       Left = 340
       Top = 112
       Width = 24
@@ -754,6 +807,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol58: TPaintBox
+      Tag = 57
       Left = 308
       Top = 112
       Width = 24
@@ -761,6 +815,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol57: TPaintBox
+      Tag = 56
       Left = 278
       Top = 112
       Width = 24
@@ -768,6 +823,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol56: TPaintBox
+      Tag = 55
       Left = 246
       Top = 112
       Width = 24
@@ -775,6 +831,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol55: TPaintBox
+      Tag = 54
       Left = 214
       Top = 112
       Width = 24
@@ -782,6 +839,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol54: TPaintBox
+      Tag = 53
       Left = 182
       Top = 112
       Width = 24
@@ -789,6 +847,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol53: TPaintBox
+      Tag = 52
       Left = 150
       Top = 112
       Width = 24
@@ -796,6 +855,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol52: TPaintBox
+      Tag = 51
       Left = 118
       Top = 112
       Width = 24
@@ -803,6 +863,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol51: TPaintBox
+      Tag = 50
       Left = 86
       Top = 112
       Width = 24
@@ -810,6 +871,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol50: TPaintBox
+      Tag = 49
       Left = 54
       Top = 112
       Width = 24
@@ -817,6 +879,7 @@ object paletteviewer: Tpaletteviewer
       OnMouseMove = pCurCol0MouseMove
     end
     object paFCol49: TPaintBox
+      Tag = 48
       Left = 24
       Top = 112
       Width = 24

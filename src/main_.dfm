@@ -447,51 +447,56 @@ object Form1: TForm1
       object N6: TMenuItem
         Caption = '-'
       end
-      object SoundViewer1: TMenuItem
-        Caption = 'Sound I/O Viewer'
-        ShortCut = 24688
-        OnClick = SoundViewer1Click
-      end
       object N14: TMenuItem
         Caption = '-'
       end
       object TilemapViewer1: TMenuItem
         Caption = 'NameTable Viewer'
-        ShortCut = 24689
+        ShortCut = 24688
         OnClick = TilemapViewer1Click
       end
       object TilesViewer1: TMenuItem
         Caption = 'Pattern Viewer'
-        ShortCut = 24690
+        ShortCut = 24689
         OnClick = TilesViewer1Click
       end
       object SpritesViewer1: TMenuItem
         Caption = 'Sprites Viewer'
-        ShortCut = 24691
+        ShortCut = 24690
         OnClick = SpritesViewer1Click
       end
       object PaletteViewer1: TMenuItem
         Caption = 'Palette Viewer'
-        ShortCut = 24692
+        ShortCut = 24691
         OnClick = PaletteViewer1Click
       end
       object N16: TMenuItem
         Caption = '-'
       end
+      object IOMapViewer1: TMenuItem
+        Caption = 'I/O Map Viewer'
+        ShortCut = 24692
+        OnClick = IOMapViewer1Click
+      end
+      object IOVdpViewer1: TMenuItem
+        Caption = 'I/O Vdp Viewer'
+        ShortCut = 24693
+        OnClick = IOVdpViewer1Click
+      end
+      object SoundViewer1: TMenuItem
+        Caption = 'I/O Sound Viewer'
+        ShortCut = 24694
+        OnClick = SoundViewer1Click
+      end
+      object N13: TMenuItem
+        Caption = '-'
+      end
       object PrinterViewer1: TMenuItem
         Caption = 'Adam Printer Viewer'
-        ShortCut = 24693
+        ShortCut = 24695
         OnClick = PrinterViewer1Click
       end
       object N15: TMenuItem
-        Caption = '-'
-      end
-      object IOMapViewer1: TMenuItem
-        Caption = 'I/O Map Viewer'
-        ShortCut = 24694
-        OnClick = IOMapViewer1Click
-      end
-      object N13: TMenuItem
         Caption = '-'
       end
       object Cartprofile1: TMenuItem

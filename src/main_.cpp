@@ -40,6 +40,7 @@
 #include "joyconf_.h"
 
 #include "ioviewer_.h"
+#include "iovdpviewer_.h"
 #include "soundviewer_.h"
 #include "nametabviewer_.h"
 #include "patternviewer_.h"
@@ -388,6 +389,7 @@ void TForm1::SaveSettings(TIniFile *ini)
         debug->SaveSettings(ini);
         hardware->SaveSettings(ini);
         iomapviewer->SaveSettings(ini);
+        iovdpviewer->SaveSettings(ini);
         joyconf->SaveSettings(ini);
         nametabviewer->SaveSettings(ini);
         paletteviewer->SaveSettings(ini);
@@ -517,6 +519,7 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         if (spriteviewer->Visible) spriteviewer->do_refresh();
         if (paletteviewer->Visible) paletteviewer->do_refresh();
         if (iomapviewer->Visible) iomapviewer->do_refresh();
+        if (iovdpviewer->Visible) iovdpviewer->do_refresh();
         if (soundviewer->Visible) soundviewer->do_refresh();
 }
 
@@ -755,6 +758,15 @@ void __fastcall TForm1::TilesViewer1Click(TObject *Sender)
     else patternviewer->Close();
 
 }
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::IOVdpViewer1Click(TObject *Sender)
+{
+    IOVdpViewer1->Checked = !IOVdpViewer1->Checked;
+    if (IOVdpViewer1->Checked) iovdpviewer->Show();
+    else iovdpviewer->Close();
+}
+
 //---------------------------------------------------------------------------
 
 void __fastcall TForm1::PaletteViewer1Click(TObject *Sender)
@@ -1148,6 +1160,5 @@ void __fastcall TForm1::JoystickEditor1Click(TObject *Sender)
     emul2.stop=stopped;
     Sound.SoundResume();
 }
-
 //---------------------------------------------------------------------------
 

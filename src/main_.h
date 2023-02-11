@@ -118,6 +118,7 @@ __published:	// IDE-managed Components
     TMenuItem *OpenTA2;
     TMenuItem *InsertTape1;
     TMenuItem *EjectTape1;
+    TMenuItem *IOVdpViewer1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall Exit1Click(TObject *Sender);
@@ -160,6 +161,7 @@ __published:	// IDE-managed Components
     void __fastcall JoystickEditor1Click(TObject *Sender);
     void __fastcall IOMapViewer1Click(TObject *Sender);
     void __fastcall SoundViewer1Click(TObject *Sender);
+    void __fastcall IOVdpViewer1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;

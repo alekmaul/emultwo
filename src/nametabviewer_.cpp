@@ -1,5 +1,5 @@
 /* EmulTwo  - A Windows Colecovision emulator.
- * Copyright (C) 2018-2019 Alekmaul
+ * Copyright (C) 2018-2023 Alekmaul
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
-#pragma link "PaintBoxGrid"
+
 #pragma resource "*.dfm"
 Tnametabviewer *nametabviewer;
 //---------------------------------------------------------------------------
@@ -294,8 +294,6 @@ void __fastcall Tnametabviewer::SmallUpdateChanges()
 
 void __fastcall Tnametabviewer::UpdateChanges()
 {
-        AnsiString texS;
-
         if (mOffscreenBitmap)
         {
                 delete mOffscreenBitmap;
@@ -303,47 +301,6 @@ void __fastcall Tnametabviewer::UpdateChanges()
         }
 
         CreateMap(VRam->Canvas,512,384);
-
-    // Put VDP information
-    // Mode and others features
-    switch(tms.Mode)
-    {
-        case 0:eVDPMode->Caption="Gfx1 Mode 0 40x24"; break;
-        case 1:eVDPMode->Caption="Txt1 Mode 1 32x24"; break;
-        case 2:eVDPMode->Caption="Gfx2 Mode 2 32x24"; break;
-        case 3:eVDPMode->Caption="Mult Mode 3 64x48x16"; break;
-    }
-    switch (tms.VR[1] & 0x3)
-    {
-        case 0:eVDPOption->Caption="8x8 not magnified"; break;
-        case 1:eVDPOption->Caption="8x8 magnified"; break;
-        case 2:eVDPOption->Caption="16x16 not magnified"; break;
-        case 3:eVDPOption->Caption="16x16 magnified"; break;
-    }
-
-    // Address
-    eVDPBGmap->Caption="$"+IntToHex(coleco_gettmsaddr(CHRMAP,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRMAP,0,0)+32*24-1,4);
-    eVDPBGtile->Caption="$"+IntToHex(coleco_gettmsaddr(CHRGEN,0,0),4);
-    eVDPBGcolor->Caption="$"+IntToHex(coleco_gettmsaddr(CHRCOL,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRCOL,0,0)+32*24-1,4);
-    eVDPSPRdata->Caption="$"+IntToHex(coleco_gettmsaddr(SPRATTR,0,0),4);
-    eVDPSPRtile->Caption="$"+IntToHex(coleco_gettmsaddr(SPRGEN,0,0),4);
-
-    // Register
-    eVDPR0->Caption="$"+IntToHex(tms.VR[0],2); eVDPR1->Caption="$"+IntToHex(tms.VR[1],2);
-    eVDPR2->Caption="$"+IntToHex(tms.VR[2],2); eVDPR3->Caption="$"+IntToHex(tms.VR[3],2);
-    eVDPR4->Caption="$"+IntToHex(tms.VR[4],2); eVDPR5->Caption="$"+IntToHex(tms.VR[5],2);
-    eVDPR6->Caption="$"+IntToHex(tms.VR[6],2); eVDPR7->Caption="$"+IntToHex(tms.VR[7],2);
-    eVDPStat->Caption="$"+IntToHex(tms.SR,2); eVDPlatch->Caption="$"+IntToHex(tms.DLatch,2);
-    texS="";
-    if (tms.SR & 0x80) texS=texS+"F,";
-    if (tms.SR & 0x40) texS=texS+"5th S,";
-    if (tms.SR & 0x20) texS=texS+"C,";
-    texS=texS+"5thS#"+IntToHex(tms.SR&0x1F,2);
-    eVDPStatus->Caption=texS;
-    eVDPColF->Color=(TColor) cv_pal32[tms.VR[7]>>4];   eVDPColB->Color=(TColor) cv_pal32[tms.VR[7] & 0xF];
-
-    texS=IntToStr((tms.VR[1]>>4) & 1)+" " +IntToStr((tms.VR[1]>>3) & 1)+" " +IntToStr((tms.VR[0]>>1) & 1);
-    eVDPValMod->Caption=texS;
 }
 //---------------------------------------------------------------------------
 

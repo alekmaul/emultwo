@@ -1,4 +1,25 @@
-//---------------------------------------------------------------------------
+/* EmulTwo  - A Windows Colecovision emulator.
+ * Copyright (C) 2018-2023 Alekmaul
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ *
+ *
+ * nametabviewer_.h
+ *
+ */
+
 #ifndef nametabviewer_H
 #define nametabviewer_H
 //---------------------------------------------------------------------------
@@ -33,37 +54,6 @@ __published:	// Composants gérés par l'EDI
     TStaticText *eGVVCMAddr;
     TStaticText *eGVVCCAddr;
     TStaticText *eGVVCTAddr;
-    TGroupBox *gVDP;
-    TLabel *lVDPR0;
-    TLabel *Label2;
-    TLabel *Label3;
-    TLabel *Label4;
-    TLabel *Label5;
-    TLabel *Label6;
-    TLabel *Label7;
-    TLabel *Label8;
-        TLabel *lVDPStat;
-    TLabel *lVDPlatch;
-    TStaticText *eVDPlatch;
-    TStaticText *eVDPR0;
-    TStaticText *eVDPMode;
-    TStaticText *eVDPStat;
-    TStaticText *eVDPR7;
-    TStaticText *eVDPStatus;
-    TStaticText *eVDPColF;
-    TStaticText *eVDPColB;
-    TStaticText *eVDPOption;
-    TStaticText *eVDPR1;
-    TStaticText *eVDPR2;
-    TStaticText *eVDPR3;
-    TStaticText *eVDPR4;
-    TStaticText *eVDPR5;
-    TStaticText *eVDPR6;
-    TStaticText *eVDPBGmap;
-    TStaticText *eVDPBGtile;
-    TStaticText *eVDPBGcolor;
-    TStaticText *eVDPSPRdata;
-    TStaticText *eVDPSPRtile;
     TLabel *lGVVCXloc;
     TLabel *lGVVCTNo;
     TLabel *lGVVCMAddr;
@@ -73,8 +63,6 @@ __published:	// Composants gérés par l'EDI
         TPaintBox *TileAlone;
         TCheckBox *chkGrid;
         TCheckBox *chkTiles;
-        TLabel *lVDPMode;
-        TStaticText *eVDPValMod;
         TPaintBox *VRam;
     void __fastcall SaveasBMP1Click(TObject *Sender);
     void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
@@ -101,7 +89,6 @@ public:		// Déclarations de l'utilisateur
 
     void __fastcall SmallUpdateChanges();
     void __fastcall UpdateChanges();
-    void __fastcall ClearChanges();
 
     void __fastcall do_refresh();
 };

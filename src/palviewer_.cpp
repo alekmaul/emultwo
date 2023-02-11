@@ -104,7 +104,7 @@ void __fastcall Tpaletteviewer::UpdateChanges()
     // TMS9918 Colors
     for (int index = 0; index < gTMS->ControlCount; index ++)
     {
-        if(gF18A->Controls[index]->InheritsFrom(__classid(TPaintBox)))
+        if(gTMS->Controls[index]->InheritsFrom(__classid(TPaintBox)))
         {
             TPaintBox *pbox = (TPaintBox*) gTMS->Controls[index];
             SetTColor(pbox,cv_palette[pbox->Tag*3+0],cv_palette[pbox->Tag*3+1],cv_palette[pbox->Tag*3+2]);

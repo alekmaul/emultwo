@@ -122,9 +122,9 @@ void f18a_reset(void) {
     j=0;
     for (i = 0; i < 64; i++,j+=3)
     {
-        f18a.palette[j]=F18A_palette[j]*17;
-        f18a.palette[j+1]=F18A_palette[j+1]*17;
-        f18a.palette[j+2]=F18A_palette[j+2]*17;
+        cv_palette[j]=F18A_palette[j]*17;
+        cv_palette[j+1]=F18A_palette[j+1]*17;
+        cv_palette[j+2]=F18A_palette[j+2]*17;
     }
 /*
     this.latch = false;
@@ -139,6 +139,7 @@ void f18a_reset(void) {
     f18a.PalRegVal = 255;
     f18a.gpuAddressLatch = 0;
     f18a.Mode = F18A_MODE_GRAPHICS;
+    f18a.PalRecalc = 1;
 
 /*
         f18a.currentScanline = 0;
@@ -253,57 +254,53 @@ void f18a_resetregs(void)
 void f18a_updatemode(BYTE reg0,BYTE reg1)
 {
     BYTE oldmode=f18a.Mode;
-/*
 
-#define TMS9918_Mode            (((tms.VR[0]&0x02)>>1)|(((tms.VR[1]&0x18)>>2)))
-
-    var oldMode = f18a.Mode;
     // Check bitmap mode bit, not text or multicolor
-    if ((reg0 & 0x2) !== 0 && (reg1 & 0x18) === 0)
-    {
+    if ((reg0 & 0x2) != 0 && (reg1 & 0x18) == 0)            // #define TMS9918_Mode            (((tms.VR[0]&0x02)>>1)|(((tms.VR[1]&0x18)>>2)))
+    {                                                       //                                               0 ou 1                   0 2 4 6
         // Bitmap mode
-        f18a.Mode = F18A.MODE_BITMAP;
+        f18a.Mode = F18A_MODE_BITMAP;
     }
     else
     {
-        switch ((reg1 & 0x18) >> 3)
+        switch ((reg1 & 0x18) >> 3)     // 00011000
         {
         case 0: // Graphics mode 0
-            f18a.Mode = F18A.MODE_GRAPHICS;
+            f18a.Mode = F18A_MODE_GRAPHICS;
             break;
         case 1: // Multicolor mode
-            f18a.Mode = F18A.MODE_MULTICOLOR;
+            f18a.Mode = F18A_MODE_MULTICOLOR;
             break;
         case 2: // Text mode
-            if ((reg0 & 0x04) === 0)
+            if ((reg0 & 0x04) == 0)
             {
-                f18a.Mode = F18A.MODE_TEXT;
+                f18a.Mode = F18A_MODE_TEXT;
             }
             else
             {
-                f18a.Mode = F18A.MODE_TEXT_80;
+                f18a.Mode = F18A_MODE_TEXT_80;
             }
             break;
         }
     }
-    if (f18a.Mode == F18A.MODE_BITMAP) {
-        tms.ColTab = (f18a.VDPR[3] & 0x80) << 6;
-        tms.ChrGen = (f18a.VDPR[4] & 0x4) << 11;
-        this.updateTableMasks();
+    if (f18a.Mode == F18A_MODE_BITMAP)
+    {
+        tms.ColTab = tms.ram+((f18a.VDPR[3] & 0x80) << 6);
+        tms.ChrGen = tms.ram+((f18a.VDPR[4] & 0x4) << 11);
+        //this.updateTableMasks();
     }
     else
     {
-        tms.ColTab = f18a.VDPR[3] << 6;
-        tms.ChrGen = (f18a.VDPR[4] & 0x7) << 11;
+        tms.ColTab = tms.ram+(f18a.VDPR[3] << 6);
+        tms.ChrGen = tms.ram+((f18a.VDPR[4] & 0x7) << 11);
     }
-    tms.ChrTab = (f18a.VDPR[2] & (f18a.Mode !== F18A.MODE_TEXT_80 || this.unlocked ? 0xf : 0xc)) << 10;
-    tms.SprTab = (f18a.VDPR[5] & 0x7f) << 7;
-    tms.SprGen = (f18a.VDPR[6] & 0x7) << 11;
-    if (oldmode !== f18a.Mode)
+    tms.ChrTab = tms.ram+((f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
+    tms.SprTab = tms.ram+((f18a.VDPR[5] & 0x7f) << 7);
+    tms.SprGen = tms.ram+((f18a.VDPR[6] & 0x7) << 11);
+    if (oldmode != f18a.Mode)
     {
         f18a_setwindowsize();
     }
-*/
 };
 // ----------------------------------------------------------------------------------------
 
@@ -320,9 +317,12 @@ void WriteF18A(int iReg,unsigned char value) {
     {
     case 0x00: // Do it with TMS
         Write9918(iReg,value);
-        //this.updateMode(f18a.VDPR[0], f18a.VDPR[1]);
+        f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
         break;
     case 0x01:
+        Write9918(iReg,value);
+        f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
+        break;
     /*
                     this.displayOn = (f18a.VDPR[1] & 0x40) !== 0;
                 this.interruptsOn = (f18a.VDPR[1] & 0x20) !== 0;
@@ -578,9 +578,9 @@ void f18a_writedata(unsigned char value)
         else
         {
             // Read second byte
-            f18a.palette[f18a.PalRegNo*3+0] = f18a.PalRegVal * 17;
-            f18a.palette[f18a.PalRegNo*3+1] = ((value & 0xf0) >> 4) * 17;
-            f18a.palette[f18a.PalRegNo*3+2] = (value & 0x0f) * 17;
+            cv_palette[f18a.PalRegNo*3+0] = f18a.PalRegVal * 17;
+            cv_palette[f18a.PalRegNo*3+1] = ((value & 0xf0) >> 4) * 17;
+            cv_palette[f18a.PalRegNo*3+2] = (value & 0x0f) * 17;
             if (f18a.PalAutoInc)
             {
                 f18a.PalRegNo++;
@@ -593,6 +593,7 @@ void f18a_writedata(unsigned char value)
                 f18a.PalRegNo = 0;
             }
             f18a.PalRegVal = 255;
+            f18a.PalRecalc = 1;
         }
     }
 };
@@ -742,6 +743,13 @@ unsigned char f18a_loop(void) {
 	// No IRQ yet
 	bIRQ=0;
 
+    // Recalc palette if needed
+    if (f18a.PalRecalc)
+    {
+        RenderCalcPalette(cv_palette,16*4);
+        f18a.PalRecalc=0;
+    }
+
 	// Increment scanline
 	if(++tms.CurLine>=tms.ScanLines) tms.CurLine=0;
 
@@ -794,166 +802,199 @@ unsigned char f18a_loop(void) {
 }
 
 // ----------------------------------------------------------------------------------------
-/*
-unsigned char f18a_drawscalline(int line)
+unsigned char f18a_drawscanline(int line)
 {
-        var imagedata = this.imagedataData;
-        var imagedataAddr = this.imagedataAddr;
-        if (this.displayOn && y >= this.topBorder && y < this.topBorder + this.drawHeight) {
-            y -= this.topBorder;
+        //var imagedata = this.imagedataData;
+        //var imagedataAddr = this.imagedataAddr;
+#if 0
+    if (F18A_DisplayON)
+    {
+//            y -= this.topBorder;
             // Prepare sprites
-            var spriteColorBuffer, spritePaletteBaseIndexBuffer;
-            if (this.unlocked || (f18a.Mode !== F18A.MODE_TEXT && f18a.Mode !== F18A.MODE_TEXT_80))
+//            var spriteColorBuffer, spritePaletteBaseIndexBuffer;
+
+        if (f18a.unlocked || (f18a.Mode != F18A_MODE_TEXT && f18a.Mode != F18A_MODE_TEXT_80))
+        {
+/*
+            spriteColorBuffer = new Uint8Array(this.drawWidth);
+            spritePaletteBaseIndexBuffer = new Uint8Array(this.drawWidth);
+            var spritesOnLine = 0;
+            var outOfScreenY = f18a.Row30 ? 0xF0 : 0xC0;
+            var negativeScreenY = f18a.Row30 ? 0xF0 : 0xD0;
+            var maxSpriteAttrAddr = tms.SprTab + (this.maxSprites << 2);
+            for (var spriteAttrAddr = tms.SprTab, index = 0; (f18a.Row30 || this.ram[spriteAttrAddr] !== 0xd0) && spriteAttrAddr < maxSpriteAttrAddr && spritesOnLine <= this.maxScanlineSprites; spriteAttrAddr += 4, index++)
             {
-                spriteColorBuffer = new Uint8Array(this.drawWidth);
-                spritePaletteBaseIndexBuffer = new Uint8Array(this.drawWidth);
-                var spritesOnLine = 0;
-                var outOfScreenY = f18a.Row30 ? 0xF0 : 0xC0;
-                var negativeScreenY = f18a.Row30 ? 0xF0 : 0xD0;
-                var maxSpriteAttrAddr = tms.SprTab + (this.maxSprites << 2);
-                for (var spriteAttrAddr = tms.SprTab, index = 0; (f18a.Row30 || this.ram[spriteAttrAddr] !== 0xd0) && spriteAttrAddr < maxSpriteAttrAddr && spritesOnLine <= this.maxScanlineSprites; spriteAttrAddr += 4, index++) {
-                    var parentSpriteAttrAddr = null;
-                    if (this.spriteLinkingEnabled) {
-                        var spriteLinkingAttr = this.ram[tms.SprTab + 0x80 + ((spriteAttrAddr - tms.SprTab) >> 2)];
-                        if ((spriteLinkingAttr & 0x20) !== 0) {
-                            parentSpriteAttrAddr = tms.SprTab + ((spriteLinkingAttr & 0x1F) << 2);
-                        }
+                var parentSpriteAttrAddr = null;
+                if (this.spriteLinkingEnabled)
+                {
+                    var spriteLinkingAttr = this.ram[tms.SprTab + 0x80 + ((spriteAttrAddr - tms.SprTab) >> 2)];
+                    if ((spriteLinkingAttr & 0x20) !== 0)
+                    {
+                        parentSpriteAttrAddr = tms.SprTab + ((spriteLinkingAttr & 0x1F) << 2);
                     }
-                    var spriteY = this.ram[spriteAttrAddr];
-                    if (parentSpriteAttrAddr !== null) {
-                        spriteY = (spriteY + this.ram[parentSpriteAttrAddr]) & 0xFF;
+                }
+                var spriteY = this.ram[spriteAttrAddr];
+                if (parentSpriteAttrAddr !== null)
+                {
+                    spriteY = (spriteY + this.ram[parentSpriteAttrAddr]) & 0xFF;
+                }
+                if (!this.realSpriteYCoord)
+                {
+                    spriteY++;
+                }
+                if (spriteY < outOfScreenY || spriteY > negativeScreenY)
+                {
+                    if (spriteY > negativeScreenY)
+                    {
+                        spriteY -= 256;
                     }
-                    if (!this.realSpriteYCoord) {
-                        spriteY++;
-                    }
-                    if (spriteY < outOfScreenY || spriteY > negativeScreenY) {
-                        if (spriteY > negativeScreenY) {
-                            spriteY -= 256;
-                        }
-                        var spriteAttr = this.ram[spriteAttrAddr + 3];
-                        var spriteSize = !this.unlocked || (spriteAttr & 0x10) === 0 ? this.spriteSize : 1;
-                        var spriteMag = this.spriteMag;
-                        var spriteHeight = 8 << spriteSize; // 8 or 16
-                        var spriteDimensionY = spriteHeight << spriteMag; // 8, 16 or 32
-                        if (y >= spriteY && y < spriteY + spriteDimensionY) {
-                            if (spritesOnLine < this.maxScanlineSprites) {
-                                //noinspection JSSuspiciousNameCombination
-                                var spriteWidth = spriteHeight;
-                                //noinspection JSSuspiciousNameCombination
-                                var spriteDimensionX = spriteDimensionY;
-                                var spriteX = this.ram[spriteAttrAddr + 1];
-                                if (parentSpriteAttrAddr === null) {
-                                    if ((spriteAttr & 0x80) !== 0) {
-                                        spriteX -= 32; // Early clock
-                                    }
+                    var spriteAttr = this.ram[spriteAttrAddr + 3];
+                    var spriteSize = !this.unlocked || (spriteAttr & 0x10) === 0 ? this.spriteSize : 1;
+                    var spriteMag = this.spriteMag;
+                    var spriteHeight = 8 << spriteSize; // 8 or 16
+                    var spriteDimensionY = spriteHeight << spriteMag; // 8, 16 or 32
+                    if (y >= spriteY && y < spriteY + spriteDimensionY)
+                    {
+                        if (spritesOnLine < this.maxScanlineSprites)
+                        {
+                            //noinspection JSSuspiciousNameCombination
+                            var spriteWidth = spriteHeight;
+                            //noinspection JSSuspiciousNameCombination
+                            var spriteDimensionX = spriteDimensionY;
+                            var spriteX = this.ram[spriteAttrAddr + 1];
+                            if (parentSpriteAttrAddr === null)
+                            {
+                                if ((spriteAttr & 0x80) !== 0)
+                                {
+                                    spriteX -= 32; // Early clock
                                 }
-                                else {
-                                    // Linked
-                                    spriteX = (spriteX + this.ram[parentSpriteAttrAddr + 1]) & 0xFF;
-                                    if ((this.ram[parentSpriteAttrAddr + 3] & 0x80) !== 0) {
-                                        spriteX -= 32; // Early clock of parent
-                                    }
+                            }
+                            else
+                            {
+                                // Linked
+                                spriteX = (spriteX + this.ram[parentSpriteAttrAddr + 1]) & 0xFF;
+                                if ((this.ram[parentSpriteAttrAddr + 3] & 0x80) !== 0)
+                                {
+                                    spriteX -= 32; // Early clock of parent
                                 }
-                                var patternNo = (this.ram[spriteAttrAddr + 2] & (spriteSize !== 0 ? 0xFC : 0xFF));
-                                var spriteFlipY = this.unlocked && (spriteAttr & 0x20) !== 0;
-                                var spriteFlipX = this.unlocked && (spriteAttr & 0x40) !== 0;
-                                var baseColor = spriteAttr & 0x0F;
-                                var sprPaletteBaseIndex = 0;
-                                switch (this.spriteColorMode) {
+                            }
+                            var patternNo = (this.ram[spriteAttrAddr + 2] & (spriteSize !== 0 ? 0xFC : 0xFF));
+                            var spriteFlipY = this.unlocked && (spriteAttr & 0x20) !== 0;
+                            var spriteFlipX = this.unlocked && (spriteAttr & 0x40) !== 0;
+                            var baseColor = spriteAttr & 0x0F;
+                            var sprPaletteBaseIndex = 0;
+                            switch (this.spriteColorMode)
+                            {
+                            case F18A.COLOR_MODE_NORMAL:
+                                sprPaletteBaseIndex = this.spritePaletteSelect;
+                                break;
+                            case F18A.COLOR_MODE_ECM_1:
+                                    sprPaletteBaseIndex = (this.spritePaletteSelect & 0x20) | (baseColor << 1);
+                                break;
+                            case F18A.COLOR_MODE_ECM_2:
+                                sprPaletteBaseIndex = (baseColor << 2);
+                                break;
+                            case F18A.COLOR_MODE_ECM_3:
+                                sprPaletteBaseIndex = ((baseColor & 0x0e) << 2);
+                                break;
+                            }
+                            var spritePatternBaseAddr = tms.SprGen + (patternNo << 3);
+                            var dy = (y - spriteY) >> spriteMag;
+                            if (spriteFlipY)
+                            {
+                                dy = spriteHeight - dy - 1;
+                            }
+                            for (var dx = 0; dx < spriteWidth; dx += 8)
+                            {
+                                var spritePatternAddr = spritePatternBaseAddr + dy + (dx << 1);
+                                var spritePatternByte0 = this.ram[spritePatternAddr];
+                                var spritePatternByte1 = this.ram[spritePatternAddr + this.spritePlaneOffset];
+                                var spritePatternByte2 = this.ram[spritePatternAddr + (this.spritePlaneOffset << 1)];
+                                var spriteBit = 0x80;
+                                var spriteBitShift2 = 7;
+                                for (var spriteBitShift1 = 0; spriteBitShift1 < 8; spriteBitShift1++)
+                                {
+                                    var sprColor;
+                                    var pixelOn = 0;
+                                    switch (this.spriteColorMode)
+                                    {
                                     case F18A.COLOR_MODE_NORMAL:
-                                        sprPaletteBaseIndex = this.spritePaletteSelect;
+                                        pixelOn = (spritePatternByte0 & spriteBit) !== 0;
+                                        sprColor = pixelOn ? baseColor : 0;
                                         break;
                                     case F18A.COLOR_MODE_ECM_1:
-                                        sprPaletteBaseIndex = (this.spritePaletteSelect & 0x20) | (baseColor << 1);
+                                        sprColor = (spritePatternByte0 & spriteBit) >> spriteBitShift2;
                                         break;
                                     case F18A.COLOR_MODE_ECM_2:
-                                        sprPaletteBaseIndex = (baseColor << 2);
-                                        break;
-                                    case F18A.COLOR_MODE_ECM_3:
-                                        sprPaletteBaseIndex = ((baseColor & 0x0e) << 2);
-                                        break;
-                                }
-                                var spritePatternBaseAddr = tms.SprGen + (patternNo << 3);
-                                var dy = (y - spriteY) >> spriteMag;
-                                if (spriteFlipY) {
-                                    dy = spriteHeight - dy - 1;
-                                }
-                                for (var dx = 0; dx < spriteWidth; dx += 8) {
-                                    var spritePatternAddr = spritePatternBaseAddr + dy + (dx << 1);
-                                    var spritePatternByte0 = this.ram[spritePatternAddr];
-                                    var spritePatternByte1 = this.ram[spritePatternAddr + this.spritePlaneOffset];
-                                    var spritePatternByte2 = this.ram[spritePatternAddr + (this.spritePlaneOffset << 1)];
-                                    var spriteBit = 0x80;
-                                    var spriteBitShift2 = 7;
-                                    for (var spriteBitShift1 = 0; spriteBitShift1 < 8; spriteBitShift1++) {
-                                        var sprColor;
-                                        var pixelOn = 0;
-                                        switch (this.spriteColorMode) {
-                                            case F18A.COLOR_MODE_NORMAL:
-                                                pixelOn = (spritePatternByte0 & spriteBit) !== 0;
-                                                sprColor = pixelOn ? baseColor : 0;
-                                                break;
-                                            case F18A.COLOR_MODE_ECM_1:
-                                                sprColor = (spritePatternByte0 & spriteBit) >> spriteBitShift2;
-                                                break;
-                                            case F18A.COLOR_MODE_ECM_2:
-                                                sprColor =
-                                                    ((spritePatternByte0 & spriteBit) >> spriteBitShift2) |
-                                                    (((spritePatternByte1 & spriteBit) >> spriteBitShift2) << 1);
-                                                break;
-                                            case F18A.COLOR_MODE_ECM_3:
-                                                sprColor =
-                                                    ((spritePatternByte0 & spriteBit) >> spriteBitShift2) |
-                                                    (((spritePatternByte1 & spriteBit) >> spriteBitShift2) << 1) |
-                                                    (((spritePatternByte2 & spriteBit) >> spriteBitShift2) << 2);
-                                                break;
+                                        sprColor =
+                                                        ((spritePatternByte0 & spriteBit) >> spriteBitShift2) |
+                                                        (((spritePatternByte1 & spriteBit) >> spriteBitShift2) << 1);
+                                            break;
+                                        case F18A.COLOR_MODE_ECM_3:
+                                            sprColor =
+                                                        ((spritePatternByte0 & spriteBit) >> spriteBitShift2) |
+                                                        (((spritePatternByte1 & spriteBit) >> spriteBitShift2) << 1) |
+                                                        (((spritePatternByte2 & spriteBit) >> spriteBitShift2) << 2);
+                                            break;
+                                    }
+                                    if (sprColor > 0 || pixelOn)
+                                    {
+                                        var x2 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
+                                        if (x2 >= 0 && x2 < this.drawWidth)
+                                        {
+                                            if (spriteColorBuffer[x2] === 0)
+                                            {
+                                                spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                                spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                            }
+                                            else
+                                            {
+                                                this.collision = true;
+                                            }
                                         }
-                                        if (sprColor > 0 || pixelOn) {
-                                            var x2 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
-                                            if (x2 >= 0 && x2 < this.drawWidth) {
-                                                if (spriteColorBuffer[x2] === 0) {
+                                        if (spriteMag)
+                                        {
+                                            x2++;
+                                            if (x2 >= 0 && x2 < this.drawWidth)
+                                            {
+                                                if (spriteColorBuffer[x2] === 0)
+                                                {
                                                     spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
                                                     spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
                                                 }
-                                                else {
+                                                else
+                                                {
                                                     this.collision = true;
                                                 }
                                             }
-                                            if (spriteMag) {
-                                                x2++;
-                                                if (x2 >= 0 && x2 < this.drawWidth) {
-                                                    if (spriteColorBuffer[x2] === 0) {
-                                                        spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                                        spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
-                                                    }
-                                                    else {
-                                                        this.collision = true;
-                                                    }
-                                                }
-                                            }
                                         }
-                                        spriteBit >>= 1;
-                                        spriteBitShift2--;
                                     }
+                                    spriteBit >>= 1;
+                                    spriteBitShift2--;
                                 }
                             }
-                            spritesOnLine++;
-                            if (spritesOnLine === 5 && !this.fifthSprite) {
-                                this.fifthSprite = true;
-                                this.fifthSpriteIndex = index;
-                            }
+                        }
+                        spritesOnLine++;
+                        if (spritesOnLine === 5 && !this.fifthSprite)
+                        {
+                            this.fifthSprite = true;
+                            this.fifthSpriteIndex = index;
                         }
                     }
                 }
-                if (f18a.Mode === F18A.MODE_TEXT_80) {
-                    for (x1 = this.drawWidth >> 1; x1 >= 0; x1--) {
-                        spriteColorBuffer[x1 << 1] = spriteColorBuffer[x1];
-                        spritePaletteBaseIndexBuffer[x1 << 1] = spritePaletteBaseIndexBuffer[x1];
-                        spriteColorBuffer[(x1 << 1) + 1] = spriteColorBuffer[x1];
-                        spritePaletteBaseIndexBuffer[(x1 << 1) + 1] = spritePaletteBaseIndexBuffer[x1];
-                    }
+            }
+            if (f18a.Mode === F18A.MODE_TEXT_80)
+            {
+                for (x1 = this.drawWidth >> 1; x1 >= 0; x1--)
+                {
+                    spriteColorBuffer[x1 << 1] = spriteColorBuffer[x1];
+                    spritePaletteBaseIndexBuffer[x1 << 1] = spritePaletteBaseIndexBuffer[x1];
+                    spriteColorBuffer[(x1 << 1) + 1] = spriteColorBuffer[x1];
+                    spritePaletteBaseIndexBuffer[(x1 << 1) + 1] = spritePaletteBaseIndexBuffer[x1];
                 }
             }
+        }
+*/
             var scrollWidth = this.drawWidth;
             var scrollHeight = this.drawHeight;
             // Border in text modes
@@ -1388,6 +1429,9 @@ unsigned char f18a_drawscalline(int line)
             }
         }
         this.imagedataAddr = imagedataAddr;
-    },
-*/
+    }
+#endif
+};
+
+
 

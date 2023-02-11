@@ -42,6 +42,9 @@
 #define F18A_COLOR_MODE_ECM_2               2
 #define F18A_COLOR_MODE_ECM_3               3
 
+#define F18A_REG1_SCREEN                    0x40 // 1: Enable display
+#define F18A_DisplayON                      (f18a.VDPR[1]&F18A_REG1_SCREEN)
+
 #include "tms9928a.h"
 
 //---------------------------------------------------------------------------
@@ -56,6 +59,7 @@ typedef struct {
     BYTE PalAutoInc;                                   // AutoInc palette register
     BYTE PalRegNo;                                     // Palette register number 0..63
     BYTE PalRegVal;                                    // Palette register value
+    BYTE PalRecalc;                                    // 1 if we need to recalc palette
     BYTE statusRegisterNo;                             // Status register number 0..15
     signed char VAddrInc;                              // SIGNED two's-complement increment amount for VRAM address, defaults to 1
 
@@ -107,7 +111,6 @@ typedef struct {
     unsigned char maxSprites;                                   // Stop Sprite to limit the total number of sprites to process, defaults to 32
     unsigned char gpuAddressLatch;
 
-    unsigned short palette[64*3];                              // 64 colors palette registers
     unsigned char VDPR[64];                                     // VDP registers (only 58 used)
 } tF18A;
 

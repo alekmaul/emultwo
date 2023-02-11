@@ -460,14 +460,14 @@ void f18agpu_writebyte(unsigned short addr, BYTE value)
         colno = ((addr & 0x7F) >> 1)*3;
         if ((addr & 1) == 0)
         {
-            f18a.palette[colno+0] = (value & 0x0F) * 17; // MSB
+            cv_palette[colno+0] = (value & 0x0F) * 17; // MSB
         }
         else
         {
-            f18a.palette[colno+1] = ((value & 0xF0) >> 4) * 17; // LSB
-            f18a.palette[colno+2] = (value & 0x0F) * 17;
+            cv_palette[colno+1] = ((value & 0xF0) >> 4) * 17; // LSB
+            cv_palette[colno+2] = (value & 0x0F) * 17;
         }
-//            this.f18a.redrawRequired = true;
+        f18a.PalRecalc = 1;
     }
     else if (addr < 0x7000) // VREG >6000->603F
     {
@@ -572,11 +572,11 @@ BYTE f18agpu_readbyte(unsigned short addr)
         color = ((addr & 0x7F) >> 1)*3;
         if ((addr & 1) == 0)
         {
-            return (f18a.palette[color] / 17); // MSB
+            return (cv_palette[color] / 17); // MSB
         }
         else
         {
-            return ( ((f18a.palette[color+1] / 17) << 4) | (f18a.palette[color+2] / 17)); // LSB
+            return ( ((cv_palette[color+1] / 17) << 4) | (cv_palette[color+2] / 17)); // LSB
         }
     }
     if (addr < 0x7000) // VREG >6000->603F
@@ -2090,6 +2090,7 @@ void f18agpu_socb(void)
 
         return 14;
 */
+    F18AGPUADDCYCLE(14);
 };
 
 // F18A specific opcodes
@@ -2115,6 +2116,7 @@ void f18agpu_ret(void)
         this.writeMemoryWord(this.WP + 30, x1);     // update R15
         return 8;
 */
+    F18AGPUADDCYCLE(8);
 };
 
 void f18agpu_push(void)
@@ -2128,6 +2130,7 @@ void f18agpu_push(void)
         this.postIncrement(this.SRC);
         return 8;
 */
+    F18AGPUADDCYCLE(8);
 };
 
 void f18agpu_slc(void)
@@ -2172,6 +2175,7 @@ void f18agpu_pop(void)
         this.postIncrement(this.SRC);
         return 8;
 */
+    F18AGPUADDCYCLE(8);    
 };
 
 

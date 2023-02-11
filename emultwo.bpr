@@ -14,7 +14,7 @@
       src\symbbrows_.obj src\setbreakpoint_.obj src\searchsequence_.obj 
       src\dumpmem_.obj src\printviewer_.obj src\accsound_.obj src\palviewer_.obj 
       src\joyconf_.obj src\ioviewer_.obj src\soundviewer_.obj src\f18a\f18a.obj 
-      src\memory_.obj src\f18a\f18agpu.obj"/>
+      src\memory_.obj src\f18a\f18agpu.obj src\iovdpviewer_.obj"/>
     <RESFILES value="emultwo.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -24,7 +24,7 @@
       src\spriteviewer_.dfm src\editvalue_.dfm src\symbbrows_.dfm 
       src\setbreakpoint_.dfm src\searchsequence_.dfm src\dumpmem_.dfm 
       src\printviewer_.dfm src\palviewer_.dfm src\joyconf_.dfm src\ioviewer_.dfm 
-      src\soundviewer_.dfm src\memory_.dfm"/>
+      src\soundviewer_.dfm src\memory_.dfm src\iovdpviewer_.dfm"/>
     <LIBFILES value="libs\directdraw\ddraw.lib libs\libpngstat\libpngstat.lib 
       libs\libpngstat\zlib.lib 
       \\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\libs\directsound\dsound.lib"/>

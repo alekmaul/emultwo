@@ -324,6 +324,7 @@ void TForm1::LoadSettings(TIniFile *ini)
         if (ini->ReadBool("MAIN","OVS1x",OVS1x->Checked)) OVS1xClick(NULL);
         if (ini->ReadBool("MAIN","OVS2x",OVS2x->Checked)) OVS2xClick(NULL);
         if (ini->ReadBool("MAIN","OVS3x",OVS3x->Checked)) OVS3xClick(NULL);
+        if (ini->ReadBool("MAIN","OVS4x",OVS3x->Checked)) OVS4xClick(NULL);
 
         Top = ini->ReadInteger("MAIN","Top",0);
         Left = ini->ReadInteger("MAIN","Left",0);
@@ -376,6 +377,7 @@ void TForm1::SaveSettings(TIniFile *ini)
         ini->WriteBool("MAIN","OVS1x",OVS1x->Checked);
         ini->WriteBool("MAIN","OVS2x",OVS2x->Checked);
         ini->WriteBool("MAIN","OVS3x",OVS3x->Checked);
+        ini->WriteBool("MAIN","OVS4x",OVS3x->Checked);
 
         ini->WriteString("RecentFiles","MRU1", MruList->Strings[0]);
         ini->WriteString("RecentFiles","MRU2", MruList->Strings[1]);
@@ -530,6 +532,7 @@ void __fastcall TForm1::OVS1xClick(TObject *Sender)
         OVS1x->Checked=true;
         OVS2x->Checked=false;
         OVS3x->Checked=false;
+        OVS4x->Checked=false;
 
         StatusBar1->SizeGrip = false;
         BorderStyle = bsSingle;
@@ -550,6 +553,7 @@ void __fastcall TForm1::OVS2xClick(TObject *Sender)
         OVS1x->Checked=false;
         OVS2x->Checked=true;
         OVS3x->Checked=false;
+        OVS4x->Checked=false;
 
         StatusBar1->SizeGrip = false;
         BorderStyle = bsSingle;
@@ -569,6 +573,7 @@ void __fastcall TForm1::OVS3xClick(TObject *Sender)
         OVS1x->Checked=false;
         OVS2x->Checked=false;
         OVS3x->Checked=true;
+        OVS4x->Checked=false;
 
         StatusBar1->SizeGrip = false;
         BorderStyle = bsSingle;
@@ -579,6 +584,26 @@ void __fastcall TForm1::OVS3xClick(TObject *Sender)
 
         ClientWidth=BaseWidth*3;
         ClientHeight=BaseHeight*3;
+        ClientHeight += StatusBar1->Height;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::OVS4xClick(TObject *Sender)
+{
+        OVS1x->Checked=false;
+        OVS2x->Checked=false;
+        OVS3x->Checked=false;
+        OVS4x->Checked=true;
+
+        StatusBar1->SizeGrip = false;
+        BorderStyle = bsSingle;
+        TBorderIcons newBorderIcons = BorderIcons;
+        newBorderIcons >> biMinimize;
+        newBorderIcons >> biMaximize;
+        BorderIcons = newBorderIcons;
+
+        ClientWidth=BaseWidth*4;
+        ClientHeight=BaseHeight*4;
         ClientHeight += StatusBar1->Height;
 }
 

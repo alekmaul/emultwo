@@ -524,6 +524,11 @@ object Form1: TForm1
           ShortCut = 16498
           OnClick = OVS3xClick
         end
+        object OVS4x: TMenuItem
+          Caption = '4x'
+          ShortCut = 16499
+          OnClick = OVS4xClick
+        end
       end
       object N3: TMenuItem
         Caption = '-'

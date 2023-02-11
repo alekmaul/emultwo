@@ -1,6 +1,6 @@
 object iomapviewer: Tiomapviewer
-  Left = 631
-  Top = 268
+  Left = 1180
+  Top = 124
   BorderStyle = bsToolWindow
   Caption = 'I/O Map Viewer'
   ClientHeight = 243

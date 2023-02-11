@@ -91,6 +91,7 @@ typedef struct {
     unsigned char UCount;                                   // Screen update counter
 } tTMS9981A;
 // ----------------------------------------------------------------------------------------
+extern const tScrMode SCR[MAXSCREEN+1];
 
 extern tTMS9981A tms;
 
@@ -104,6 +105,10 @@ extern "C" void tms9918_writedata(unsigned char value);
 extern "C" unsigned char tms9918_readdata(void);
 extern "C" unsigned char tms9918_writectrl(unsigned char value);
 extern "C" unsigned char tms9918_readctrl(void);
+
+extern "C" int ScanSprites(unsigned char Y,unsigned int *Mask);
+extern "C" unsigned char CheckSprites(void);
+
 #else
 extern void tms9918_reset(void);
 extern unsigned char tms9918_loop(void);
@@ -112,6 +117,9 @@ extern void tms9918_writedata(unsigned char value);
 extern unsigned char tms9918_readdata(void);
 extern unsigned char tms9918_writectrl(unsigned char value);
 extern unsigned char tms9918_readctrl(void);
+
+extern int ScanSprites(unsigned char Y,unsigned int *Mask);
+extern unsigned char CheckSprites(void);
 #endif
 
 #endif

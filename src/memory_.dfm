@@ -1,10 +1,11 @@
 object memory: Tmemory
-  Left = 548
-  Top = 280
-  Width = 537
-  Height = 352
+  Left = 730
+  Top = 241
   BorderIcons = [biSystemMenu]
+  BorderStyle = bsToolWindow
   Caption = 'memory'
+  ClientHeight = 294
+  ClientWidth = 521
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

@@ -1,7 +1,7 @@
 object iovdpviewer: Tiovdpviewer
-  Left = 468
-  Top = 171
-  Width = 670
+  Left = 0
+  Top = 174
+  Width = 640
   Height = 349
   Caption = 'I/O VDP Viewer'
   Color = clBtnFace

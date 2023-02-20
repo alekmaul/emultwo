@@ -251,7 +251,7 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
         result = RAM_Memory[addr];
         break;
     case RAM:
-        result = RAM_Memory[addr];
+        result = RAM_Memory[0x6000+addr];
         break;
     case EEPROM:
         result = SRAM_Memory[addr];
@@ -278,10 +278,10 @@ void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
         break;
     case RAM:
         addr&=0x03FF;
-        RAM_Memory[addr]       =RAM_Memory[0x0400+addr]=
-        RAM_Memory[0x0800+addr]=RAM_Memory[0x0C00+addr]=
-        RAM_Memory[0x1000+addr]=RAM_Memory[0x1400+addr]=
-        RAM_Memory[0x1800+addr]=RAM_Memory[0x1C00+addr]=y;
+        RAM_Memory[0x6000+addr]=RAM_Memory[0x6400+addr]=
+        RAM_Memory[0x6800+addr]=RAM_Memory[0x6C00+addr]=
+        RAM_Memory[0x7000+addr]=RAM_Memory[0x7400+addr]=
+        RAM_Memory[0x7800+addr]=RAM_Memory[0x7C00+addr]=y;
         break;
     case ROM:
         RAM_Memory[addr]=y;

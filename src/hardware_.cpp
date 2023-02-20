@@ -13,10 +13,120 @@
 #include "f18a.h"
 #include "tms9928a.h"
 
+#include "symbolstore.h"
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
 Thardware *hardware;
+
+static const char* os7Symbols =
+{
+    "00001F61  PLAY_SONGS\n"
+    "00001F64  ACTIVATEP\n"
+    "00001F67  PUTOBJP\n"
+    "00001F6A  REFLECT_VERTICAL\n"
+    "00001F6D  REFLECT_HORIZONTAL\n"
+    "00001F70  ROTATE_90\n"
+    "00001F73  ENLARGE\n"
+    "00001F76  CONTROLLER_SCAN\n"
+    "00001F79  DECODER\n"
+    "00001F7C  GAME_OPT\n"
+    "00001F7F  LOAD_ASCII\n"
+    "00001F82  FILL_VRAM\n"
+    "00001F85  MODE_1\n"
+    "00001F88  UPDATE_SPINNER\n"
+    "00001F8B  INIT_TABLEP\n"
+    "00001F8E  GET_VRAMP\n"
+    "00001F91  PUT_VRAMP\n"
+    "00001F94  INIT_SPR_ORDERP\n"
+    "00001F97  WR_SPR_NM_TBLP\n"
+    "00001F9A  INIT_TIMERP\n"
+    "00001F9D  FREE_SIGNALP\n"
+    "00001FA0  REQUEST_SIGNALP\n"
+    "00001FA3  TEST_SIGNALP\n"
+    "00001FA6  WRITE_REGISTERP\n"
+    "00001FA9  WRITE_VRAMP\n"
+    "00001FAC  READ_VRAMP\n"
+    "00001FAF  INIT_WRITERP\n"
+    "00001FB2  SOUND_INITP\n"
+    "00001FB5  PLAY_ITP\n"
+    "00001FB8  INIT_TABLE\n"
+    "00001FBB  GET_VRAM\n"
+    "00001FBE  PUT_VRAM\n"
+    "00001FC1  INIT_SPR_ORDER\n"
+    "00001FC4  WR_SPR_NM_TBL\n"
+    "00001FC7  INIT_TIMER\n"
+    "00001FCA  FREE_SIGNAL\n"
+    "00001FCD  REQUEST_SIGNAL\n"
+    "00001FD0  TEST_SIGNAL\n"
+    "00001FD3  TIME_MGR\n"
+    "00001FD6  TURN_OFF_SOUND\n"
+    "00001FD9  WRITE_REGISTER\n"
+    "00001FDC  READ_REGISTER\n"
+    "00001FDF  WRITE_VRAM\n"
+    "00001FE2  READ_VRAM\n"
+    "00001FE5  INIT_WRITER\n"
+    "00001FE8  WRITER\n"
+    "00001FEB  POLLER\n"
+    "00001FEE  SOUND_INIT\n"
+    "00001FF1  PLAY_IT\n"
+    "00001FF4  SOUND_MAN\n"
+    "00001FF7  ACTIVATE\n"
+    "00001FFA  PUTOBJ\n"
+    "00001FFD  RAND_GEN\n"
+
+    /*
+    "00000000  BOOT_UP\n"
+    "00000069  AMERICA\n"
+    "0000006A  ASCII_TABLE\n"
+    "0000006C  NUMBER_TABLE\n"
+    "0000006E  POWER_UP\n"
+    "000000FC  FREQ_SWEEP\n"
+    "0000012F  ATN_SWEEP\n"
+    "00000190  DECLSN\n"
+    "0000019B  DECMSN\n"
+    "000001A6  MSNTOLSN\n"
+    "000001B1  ADD816\n"
+    "000001D5  LEAVE_EFFECT\n"
+    "000002D6  PROCESS_DATA_AREA\n"
+    "000002EE  EFXOVER\n"
+    "0000080B  PUT_FRAME\n"
+    "00000898  GET_BKGRND\n"
+    "000008C0  CALC_OFFSET\n"
+    "00001D43  CTRL_PORT_PTR\n"
+    "00001D47  DATA_PORT_PTR\n"
+    "00001D6C  ENLRG\n"
+    "000073B9  STACK\n"
+    "000073C3  VDP_MODE_WORD\n"
+    "000073C5  VDP_STATUS_BYTE\n"
+    "000073C6  DEFER_WRITES\n"
+    "000073C7  MUX_SPRITES\n"
+    "000073C9  RAND_NUM\n"
+
+    "00008000  CARTRIDGE\n"
+    "00008002  LOCAL_SPR_TABLE\n"
+    "00008004  SPRITE_ORDER\n"
+    "00008006  WORK_BUFFER\n"
+    "00008008  CONTROLLER_MAP\n"
+    "0000800A  START_GAME\n"
+    "0000800C  RST_8H_RAM\n"
+    "0000800F  RST_10H_RAM\n"
+    "00008012  RST_18H_RAM\n"
+    "00008015  RST_20H_RAM\n"
+    "00008018  RST_28H_RAM\n"
+    "0000801B  RST_30H_RAM\n"
+    "0000801E  IRQ_INT_VECT\n"
+    "00008021  NMI_INT_VECT\n"
+    "00008024  GAME_NAME"
+*/
+};
+
+void caserMunger(AnsiString& sym, AnsiString& val)
+{
+        sym = UpperCase(sym);
+}
+
 //---------------------------------------------------------------------------
 __fastcall Thardware::Thardware(TComponent* Owner)
         : TForm(Owner)
@@ -106,7 +216,7 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     machine.vdp_writectrl=(emul2.F18A ? f18a_writectrl : tms9918_writectrl);
     machine.vdp_readctrl=(emul2.F18A ? f18a_readctrl : tms9918_readctrl);
     machine.vdp_loop=(emul2.F18A ? f18a_loop : tms9918_loop);
-
+    symbolstore::loadROMSymbols(os7Symbols, caserMunger);
 
     TVW=TVW_TMS;
     TVH=TVH_TMS;

@@ -34,6 +34,7 @@
 #include "accsound_.h"
 
 #include "about_.h"
+#include "keybadam_.h"
 #include "cartprofile_.h"
 #include "debug_.h"
 #include "hardware_.h"

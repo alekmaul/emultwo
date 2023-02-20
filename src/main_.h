@@ -120,6 +120,7 @@ __published:	// IDE-managed Components
     TMenuItem *EjectTape1;
     TMenuItem *IOVdpViewer1;
     TMenuItem *OVS4x;
+    TMenuItem *AdamKeyboard1;
         void __fastcall GatherWindows1Click(TObject *Sender);
         void __fastcall FormShow(TObject *Sender);
         void __fastcall Exit1Click(TObject *Sender);
@@ -164,6 +165,7 @@ __published:	// IDE-managed Components
     void __fastcall SoundViewer1Click(TObject *Sender);
     void __fastcall IOVdpViewer1Click(TObject *Sender);
     void __fastcall OVS4xClick(TObject *Sender);
+    void __fastcall AdamKeyboard1Click(TObject *Sender);
 private:	// User declarations
         int fps;
         int StartUpWidth, StartUpHeight;

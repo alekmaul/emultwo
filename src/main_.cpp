@@ -1187,3 +1187,11 @@ void __fastcall TForm1::JoystickEditor1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+void __fastcall TForm1::AdamKeyboard1Click(TObject *Sender)
+{
+    AdamKeyboard1->Checked = !AdamKeyboard1->Checked;
+    if (AdamKeyboard1->Checked) adamkeyboard->Show();
+    else adamkeyboard->Close();
+}
+//---------------------------------------------------------------------------
+

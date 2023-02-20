@@ -58,143 +58,6 @@
 #include "coleco.h"
 #include "z80.h"
 
-#define NR_KEYS 0x143
-
-static const byte scan2ascii[NR_KEYS] =
-{
-	0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,	/* 00 */
-	0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F,
-	0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,	/* 10 */
-	0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,
-	0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,	/* 20 */
-	0x28,0x29,0x2A,0x2B,0x2C,0x2D,0x2E,0x2F,
-	0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,	/* 30 */
-	0x38,0x39,0x3A,0x3B,0x3C,0x3D,0x3E,0x3F,
-	0x40,0x41,0x42,0x43,0x44,0x45,0x46,0x47,	/* 40 */
-	0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,
-	0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,	/* 50 */
-	0x58,0x59,0x5A,0x5B,0x5C,0x5D,0x5E,0x5F,
-	0x60,0x61,0x62,0x63,0x64,0x65,0x66,0x67,	/* 60 */
-	0x68,0x69,0x6A,0x6B,0x6C,0x6D,0x6E,0x6F,
-	0x70,0x71,0x72,0x73,0x74,0x75,0x76,0x77,	/* 70 */
-	0x78,0x79,0x7A,0x7B,0x7C,0x7D,0x7E, 151,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 80 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 90 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* A0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* B0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* C0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* D0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* E0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* F0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	 '0', '1', '2', '3', '4', '5', '6', '7',	/* 100 */
-	 '8', '9', '.', '/', '*', '-', '+',0x0D,
-	0x00, 160, 162, 161, 163, 148, 146, 147,	/* 110 */
-	 150, 149, 129, 130, 131, 132, 133, 134,
-	 144, 145,0x00,0x00,0x00,0x00,0x00,0x00,	/* 120 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 130 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,    							/* 140 */
-};
-
-static const byte scan2ascii_shift[NR_KEYS] =
-{
-	0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,	/* 00 */
-	0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F,
-	0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,	/* 10 */
-	0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,
-	0x20,0x21,0x22,0x23,0x24,0x25,0x26,  34,	/* 20 */
-	0x28,0x29,0x2A,0x2B, '<', '_', '>', '?',
-	 ')', '!', '@', '#', '$', '%', '^', '&',	/* 30 */
-	 '*', '(',0x3A, ':',0x3C, '+',0x3E,0x3F,
-	0x40, 'a', 'b', 'c', 'd', 'e', 'f', 'g',	/* 40 */
-	 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-	 'p', 'q', 'r', 's', 't', 'u', 'v', 'w',	/* 50 */
-	 'x', 'y', 'z', '{', '|', '}',0x5E,0x5F,
-	 '~', 'A', 'B', 'C', 'D', 'E', 'F', 'G',	/* 60 */
-	 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-	 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',	/* 70 */
-	 'X', 'Y', 'Z',0x7B,0x7C,0x7D,0x7E, 159,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 80 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 90 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* A0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* B0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* C0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* D0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* E0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* F0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* FF00 */
-	 184, 185, '.', '/', '*', '-', '+',0x0D,
-	0x00,0x00,0x00,0x00,0x00, 156, 154, 155,	/* FF10 */
-	158, 157, 137, 138, 139, 140, 141, 142,
-	152, 153,0x00,0x00,0x00,0x00,0x00,0x00,	/* FF20 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* FF30 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00     						    /* FF40 */
-};
-
-static const byte scan2ascii_ctrl[NR_KEYS] =
-{
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 00 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 10 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 20 */
-	0x00,0x00,0x00,0x00,0x00,  31,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,  30,0x00,	/* 30 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,   1,   2,   3,   4,   5,   6,   7,	/* 40 */
-	   8,   9,  10,  11,  12,  13,  14,  15,
-	  16,  17,  18,  19,  20,  21,  22,  23,	/* 50 */
-	  24,  25,  26,  27,  28,  29,  30,  31,
-	0x00,   1,   2,   3,   4,   5,   6,   7,	/* 60 */
-	   8,   9,  10,  11,  12,  13,  14,  15,
-	  16,  17,  18,  19,  20,  21,  22,  23,	/* 70 */
-	  24,  25,  26,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 80 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* 90 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* A0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* B0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* C0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* D0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* E0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* F0 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* FF00 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00, 164, 166, 165, 167,0x00,0x00,0x00,	/* FF10 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* FF20 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,	/* FF30 */
-	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-	0x00,0x00,0x00     							/* FF40 */
-};
-
 //---------------------------------------------------------------------------
 JOYINFO JoyInfo;
 JOYCAPS JoyCaps;
@@ -203,7 +66,7 @@ unsigned short JoystickState;
 int mouse_xpos=0, mouse_ypos=0;
 
 unsigned short JoyP1[NBKEYCV],JoyP2[NBKEYCV];
-unsigned int key_shift=0;
+unsigned int key_shift=0,key_control=0;
 
 const unsigned short keyCoresp[NBKEYCV] = {
       JST_UP,
@@ -218,6 +81,198 @@ const unsigned short keyCoresp[NBKEYCV] = {
       JST_0, JST_1, JST_2, JST_3, JST_4 , JST_5, JST_6, JST_7, JST_8, JST_9,
       JST_PURPLE,JST_BLUE, // Purple , Blue (red and yellow = butr and butl)
 };
+/*
+'------------------------------------------------------------------------------
+' Complete Virtual Key Listing for PowerBASIC:
+' Originally posted at nehe.gamedev.net
+   '---------------------------------------------------------------------------
+    MACRO VK_LBUTTON              = &h01  'Left mouse button
+    MACRO VK_RBUTTON              = &h02  'Right mouse button
+    MACRO VK_CANCEL               = &h03  'Control-break processing
+    MACRO VK_MBUTTON              = &h04  'Middle mouse button
+    MACRO VK_XBUTTON1             = &h05  'Win2K X1 mouse button
+    MACRO VK_XBUTTON2             = &h06  'Win2K X2 mouse button
+    MACRO VK_BACK                 = &h08  'BACKSPACE key
+    MACRO VK_TAB                  = &h09  'TAB key
+    MACRO VK_CLEAR                = &h0C  'CLEAR key
+    MACRO VK_RETURN               = &h0D  'ENTER key
+    MACRO VK_SHIFT                = &h10  'SHIFT key
+    MACRO VK_CONTROL              = &h11  'CTRL key
+    MACRO VK_MENU                 = &h12  'ALT key
+    MACRO VK_PAUSE                = &h13  'PAUSE key
+    MACRO VK_CAPITAL              = &h14  'CAPS LOCK key
+    MACRO VK_KANA                 = &h15  'IME Kana mode
+    MACRO VK_HANGUEL              = &h15  'IME Hanguel mode
+    MACRO VK_HANGUL               = &h15  'IME Hangul mode
+    MACRO VK_JUNJA                = &h17  'IME Junja mode
+    MACRO VK_FINAL                = &h18  'IME final mode
+    MACRO VK_HANJA                = &h19  'IME Hanja mode
+    MACRO VK_KANJI                = &h19  'IME Kanji mode
+    MACRO VK_ESCAPE               = &h1B  'ESC key
+    MACRO VK_CONVERT              = &h1C  'IME convert
+    MACRO VK_NONCONVERT           = &h1D  'IME nonconvert
+    MACRO VK_ACCEPT               = &h1E  'IME accept
+    MACRO VK_MODECHANGE           = &h1F  'IME mode change request
+    MACRO VK_SPACE                = &h20  'SPACEBAR
+    MACRO VK_PRIOR                = &h21  'PAGE UP key
+    MACRO VK_NEXT                 = &h22  'PAGE DOWN key
+    MACRO VK_END                  = &h23  'END key
+    MACRO VK_HOME                 = &h24  'HOME key
+    MACRO VK_LEFT                 = &h25  'LEFT ARROW key
+    MACRO VK_UP                   = &h26  'UP ARROW key
+    MACRO VK_RIGHT                = &h27  'RIGHT ARROW key
+    MACRO VK_DOWN                 = &h28  'DOWN ARROW key
+    MACRO VK_SELECT               = &h29  'SELECT key
+    MACRO VK_PRINT                = &h2A  'PRINT key
+    MACRO VK_EXECUTE              = &h2B  'EXECUTE key
+    MACRO VK_SNAPSHOT             = &h2C  'PRINT SCREEN key
+    MACRO VK_INSERT               = &h2D  'INS key
+    MACRO VK_DELETE               = &h2E  'DEL key
+    MACRO VK_HELP                 = &h2F  'HELP key
+    MACRO VK_0                    = &h30  '0 key
+    MACRO VK_1                    = &h31  '1 key
+    MACRO VK_2                    = &h32  '2 key
+    MACRO VK_3                    = &h33  '3 key
+    MACRO VK_4                    = &h34  '4 key
+    MACRO VK_5                    = &h35  '5 key
+    MACRO VK_6                    = &h36  '6 key
+    MACRO VK_7                    = &h37  '7 key
+    MACRO VK_8                    = &h38  '8 key
+    MACRO VK_9                    = &h39  '9 key
+    MACRO VK_A                    = &h41  'A key
+    MACRO VK_B                    = &h42  'B key
+    MACRO VK_C                    = &h43  'C key
+    MACRO VK_D                    = &h44  'D key
+    MACRO VK_E                    = &h45  'E key
+    MACRO VK_F                    = &h46  'F key
+    MACRO VK_G                    = &h47  'G key
+    MACRO VK_H                    = &h48  'H key
+    MACRO VK_I                    = &h49  'I key
+    MACRO VK_J                    = &h4A  'J key
+    MACRO VK_K                    = &h4B  'K key
+    MACRO VK_L                    = &h4C  'L key
+    MACRO VK_M                    = &h4D  'M key
+    MACRO VK_N                    = &h4E  'N key
+    MACRO VK_O                    = &h4F  'O key
+    MACRO VK_P                    = &h50  'P key
+    MACRO VK_Q                    = &h51  'Q key
+    MACRO VK_R                    = &h52  'R key
+    MACRO VK_S                    = &h53  'S key
+    MACRO VK_T                    = &h54  'T key
+    MACRO VK_U                    = &h55  'U key
+    MACRO VK_V                    = &h56  'V key
+    MACRO VK_W                    = &h57  'W key
+    MACRO VK_X                    = &h58  'X key
+    MACRO VK_Y                    = &h59  'Y key
+    MACRO VK_Z                    = &h5A  'Z key
+    MACRO VK_LWIN                 = &h5B  'Left  Windows key (MS Nat Kbrd)
+    MACRO VK_RWIN                 = &h5C  'Right Windows key (MS Nat Kbrd)
+    MACRO VK_APPS                 = &h5D  'Applications key  (MS Nat Kbrd)
+    MACRO VK_SLEEP                = &h5F  'Computer Sleep key
+    MACRO VK_NUMPAD0              = &h60  'Numeric keypad 0 key
+    MACRO VK_NUMPAD1              = &h61  'Numeric keypad 1 key
+    MACRO VK_NUMPAD2              = &h62  'Numeric keypad 2 key
+    MACRO VK_NUMPAD3              = &h63  'Numeric keypad 3 key
+    MACRO VK_NUMPAD4              = &h64  'Numeric keypad 4 key
+    MACRO VK_NUMPAD5              = &h65  'Numeric keypad 5 key
+    MACRO VK_NUMPAD6              = &h66  'Numeric keypad 6 key
+    MACRO VK_NUMPAD7              = &h67  'Numeric keypad 7 key
+    MACRO VK_NUMPAD8              = &h68  'Numeric keypad 8 key
+    MACRO VK_NUMPAD9              = &h69  'Numeric keypad 9 key
+    MACRO VK_MULTIPLY             = &h6A  'Multiply key
+    MACRO VK_ADD                  = &h6B  'Add key
+    MACRO VK_SEPARATOR            = &h6C  'Separator key
+    MACRO VK_SUBTRACT             = &h6D  'Subtract key
+    MACRO VK_DECIMAL              = &h6E  'Decimal key
+    MACRO VK_DIVIDE               = &h6F  'Divide key
+    MACRO VK_F1                   = &h70  'F1 key
+    MACRO VK_F2                   = &h71  'F2 key
+    MACRO VK_F3                   = &h72  'F3 key
+    MACRO VK_F4                   = &h73  'F4 key
+    MACRO VK_F5                   = &h74  'F5 key
+    MACRO VK_F6                   = &h75  'F6 key
+    MACRO VK_F7                   = &h76  'F7 key
+    MACRO VK_F8                   = &h77  'F8 key
+    MACRO VK_F9                   = &h78  'F9 key
+    MACRO VK_F10                  = &h79  'F10 key
+    MACRO VK_F11                  = &h7A  'F11 key
+    MACRO VK_F12                  = &h7B  'F12 key
+    MACRO VK_F13                  = &h7C  'F13 key
+    MACRO VK_F14                  = &h7D  'F14 key
+    MACRO VK_F15                  = &h7E  'F15 key
+    MACRO VK_F16                  = &h7F  'F16 key
+    MACRO VK_F17                  = &h80  'F17 key
+    MACRO VK_F18                  = &h81  'F18 key
+    MACRO VK_F19                  = &h82  'F19 key
+    MACRO VK_F20                  = &h83  'F20 key
+    MACRO VK_F21                  = &h84  'F21 key
+    MACRO VK_F22                  = &h85  'F22 key
+    MACRO VK_F23                  = &h86  'F23 key
+    MACRO VK_F24                  = &h87  'F24 key
+    MACRO VK_NUMLOCK              = &h90  'NUM LOCK key
+    MACRO VK_SCROLL               = &h91  'SCROLL LOCK key
+    MACRO VK_LSHIFT               = &hA0  'Left SHIFT key
+    MACRO VK_RSHIFT               = &hA1  'Right SHIFT key
+    MACRO VK_LCONTROL             = &hA2  'Left CONTROL key
+    MACRO VK_RCONTROL             = &hA3  'Right CONTROL key
+    MACRO VK_LMENU                = &hA4  'Left MENU key
+    MACRO VK_RMENU                = &hA5  'Right MENU key
+    MACRO VK_BROWSER_BACK         = &hA6  'Win2K Browser Back key
+    MACRO VK_BROWSER_FORWARD      = &hA7  'Win2K Browser Forward key
+    MACRO VK_BROWSER_REFRESH      = &hA8  'Win2K Browser Refresh key
+    MACRO VK_BROWSER_STOP         = &hA9  'Win2K Browser Stop key
+    MACRO VK_BROWSER_SEARCH       = &hAA  'Win2K Browser Search key
+    MACRO VK_BROWSER_FAVORITES    = &hAB  'Win2K Browser Favorites key
+    MACRO VK_BROWSER_HOME         = &hAC  'Win2K Browser Launch and Home key
+    MACRO VK_VOLUME_MUTE          = &hAD  'Win2K Volume Mute key
+    MACRO VK_VOLUME_DOWN          = &hAE  'Win2K Volume Down key
+    MACRO VK_VOLUME_UP            = &hAF  'Win2K Volume Up key
+    MACRO VK_MEDIA_NEXT_TRACK     = &hB0  'Win2K Next Track key
+    MACRO VK_MEDIA_PREV_TRACK     = &hB1  'Win2K Previous Track key
+    MACRO VK_MEDIA_STOP           = &hB2  'Win2K Stop Media key
+    MACRO VK_MEDIA_PLAY_PAUSE     = &hB3  'Win2K Play/Pause Media key
+    MACRO VK_LAUNCH_MAIL          = &hB4  'Win2K Launch Mail key
+    MACRO VK_LAUNCH_MEDIA_SELECT  = &hB5  'Win2K Select Media key
+    MACRO VK_LAUNCH_APP1          = &hB6  'Win2K Launch Application 1 key
+    MACRO VK_LAUNCH_APP2          = &hB7  'Win2K Launch Application 2 key
+    MACRO VK_OEM_1                = &hBA  'Win2K US Std. Keyboard ';:' key
+    MACRO VK_OEM_PLUS             = &hBB  'Win2K '+' key
+    MACRO VK_OEM_COMMA            = &hBC  'Win2K ',' key
+    MACRO VK_OEM_MINUS            = &hBD  'Win2K '-' key
+    MACRO VK_OEM_PERIOD           = &hBE  'Win2K '.' key
+    MACRO VK_OEM_2                = &hBF  'Win2K US Std. Keyboard '/?' key
+    MACRO VK_OEM_3                = &hC0  'Win2K US Std. Keyboard '`~' key
+    MACRO VK_OEM_4                = &hDB  'Win2K US Std. Keyboard '[{' key
+    MACRO VK_OEM_5                = &hDC  'Win2K US Std. Keyboard '\|' key
+    MACRO VK_OEM_6                = &hDD  'Win2K US Std. Keyboard ']}' key
+    MACRO VK_OEM_7                = &hDE  'Win2K US Std. Keyboard "'   key
+    MACRO VK_OEM_8                = &hDF  'Win2K US Std. Keyboard, undocumented
+    MACRO VK_OEM_102              = &hE2  'Win2K '<>' or '\|' key
+    MACRO VK_PROCESSKEY           = &hE5  'Win95/NT/2K IME PROCESS key
+    MACRO VK_PACKET               = &hE7  'Win2K Used to pass Unicode chars
+                                          'as if they were keystrokes.
+                                          'The VK_PACKET key is the low word
+                                          'of a 32-bit Virtual Key value used
+                                          'for non-keyboard input methods.
+                                          'The Unicode char is the high word.
+    MACRO VK_ATTN                 = &hF6  'Attn key
+    MACRO VK_CRSEL                = &hF7  'CrSel key
+    MACRO VK_EXSEL                = &hF8  'ExSel key
+    MACRO VK_EREOF                = &hF9  'Erase EOF key
+    MACRO VK_PLAY                 = &hFA  'Play key
+    MACRO VK_ZOOM                 = &hFB  'Zoom key
+    MACRO VK_NONAME               = &hFC  'Reserved for future use
+    MACRO VK_PA1                  = &hFD  'PA1 key
+    MACRO VK_OEM_CLEAR            = &hFE  'Clear key
+   '---------------------------------------------------------------------------
+   'OEM Specific: &h92–&h96, &hE1, &hE3–&hE4, &hE6, &hE9–&hF5
+   'Reserved:     &h0A–&h0B, &h5E, &hB8-&hB9, &hC1–&hD7, &hE0
+   'Undefined:    &h07, &h0E–&h0F, &h16, &h1A, &h3A–&h40
+   'Unassigned:   &h88–&h8F, &h97–&h9F,  &hE8, &hD8–&hDA
+'------------------------------------------------------------------------------
+'------------------------------------------------------------------------------
+
+*/
 
 //---------------------------------------------------------------------------
 
@@ -361,31 +416,53 @@ void CheckKeyDown(WORD key)
                         key_shift=1;
                 }
                 else
+                if (key==VK_CONTROL)
+                {
+                        key_control=1;
+                }
+                else
                 switch (key)
                 {
-                        case VK_F1 : adamkey=KEY_F1; break;
-                        case VK_F2 : adamkey=KEY_F2; break;
-                        case VK_F3 : adamkey=KEY_F3; break;
-                        case VK_F4 : adamkey=KEY_F4; break;
-                        case VK_F5 : adamkey=KEY_F5; break;
-                        case VK_F6 : adamkey=KEY_F6; break;
-                        case VK_UP: adamkey=KEY_UP; break;
-                        case VK_DOWN: adamkey=KEY_DOWN; break;
-                        case VK_LEFT: adamkey=KEY_LEFT; break;
-                        case VK_RIGHT: adamkey=KEY_RIGHT; break;
-                        case VK_TAB: adamkey=KEY_TAB; break;
-                        case VK_BACK: adamkey=KEY_BS; break;
-                        case VK_INSERT: adamkey=KEY_INS; break;
-                        case VK_DELETE: adamkey=KEY_DEL; break;
-                        case VK_PRINT : adamkey=KEY_PRINT; break;
-                        case VK_ESCAPE : adamkey=KEY_ESC; break;
-                        default:
-                                // Assume any key in 0x00..0x7E range an ASCII code
-                                if(key<='~') adamkey=key;
-                                break;
+                case VK_ESCAPE : adamkey=KEY_ESC; break;   //     27
+                case VK_BACK : adamkey=KEY_BS; break;      //   8   // + SHIFT = 184
+                case VK_TAB : adamkey=KEY_TAB; break;      //  9   // + SHIFT = 185
+                case VK_RETURN : adamkey=KEY_ENTER; break; //      13
+                        //case VK_F1 : adamkey=KEY_QUOTE      '\''
+                        //case VK_F1 : adamkey=KEY_BQUOTE     '`'
+                        //case VK_F1 : adamkey=KEY_BSLASH     '\\'
+                        //case VK_F1 : adamkey=KEY_COMMA      ','
+                        //case VK_F1 : adamkey=KEY_DOT        '.'
+                        //case VK_F1 : adamkey=KEY_SLASH      '/'
+                        //case VK_F1 : adamkey=KEY_ASTERISK   '*'
+                case VK_HOME : adamkey=KEY_HOME; break;     //  128
+                case VK_F1 : adamkey=KEY_F1; break;         //129 // + SHIFT = 137
+                case VK_F2 : adamkey=KEY_F2; break;        // 130 // + SHIFT = 138
+                case VK_F3 : adamkey=KEY_F3; break;        // 131 // + SHIFT = 139
+                case VK_F4 : adamkey=KEY_F4; break;        // 132 // + SHIFT = 140
+                case VK_F5 : adamkey=KEY_F5; break;        // 133 // + SHIFT = 141
+                case VK_F6 : adamkey=KEY_F6; break;        // 134 // + SHIFT = 142
+                case VK_F7 : adamkey=KEY_WILDCARD; break; //   144 // + SHIFT = 152
+                case VK_PAUSE : adamkey=KEY_UNDO; break;       // 145 // + SHIFT = 153
+                case VK_PRIOR : adamkey=KEY_MOVE; break; //       146 // + SHIFT = 154 (COPY)
+                case VK_NEXT : adamkey=KEY_STORE; break; //147 // + SHIFT = 155 (FETCH)
+                case VK_END : adamkey=KEY_CLEAR; break;      //150 // + SHIFT = 158
+                case VK_INSERT : adamkey=KEY_INS; break;        //148 // + SHIFT = 156
+                case VK_PRINT : adamkey=KEY_PRINT; break;     // 149 // + SHIFT = 157
+                case VK_DELETE : adamkey=KEY_DEL; break;      //  151 // + SHIFT = 159, + CTRL = 127
+                case VK_UP : adamkey=KEY_UP; break;         //160 // + CTRL = 164, + HOME = 172
+                case VK_RIGHT : adamkey=KEY_RIGHT; break;      //161 // + CTRL = 165, + HOME = 173
+                case VK_DOWN : adamkey=KEY_DOWN; break;       //162 // + CTRL = 166, + HOME = 174
+                case VK_LEFT : adamkey=KEY_LEFT; break;       //163 // + CTRL = 167, + HOME = 175
+                        //case VK_HOME : adamkey=KEY_DIAG_NE; break;    //168
+                        //case VK_END : adamkey=KEY_DIAG_SE; break;    //169
+                        //case VK_NEXT : adamkey=KEY_DIAG_SW; break;    //170
+                        //case VK_PRIOR : adamkey=KEY_DIAG_NW; break;   // 171
+                default:    // Assume any key in 0x00..0x7E range an ASCII code
+                    if(key<='~') adamkey=key;
+                        break;
                 }
                 if (adamkey)
-                        PutKBD(adamkey | ( (key_shift) ? CON_SHIFT:0) );
+                        PutKBD(adamkey | ( (key_shift) ? CON_SHIFT:0) | ( (key_control) ? CON_CONTROL:0) );
         }
 }
 //---------------------------------------------------------------------------
@@ -407,6 +484,10 @@ void CheckKeyUp(WORD key)
                 if (key==VK_SHIFT)
                 {
                         key_shift=0;
+                }
+                else if (key==VK_CONTROL)
+                {
+                        key_control=0;
                 }
         }
 }

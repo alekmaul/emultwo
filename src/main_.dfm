@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 663
-  Top = 291
+  Left = 337
+  Top = 277
   BorderStyle = bsSingle
   Caption = 'E.mul T.wo'
   ClientHeight = 255
@@ -557,6 +557,10 @@ object Form1: TForm1
       object Chatwithcommunity1: TMenuItem
         Caption = 'Chat with community'
         OnClick = Chatwithcommunity1Click
+      end
+      object AdamKeyboard1: TMenuItem
+        Caption = 'Adam Keyboard'
+        OnClick = AdamKeyboard1Click
       end
       object N8: TMenuItem
         Caption = '-'

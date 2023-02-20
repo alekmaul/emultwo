@@ -27,6 +27,9 @@ __published:	// IDE-managed Components
     TLabel *Label11;
     TLabel *Label12;
     TLabel *Label13;
+    TLabel *Label14;
+    TLabel *Label15;
+    TLabel *Label16;
 private:	// User declarations
 public:		// User declarations
     __fastcall Tadamkeyboard(TComponent* Owner);

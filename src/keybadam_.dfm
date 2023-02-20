@@ -17381,7 +17381,7 @@ object adamkeyboard: Tadamkeyboard
     Caption = ' F7 '
   end
   object Label3: TLabel
-    Left = 136
+    Left = 140
     Top = 40
     Width = 18
     Height = 13
@@ -17395,7 +17395,7 @@ object adamkeyboard: Tadamkeyboard
     Caption = ' F2 '
   end
   object Label5: TLabel
-    Left = 240
+    Left = 236
     Top = 40
     Width = 18
     Height = 13
@@ -17456,5 +17456,26 @@ object adamkeyboard: Tadamkeyboard
     Width = 34
     Height = 13
     Caption = ' Suppr '
+  end
+  object Label14: TLabel
+    Left = 508
+    Top = 40
+    Width = 33
+    Height = 13
+    Caption = ' PgUp '
+  end
+  object Label15: TLabel
+    Left = 542
+    Top = 40
+    Width = 33
+    Height = 13
+    Caption = ' PgDn '
+  end
+  object Label16: TLabel
+    Left = 576
+    Top = 40
+    Width = 25
+    Height = 13
+    Caption = ' End '
   end
 end

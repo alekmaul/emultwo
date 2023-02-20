@@ -1,6 +1,7 @@
     // Create all forms
     Application->CreateForm(__classid(TForm1), &Form1);
     Application->CreateForm(__classid(Tabout), &about);
+    Application->CreateForm(__classid(Tadamkeyboard), &adamkeyboard);
     Application->CreateForm(__classid(Tcartprofile), &cartprofile);
     Application->CreateForm(__classid(Tdebug), &debug);
     Application->CreateForm(__classid(Tdumpmem),&dumpmem);

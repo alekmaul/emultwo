@@ -1,6 +1,6 @@
 object adamkeyboard: Tadamkeyboard
-  Left = 558
-  Top = 264
+  Left = 1196
+  Top = 35
   BorderStyle = bsToolWindow
   Caption = 'Adam key Assignment'
   ClientHeight = 285

@@ -427,13 +427,13 @@ void CheckKeyDown(WORD key)
                 case VK_BACK : adamkey=KEY_BS; break;      //   8   // + SHIFT = 184
                 case VK_TAB : adamkey=KEY_TAB; break;      //  9   // + SHIFT = 185
                 case VK_RETURN : adamkey=KEY_ENTER; break; //      13
-                        //case VK_F1 : adamkey=KEY_QUOTE      '\''
-                        //case VK_F1 : adamkey=KEY_BQUOTE     '`'
-                        //case VK_F1 : adamkey=KEY_BSLASH     '\\'
-                        //case VK_F1 : adamkey=KEY_COMMA      ','
-                        //case VK_F1 : adamkey=KEY_DOT        '.'
-                        //case VK_F1 : adamkey=KEY_SLASH      '/'
-                        //case VK_F1 : adamkey=KEY_ASTERISK   '*'
+                case VK_OEM_7 : adamkey=KEY_QUOTE; break;  //      '\''
+                case VK_OEM_3 : adamkey=KEY_BQUOTE; break;  //     '`'
+                case VK_OEM_6 : adamkey=KEY_BSLASH; break;  //     '\\'
+                case VK_OEM_COMMA : adamkey=KEY_COMMA; break;  //      ','
+                case VK_OEM_PERIOD : adamkey=KEY_DOT; break;  //        '.'
+                case VK_OEM_2 : adamkey=KEY_SLASH; break;  //     '/'
+                case VK_OEM_5 : adamkey=KEY_ASTERISK; break; //   '*'
                 case VK_HOME : adamkey=KEY_HOME; break;     //  128
                 case VK_F1 : adamkey=KEY_F1; break;         //129 // + SHIFT = 137
                 case VK_F2 : adamkey=KEY_F2; break;        // 130 // + SHIFT = 138
@@ -458,8 +458,9 @@ void CheckKeyDown(WORD key)
                         //case VK_NEXT : adamkey=KEY_DIAG_SW; break;    //170
                         //case VK_PRIOR : adamkey=KEY_DIAG_NW; break;   // 171
                 default:    // Assume any key in 0x00..0x7E range an ASCII code
-                    if(key<='~') adamkey=key;
-                        break;
+//                if(key<='~')
+                    adamkey=key;
+                    break;
                 }
                 if (adamkey)
                         PutKBD(adamkey | ( (key_shift) ? CON_SHIFT:0) | ( (key_control) ? CON_CONTROL:0) );

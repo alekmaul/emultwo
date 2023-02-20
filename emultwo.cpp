@@ -66,6 +66,7 @@ USEUNIT("src\f18a\f18a.cpp");
 USEFORM("src\memory_.cpp", memory);
 USEUNIT("src\f18a\f18agpu.cpp");
 USEFORM("src\iovdpviewer_.cpp", iovdpviewer);
+USEFORM("src\keybadam_.cpp", adamkeyboard);
 //---------------------------------------------------------------------------
 #include "main_.h"
 #include "utils.h"

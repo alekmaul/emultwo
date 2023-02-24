@@ -34,9 +34,22 @@
 
 #include "accdraw_.h"
 
-tF18A f18a;
+// Screen handlers and masks for tms.VR table address registers
+// ----------------------------------------------------------------------------------------
+#define F18A_MODE_GRAPHICS                  0
+#define F18A_MODE_TEXT                      1
+#define F18A_MODE_TEXT_80                   2
+#define F18A_MODE_BITMAP                    3
+#define F18A_MODE_MULTICOLOR                4
 
-//---------------------------------------------------------------------------
+const tScrModeF18A F18ASCR[MAXF18ASCREEN+1] = {
+    { _F18A_modegm1 },      // GRAPHIC MODE 1 (M4 M3 M2 M1 0 0 0 0) TEXT 32x24
+    { _F18A_modet },        // TEXT MODE (M4 M3 M2 M1 0 0 0 1) TEXT 40x24
+    { _F18A_modet80 },      // TEXT MODE 80 Col (M4 M3 M2 M1 1 0 0 1) TEXT 80x24
+    { _F18A_modetgm2 },     // GRAPHIC MODE 2 (M4 M3 M2 M1 0 1 0 0)   BLOCK 256x192
+    { _F18A_modem }         // MULTICOLOR MODE (M4 M3 M2 M1 0 0 1 0) GFX 64x48x16
+};
+
 const unsigned char F18A_palette[4*16*3] = {
     // Palette 0, original 9918A NTSC color approximations
     0,0,0,      //  0 Transparent
@@ -111,10 +124,12 @@ const unsigned char F18A_palette[4*16*3] = {
     0xF,0xF,0xF  // 15 >FFFFFF (255 255 255) white
 };
 
+tF18A f18a;
+
 #pragma package(smart_init)
 // ----------------------------------------------------------------------------------------
 
-// Reset the tms.VR
+// Reset the F18A
 void f18a_reset(void) {
     int i,j;
 
@@ -126,13 +141,15 @@ void f18a_reset(void) {
         cv_palette[j+1]=F18A_palette[j+1]*17;
         cv_palette[j+2]=F18A_palette[j+2]*17;
     }
-/*
-    this.latch = false;
-*/
+	for (i=0;i<16;i++) f18a.IdxPal[i] = i;
+
+	memset(tms.ram,0x00, 0x10000);                           // Init tms.VR VRAM
+
     // Init specific var regarding chipset
+    tms.VKey=1;                                             // tms.VR address latch key
+    tms.SR=0x00;                                            // tms.VR status register
     f18a.VAddrInc = 1;
     f18a.unlocked = 0;
-    f18a.statusRegisterNo = 0;
     f18a.DPM = 0;
     f18a.PalAutoInc = 0;
     f18a.PalRegNo = 0;
@@ -140,24 +157,27 @@ void f18a_reset(void) {
     f18a.gpuAddressLatch = 0;
     f18a.Mode = F18A_MODE_GRAPHICS;
     f18a.PalRecalc = 1;
+    tms.ColTab = tms.ram;
+    tms.ChrTab = tms.ram;
+    tms.ChrGen = tms.ram;
+    tms.SprTab = tms.ram;
+    tms.SprGen = tms.ram;
+    tms.ColTabM = 0x3FFF;
+    tms.ChrGenM = 0x3FFF;
+    f18a.ColTab2 = 0;
+    f18a.ChrTab2 = 0;
+    tms.FGColor = 0;
+    tms.BGColor = 7;
+    tms.CurLine=0;                                          // Current scanline
+    tms.DLatch = 0;                                         // Current Data latch
+    tms.ScanLines = TMS9918_LINES;                          // Default for NTSC
+
+	tms.UCount = 0;
+	tms.VAddr = 0x0000;
 
 /*
-        f18a.currentScanline = 0;
         f18a.fakeScanline = null;
         f18a.blanking = 0;
-        this.displayOn = true;
-        this.interruptsOn = false;
-        tms.ColTab = 0;
-        tms.ChrTab = 0;
-        tms.ChrGen = 0;
-        tms.SprTab = 0;
-        tms.SprGen = 0;
-        tms.ColTabMask = 0x3FFF;
-        this.patternTableMask = 0x3FFF;
-        tms.FGColor = 0;
-        tms.BGColor = 7;
-		this.spriteSize = 0;
-		this.spriteMag = 0;
 
         this.tileColorMode = 0;
         this.tilePaletteSelect = 0;
@@ -165,8 +185,6 @@ void f18a_reset(void) {
         this.spriteColorMode = 0;
         this.spritePaletteSelect = 0;
         this.realSpriteYCoord = 0;
-        tms.ColTab2 = 0;
-        tms.ChrTab2 = 0;
         this.tileLayer1Enabled = true;
         this.tileLayer2Enabled = false;
         f18a.Row30 = false;
@@ -210,8 +228,9 @@ void f18a_reset(void) {
     // reset gpu
     f18agpu_reset();
 
-    // last, reset tms 9918
-    tms9918_reset();
+    // Init screen size
+    TVW=TVW_TMS;
+    TVH=TVH_TMS;
 }
 // ----------------------------------------------------------------------------------------
 
@@ -251,52 +270,61 @@ void f18a_resetregs(void)
 };
 // ----------------------------------------------------------------------------------------
 
+void f18a_updatemasks(void)
+{
+    if (f18a.Mode == F18A_MODE_BITMAP) {
+        tms.ColTabM = ((f18a.VDPR[3] & 0x7F) << 6) | 0x3F;
+        tms.ChrGenM  = ((f18a.VDPR[4] & 0x03) << 11) | (tms.ColTabM & 0x7FF);
+    }
+    else {
+        tms.ColTabM = 0x3FFF;
+        tms.ChrGenM = 0x3FFF;
+    }
+};
+
+// ----------------------------------------------------------------------------------------
+
 void f18a_updatemode(BYTE reg0,BYTE reg1)
 {
     BYTE oldmode=f18a.Mode;
 
     // Check bitmap mode bit, not text or multicolor
-    if ((reg0 & 0x2) != 0 && (reg1 & 0x18) == 0)            // #define TMS9918_Mode            (((tms.VR[0]&0x02)>>1)|(((tms.VR[1]&0x18)>>2)))
-    {                                                       //                                               0 ou 1                   0 2 4 6
-        // Bitmap mode
+    if ((reg0 & 0x2) != 0 && (reg1 & 0x18) == 0) {
+        // Bitmap mode (graphic mode 2)
         f18a.Mode = F18A_MODE_BITMAP;
     }
     else
     {
         switch ((reg1 & 0x18) >> 3)     // 00011000
         {
-        case 0: // Graphics mode 0
+        case 0: // Graphics mode 1
             f18a.Mode = F18A_MODE_GRAPHICS;
             break;
         case 1: // Multicolor mode
             f18a.Mode = F18A_MODE_MULTICOLOR;
             break;
         case 2: // Text mode
-            if ((reg0 & 0x04) == 0)
-            {
+            if ((reg0 & 0x04) == 0) {
                 f18a.Mode = F18A_MODE_TEXT;
             }
-            else
-            {
+            else {
                 f18a.Mode = F18A_MODE_TEXT_80;
             }
             break;
         }
     }
-    if (f18a.Mode == F18A_MODE_BITMAP)
-    {
-        tms.ColTab = tms.ram+((f18a.VDPR[3] & 0x80) << 6);
-        tms.ChrGen = tms.ram+((f18a.VDPR[4] & 0x4) << 11);
-        //this.updateTableMasks();
+    if (f18a.Mode == F18A_MODE_BITMAP) {
+        tms.ColTab =tms.ram+((f18a.VDPR[3] & 0x80) << 6);
+        tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x4) << 11);
+        f18a_updatemasks();
     }
-    else
-    {
-        tms.ColTab = tms.ram+(f18a.VDPR[3] << 6);
-        tms.ChrGen = tms.ram+((f18a.VDPR[4] & 0x7) << 11);
+    else {
+        tms.ColTab =tms.ram+(f18a.VDPR[3] << 6);
+        tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x7) << 11);
     }
-    tms.ChrTab = tms.ram+((f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
-    tms.SprTab = tms.ram+((f18a.VDPR[5] & 0x7f) << 7);
-    tms.SprGen = tms.ram+((f18a.VDPR[6] & 0x7) << 11);
+    tms.ChrTab =tms.ram+((f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
+    tms.SprTab =tms.ram+((f18a.VDPR[5] & 0x7f) << 7);
+    tms.SprGen =tms.ram+((f18a.VDPR[6] & 0x7) << 11);
     if (oldmode != f18a.Mode)
     {
         f18a_setwindowsize();
@@ -305,96 +333,84 @@ void f18a_updatemode(BYTE reg0,BYTE reg1)
 // ----------------------------------------------------------------------------------------
 
 // Writing a data to a F18A register
-void WriteF18A(int iReg,unsigned char value) {
+unsigned char WriteF18A(int iReg,unsigned char value)
+{
     unsigned char oldrunsr,runsr,oldvalue,gromclock;
+	unsigned char bIRQ;
+
+    // Enabling IRQs may cause an IRQ here
+	bIRQ  = (iReg==1) && ((f18a.VDPR[1]^value)&value&F18A_REG1_IRQ) && (tms.SR&F18A_STAT_VBLANK) ? 1 : 0;
 
     // store value
     oldvalue = f18a.VDPR[iReg];
     f18a.VDPR[iReg] = value;
+    tms.VR[iReg]=value; // to be sure to have also TMS synchronized
 
 	// Depending on the register, do...
     switch (iReg)
     {
-    case 0x00: // Do it with TMS
-        Write9918(iReg,value);
-        f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
-        break;
+    case 0x00: // Mode
     case 0x01:
-        Write9918(iReg,value);
         f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
         break;
-    /*
-                    this.displayOn = (f18a.VDPR[1] & 0x40) !== 0;
-                this.interruptsOn = (f18a.VDPR[1] & 0x20) !== 0;
-                this.spriteSize = (f18a.VDPR[1] & 0x02) >> 1;
-                this.spriteMag = f18a.VDPR[1] & 0x01;
-                this.updateMode(f18a.VDPR[0], f18a.VDPR[1]);
-                */
     case 0x02: // // Name table
-        //tms.ChrTab = tms.ram+(f18a.VDPR[2] & (f18a.Mode != F18A.MODE_TEXT_80 || this.unlocked ? 0xf : 0xc)) << 10;
-        //tms.ChrTab = (f18a.VDPR[2] & (f18a.Mode !== F18A.MODE_TEXT_80 || this.unlocked ? 0xf : 0xc)) << 10;
-        //break;
-    case 0x03: // Color table
-    /*
-                    if (f18a.Mode === F18A.MODE_BITMAP) {
-                    tms.ColTab = (f18a.VDPR[3] & 0x80) << 6;
-                }
-                else {
-                    tms.ColTab = f18a.VDPR[3] << 6;
-                }
-                this.updateTableMasks();
-                */
-    case 0x04: // Pattern table
-    /*
-                    if (f18a.Mode === F18A.MODE_BITMAP) {
-                    tms.ChrGen = (f18a.VDPR[4] & 0x4) << 11;
-                }
-                else {
-                    tms.ChrGen = (f18a.VDPR[4] & 0x7) << 11;
-                }
-                this.updateTableMasks();
-                */
-    case 0x05: // Sprite attribute table
-        //tms.SprTab = (f18a.VDPR[5] & 0x7f) << 7;
-    case 0x06: // Sprite pattern table
-        //tms.SprGen = (f18a.VDPR[6] & 0x7) << 11;
-    case 0x07:
-        Write9918(iReg,value);
-        /*
-                        tms.FGColor = (this.registers[7] & 0xf0) >> 4;
-                tms.BGColor = this.registers[7] & 0x0f;
-*/
+        tms.ChrTab =tms.ram+( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
         break;
+    case 0x03: // Color table
+        if (f18a.Mode == F18A_MODE_BITMAP) {
+            tms.ColTab =tms.ram+((f18a.VDPR[3] & 0x80) << 6);
+        }
+        else {
+            tms.ColTab =tms.ram+(f18a.VDPR[3] << 6);
+        }
+        f18a_updatemasks();
+        break;
+    case 0x04: // Pattern table
+        if (f18a.Mode == F18A_MODE_BITMAP) {
+            tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x4) << 11);
+        }
+        else {
+            tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x7) << 11);
+        }
+        f18a_updatemasks();
+        break;
+    case 0x05: // Sprite attribute table
+        tms.SprTab = tms.ram+((f18a.VDPR[5] & 0x7f) << 7);
+    case 0x06: // Sprite pattern table
+        tms.SprGen = tms.ram+((f18a.VDPR[6] & 0x7) << 11);
+    case 0x07:
+	    tms.FGColor=f18a.IdxPal[value>>4];
+		value &= 0x0F;
+		f18a.IdxPal[0] = f18a.IdxPal[ value ? value : 1];
+		tms.BGColor=f18a.IdxPal[value];
+        break;
+        
     case 0x0A: // Name table 2 base address
-        f18a.nameTable2 = (f18a.VDPR[0x0A] & 0x0f) << 10;
+        f18a.ChrTab2 = tms.ram+((f18a.VDPR[0x0A] & 0x0f) << 10);
         break;
     case 0x0B: // Color Table 2 Base Address, 64-byte boundaries
-        f18a.colorTable2 = f18a.VDPR[0x0B] << 6;
+        f18a.ColTab2 = tms.ram+(f18a.VDPR[0x0B] << 6);
         break;
     case 0x0F: // Status register select / counter control
-        f18a.statusRegisterNo = f18a.VDPR[0x0F] & 0x0f;
+        tms.SR = f18a.VDPR[0x0F] & 0x0f;
         oldrunsr = (oldvalue & 0x10) != 0;
         runsr = (f18a.VDPR[0x0F] & 0x10) != 0;
-        if (oldrunsr && !runsr)
-        {
+        if (oldrunsr && !runsr) {
             // Stop
             f18a.counterElapsed += (0xDEAF/*this.getTime()*/ - f18a.counterStart);
         }
-        else if (!oldrunsr && runsr)
-        {
+        else if (!oldrunsr && runsr) {
             // Start
             f18a.counterStart = 0xDEAF/*this.getTime()*/;
         }
         if ((f18a.VDPR[0x0F] & 0x20) != 0)
         {
             // Snapshot
-            if (runsr)
-            {
+            if (runsr) {
                 // Started
                 f18a.counterSnap = (0xDEAF/*this.getTime()*/ - f18a.counterStart); // + this.counterElapsed;
             }
-            else
-            {
+            else {
                 // Stopped
                 f18a.counterSnap = f18a.counterElapsed;
             }
@@ -441,13 +457,11 @@ void WriteF18A(int iReg,unsigned char value) {
     // Setting this to 31 means all 32 sprites can be displayed.
     // You cannot choose to have 31 displayable sprites on a scanline.
     case 0x1E: // Max displayable sprites on a scanline
-        if (f18a.VDPR[0x1E] == 0)
-        {
+        if (f18a.VDPR[0x1E] == 0) {
             f18a.VDPR[0x1E] = F18A_MAX_SCANLINE_SPRITES_JUMPER ? 31 : 4;
         }
         f18a.maxScanlineSprites = f18a.VDPR[0x1E];
-        if (f18a.maxScanlineSprites == 31)
-        {
+        if (f18a.maxScanlineSprites == 31) {
             f18a.maxScanlineSprites = 32;
         }
         break;
@@ -469,8 +483,7 @@ void WriteF18A(int iReg,unsigned char value) {
         break;
     case 0x23: // Bitmap width
         f18a.bitmapWidth = f18a.VDPR[0x23];
-        if (f18a.bitmapWidth == 0)
-        {
+        if (f18a.bitmapWidth == 0) {
             f18a.bitmapWidth = 256;
         }
         break;
@@ -490,8 +503,7 @@ void WriteF18A(int iReg,unsigned char value) {
         f18a.tileLayer2Enabled = (f18a.VDPR[0x31] & 0x80) != 0;
         oldvalue = f18a.Row30;
         f18a.Row30 = (f18a.VDPR[0x31] & 0x40) != 0;
-        if (oldvalue != f18a.Row30)
-        {
+        if (oldvalue != f18a.Row30) {
             f18a_setwindowsize();
         }
         f18a.tileColorMode = (f18a.VDPR[0x31] & 0x30) >> 4;
@@ -501,18 +513,17 @@ void WriteF18A(int iReg,unsigned char value) {
         break;
     case 0x32: // Position vs name attributes, TL2 always on top
         // Write 1 to reset all VDP registers
-        if ((f18a.VDPR[0x32] & 0x80) != 0)
-        {
+        if ((f18a.VDPR[0x32] & 0x80) != 0) {
             f18a_resetregs();
             f18a.unlocked = 0;
-            //this.updateMode(f18a.VDPR[0], f18a.VDPR[1]);
-            return;
+            f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
+            return (0);
         }
         f18a.gpuHsyncTrigger = (f18a.VDPR[0x32] & 0x40) != 0;
         f18a.gpuVsyncTrigger = (f18a.VDPR[0x32] & 0x20) != 0;
         f18a.tileLayer1Enabled = (f18a.VDPR[0x32] & 0x10) == 0; // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
         f18a.reportMax = (f18a.VDPR[0x32] & 0x08) != 0; // Report sprite max vs 5th sprite
-        f18a.scanLines = (f18a.VDPR[0x32] & 0x04) != 0; // Draw scan lines
+        tms.CurLine = (f18a.VDPR[0x32] & 0x04) != 0; // Draw scan lines
         f18a.ecmPositionAttributes = (f18a.VDPR[0x32] & 0x02) != 0; // 0 = per name attributes in ECMs, 1 = per position attributes
         f18a.tileMap2AlwaysOnTop = (f18a.VDPR[0x32] & 0x01) == 0; // 0 = TL2 always on top, 1 = TL2 vs sprite priority is considered
         break;
@@ -523,8 +534,7 @@ void WriteF18A(int iReg,unsigned char value) {
         f18a.gpuAddressLatch = 1;
         break;
     case 0x37: // GPU address LSB
-        if (f18a.gpuAddressLatch)
-        {
+        if (f18a.gpuAddressLatch) {
             f18a.gpuAddressLatch = 0;
             f18agpu_intreset();
             f18agpu_setpc((f18a.VDPR[54] << 8 | f18a.VDPR[55]));
@@ -534,30 +544,29 @@ void WriteF18A(int iReg,unsigned char value) {
         f18agpu.cpuIdle=((f18a.VDPR[0x38] & 1) != 0) ? 0 : 1;
         break;
     case 0x39:
-        if (!f18a.unlocked)
-        {
-            if ((oldvalue & 0x1c) == 0x1c && (f18a.VDPR[0x39] & 0x1c) == 0x1c)
-            {
+        if (!f18a.unlocked) {
+            if ((oldvalue & 0x1c) == 0x1c && (f18a.VDPR[0x39] & 0x1c) == 0x1c) {
                 f18a.unlocked = 1;
             }
         }
-        else
-        {
+        else {
             f18a.VDPR[0x39] = 0;
             f18a.unlocked = 0;
         }
-        //this.updateMode(f18a.VDPR[0], f18a.VDPR[1]);
+        f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
         break;
     case 0x3A:
         gromclock = f18a.VDPR[0x3A] & 0x0F;
-        if (gromclock < 7)
-        {
+        if (gromclock < 7) {
             gromclock = 6;
         }
         gromclock = (gromclock << 4) | 0x0F;
         //this.tms9919.setGROMClock(gromClock);
         break;
     }
+
+	// Return IRQ, if generated
+	return(bIRQ);
 };
 // ----------------------------------------------------------------------------------------
 
@@ -637,13 +646,13 @@ unsigned char f18a_writectrl(unsigned char value)
             reg = msb;
             if (f18a.unlocked || (reg < 8) || (reg == 57))
             {
-                WriteF18A(reg, tms.VAddr & 0x00FF);
+                return (WriteF18A(reg, tms.VAddr & 0x00FF));
             }
             else
             {
                 if ((f18a.VDPR[0] & 0x04) == 0) // 1.8 firmware: writes to registers > 7 are masked if 80 columns mode is not enabled
                 {
-                    Write9918(reg & 0x07, tms.VAddr & 0x00FF);
+                    return (WriteF18A(reg & 0x07, tms.VAddr & 0x00FF));
                 }
             }
             break;
@@ -660,17 +669,17 @@ unsigned char f18a_readctrl(void)
     unsigned char retval=0xFF;
 
     // check which Status register is active
-    if (f18a.statusRegisterNo==0)
+    if (tms.SR==0)
     {
         // default TMS register
         retval = tms.SR;
         tms.SR &= TMS9918_STAT_5THNUM|TMS9918_STAT_5THSPR;
 
-        z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
+        z80_set_irq_line(machine.interrupt, CLEAR_LINE);
     }
     else
     {
-        switch (f18a.statusRegisterNo)
+        switch (tms.SR)
         {
         case 1: // ID
             return 0xe0;
@@ -754,12 +763,9 @@ unsigned char f18a_loop(void) {
 	if(++tms.CurLine>=tms.ScanLines) tms.CurLine=0;
 
 	// If refreshing display area, call scanline handler
-    if((tms.CurLine>=TMS9918_START_LINE)&&(tms.CurLine<TMS9918_END_LINE))
-    {
-
-		if(tms.UCount>=100)
-        {
-	        (SCR[tms.Mode].Refresh)(tms.CurLine-TMS9918_START_LINE);
+    if((tms.CurLine>=TMS9918_START_LINE)&&(tms.CurLine<TMS9918_END_LINE)) {
+        if(tms.UCount>=100) {
+	        (F18ASCR[f18a.Mode].Refresh)(tms.CurLine-TMS9918_START_LINE);
 		}
         else
             ScanSprites(tms.CurLine-TMS9918_START_LINE,0);
@@ -769,11 +775,9 @@ unsigned char f18a_loop(void) {
 	}
 
 	// Check if VBlank
-	if(tms.CurLine==TMS9918_END_LINE)
-    {
+	if(tms.CurLine==TMS9918_END_LINE) {
 		// Check if we are currently drawing screen
-		if(tms.UCount>=100)
-        {
+		if(tms.UCount>=100) {
 			// Refresh all screen
 			//coleco_paint();
 			// Reset update counter
@@ -784,14 +788,12 @@ unsigned char f18a_loop(void) {
 		tms.UCount+=TMS9918_DRAWFRAMES;
 
 		// Generate IRQ when enabled and when VBlank flag goes up
-		if (TMS9918_VBlankON && !(tms.SR&TMS9918_STAT_VBLANK) )
-        {
+		if (F18A_InterruptON && !(tms.SR&F18A_STAT_VBLANK) ) {
             bIRQ = 1;
         }
 
 		// Set VBlank status flag
-		tms.SR|=TMS9918_STAT_VBLANK;
-
+		tms.SR|=F18A_STAT_VBLANK;
 		// Set Sprite Collision status flag
 		if(!(tms.SR&TMS9918_STAT_OVRLAP))
 			if(CheckSprites()) tms.SR|=TMS9918_STAT_OVRLAP;
@@ -802,20 +804,103 @@ unsigned char f18a_loop(void) {
 }
 
 // ----------------------------------------------------------------------------------------
-unsigned char f18a_drawscanline(int line)
+void _F18A_modegm1(unsigned char uY)
 {
-        //var imagedata = this.imagedataData;
-        //var imagedataAddr = this.imagedataAddr;
-#if 0
-    if (F18A_DisplayON)
-    {
-//            y -= this.topBorder;
-            // Prepare sprites
-//            var spriteColorBuffer, spritePaletteBaseIndexBuffer;
+    unsigned char *P;
+    int i;
 
-        if (f18a.unlocked || (f18a.Mode != F18A_MODE_TEXT && f18a.Mode != F18A_MODE_TEXT_80))
-        {
-/*
+    P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
+
+    if (F18A_DisplayON) {
+    }
+    else {
+        // Empty scanline
+        for (i = 0; i < 256; i++) {
+            *P++=tms.BGColor;
+        }
+    }
+}
+
+void _F18A_modet(unsigned char uY)
+{
+    unsigned char *P;
+    int i;
+
+    P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
+
+    if (F18A_DisplayON) {
+    }
+    else {
+        // Empty scanline
+        for (i = 0; i < 256; i++) {
+            *P++=tms.BGColor;
+        }
+    }
+}
+
+void _F18A_modet80(unsigned char uY)
+{
+    unsigned char *P;
+    int i;
+
+    P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
+
+    if (F18A_DisplayON) {
+    }
+    else {
+        // Empty scanline
+        for (i = 0; i < 256; i++) {
+            *P++=tms.BGColor;
+        }
+    }
+}
+
+void _F18A_modetgm2(unsigned char uY)
+{
+    unsigned char *P;
+    int i;
+
+    P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
+
+    if (F18A_DisplayON) {
+    }
+    else {
+        // Empty scanline
+        for (i = 0; i < 256; i++) {
+            *P++=tms.BGColor;
+        }
+    }
+}
+
+void _F18A_modem(unsigned char uY)
+{
+    unsigned char *P;
+    int i;
+
+    P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
+
+    if (F18A_DisplayON) {
+    }
+    else {
+        // Empty scanline
+        for (i = 0; i < 256; i++) {
+            *P++=tms.BGColor;
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------------------
+#if 0
+void f18a_drawscanline(int line)
+{
+    unsigned char *P;
+    unsigned int i;
+    BYTE ColPix, PalBaseIdx;
+
+    P  = cv_display + TVW*(line+(TVH-192)/2) + TVW/2-128;
+
+    if (F18A_DisplayON) {
+        if (f18a.unlocked || ((f18a.Mode != F18A_MODE_TEXT) && (f18a.Mode != F18A_MODE_TEXT_80) )) {
             spriteColorBuffer = new Uint8Array(this.drawWidth);
             spritePaletteBaseIndexBuffer = new Uint8Array(this.drawWidth);
             var spritesOnLine = 0;
@@ -994,7 +1079,6 @@ unsigned char f18a_drawscanline(int line)
                 }
             }
         }
-*/
             var scrollWidth = this.drawWidth;
             var scrollHeight = this.drawHeight;
             // Border in text modes
@@ -1056,7 +1140,7 @@ unsigned char f18a_drawscanline(int line)
                 lineOffset2 = y12 & 7;
             }
             // Draw line
-            for (var xc = 0; xc < this.canvasWidth; xc++) {
+            for (i = 0; i < 256; i++) {
                 // Draw pixel
                 var color = tms.BGColor;
                 var paletteBaseIndex = 0;
@@ -1131,8 +1215,8 @@ unsigned char f18a_drawscanline(int line)
                                 bitShift = x1 & 7;
                                 bit = 0x80 >> bitShift;
                                 var charSetOffset = (y & 0xC0) << 5;
-                                patternByte = this.ram[tms.ChrGen + (((charNo << 3) + charSetOffset) & this.patternTableMask) + lineOffset];
-                                var colorAddr = tms.ColTab + (((charNo << 3) + charSetOffset) & tms.ColTabMask) + lineOffset;
+                                patternByte = this.ram[tms.ChrGen + (((charNo << 3) + charSetOffset) & this.ChrGenM) + lineOffset];
+                                var colorAddr = tms.ColTab + (((charNo << 3) + charSetOffset) & tms.ColTabM) + lineOffset;
                                 var colorByte = this.ram[colorAddr];
                                 tileColor = (patternByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
                                 if (tileColor > 0) {
@@ -1316,8 +1400,8 @@ unsigned char f18a_drawscanline(int line)
                                 bitShift2 = x12 & 7;
                                 bit2 = 0x80 >> bitShift2;
                                 var charSetOffset2 = (y & 0xC0) << 5;
-                                patternByte2 = this.ram[tms.ChrGen + (((charNo2 << 3) + charSetOffset2) & this.patternTableMask) + lineOffset2];
-                                var colorAddr2 = tms.ColTab2 + (((charNo2 << 3) + charSetOffset2) & tms.ColTabMask) + lineOffset2;
+                                patternByte2 = this.ram[tms.ChrGen + (((charNo2 << 3) + charSetOffset2) & this.ChrGenM) + lineOffset2];
+                                var colorAddr2 = tms.ColTab2 + (((charNo2 << 3) + charSetOffset2) & tms.ColTabM) + lineOffset2;
                                 var colorByte2 = this.ram[colorAddr2];
                                 tileColor2 = (patternByte2 & bit2) !== 0 ? (colorByte2 & 0xF0) >> 4 : (colorByte2 & 0x0F);
                                 tilePaletteBaseIndex2 = this.tilePaletteSelect2;
@@ -1401,22 +1485,17 @@ unsigned char f18a_drawscanline(int line)
                     }
                 }
                 // Draw pixel
-                var rgbColor = this.palette[color + paletteBaseIndex];
+                *P++=ColPix+PalBaseIdx;
                 imagedata[imagedataAddr++] = rgbColor[0];
                 imagedata[imagedataAddr++] = rgbColor[1];
                 imagedata[imagedataAddr++] = rgbColor[2];
                 imagedataAddr++;
             }
-        }
-        else {
-            // Empty scanline
-            rgbColor = this.palette[tms.BGColor];
-            for (xc = 0; xc < this.canvasWidth; xc++) {
-                imagedata[imagedataAddr++] = rgbColor[0]; // R
-                imagedata[imagedataAddr++] = rgbColor[1]; // G
-                imagedata[imagedataAddr++] = rgbColor[2]; // B
-                imagedataAddr++; // Skip alpha
-            }
+    }
+    else {
+        // Empty scanline
+        for (i = 0; i < 256; i++) {
+            *P++=tms.BGColor;
         }
         if (this.scanLines && (y & 1) !== 0) {
             // Dim last scan line
@@ -1430,8 +1509,8 @@ unsigned char f18a_drawscanline(int line)
         }
         this.imagedataAddr = imagedataAddr;
     }
-#endif
-};
 
+};
+#endif
 
 

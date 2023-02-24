@@ -993,10 +993,10 @@ void coleco_writeport(int Address, int Data, int *tstates)
         {
             if (machine.vdp_writectrl(Data))
             {
-                z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
+                z80_set_irq_line(machine.interrupt, ASSERT_LINE);
             }
             else
-                z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
+                z80_set_irq_line(machine.interrupt, CLEAR_LINE);
         }
         break;
     case 0x40:
@@ -1121,7 +1121,7 @@ int coleco_do_scanline(void)
                 // go to next line and check nmi
                 if (machine.vdp_loop())
                 {
-                    z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
+                    z80_set_irq_line(machine.interrupt, ASSERT_LINE);
                 }
 
                 // end of screen, update sound and go outside

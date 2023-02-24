@@ -75,13 +75,32 @@ void __fastcall Tiovdpviewer::UpdateChanges()
 
     // Put VDP information
     // Mode and others features
-    switch(tms.Mode)
-    {
+    texS="";
+    if (emul2.F18A) {
+        lVDPMode->Caption="M4 M3 M2 M1";
+        switch(f18a.Mode)
+        {
+        case 0:eVDPMode->Caption="Gfx1 Mode 0 32x24"; break;
+        case 1:eVDPMode->Caption="Txt1 Mode 1 40x24"; break;
+        case 2:eVDPMode->Caption="Txt2 Mode 2 80Col 80x24"; break;
+        case 3:eVDPMode->Caption="Gfx2 Mode 3 32x24"; break;
+        case 4:eVDPMode->Caption="Mult Mode 4 64x48x16"; break;
+        }
+        texS=IntToStr((tms.VR[0]>>2) & 1)+" "+IntToStr((tms.VR[0]>>1) & 1)+" "+IntToStr((tms.VR[1]>>3) & 1)+" "+IntToStr((tms.VR[1]>>4) & 1);
+    }
+    else {
+        lVDPMode->Caption="M3 M2 M1";
+        switch(tms.Mode)
+        {
         case 0:eVDPMode->Caption="Gfx1 Mode 0 40x24"; break;
         case 1:eVDPMode->Caption="Txt1 Mode 1 32x24"; break;
         case 2:eVDPMode->Caption="Gfx2 Mode 2 32x24"; break;
         case 3:eVDPMode->Caption="Mult Mode 3 64x48x16"; break;
+        }
+        texS=IntToStr((tms.VR[0]>>1) & 1)+" "+IntToStr((tms.VR[1]>>3) & 1)+" "+IntToStr((tms.VR[1]>>4) & 1);
     }
+    eVDPValMod->Caption=texS;
+
     switch (tms.VR[1] & 0x3)
     {
         case 0:eVDPOption->Caption="8x8 not magnified"; break;
@@ -97,24 +116,11 @@ void __fastcall Tiovdpviewer::UpdateChanges()
     eVDPSPRdata->Caption="$"+IntToHex(coleco_gettmsaddr(SPRATTR,0,0),4);
     eVDPSPRtile->Caption="$"+IntToHex(coleco_gettmsaddr(SPRGEN,0,0),4);
 
-    // Register
-    for (index = 0; index < gVDP->ControlCount; index ++)
-    {
-        if(gVDP->Controls[index]->InheritsFrom(__classid(TStaticText)))
-        {
-            TStaticText *ptxt = (TStaticText*) gVDP->Controls[index];
-            ptxt->Caption="$"+IntToHex(tms.VR[ptxt->Tag],2);
-        }
-    }
-/*
-    eVDPR0->Caption="$"+IntToHex(tms.VR[0],2); eVDPR1->Caption="$"+IntToHex(tms.VR[1],2);
-    eVDPR2->Caption="$"+IntToHex(tms.VR[2],2); eVDPR3->Caption="$"+IntToHex(tms.VR[3],2);
-    eVDPR4->Caption="$"+IntToHex(tms.VR[4],2); eVDPR5->Caption="$"+IntToHex(tms.VR[5],2);
-    eVDPR6->Caption="$"+IntToHex(tms.VR[6],2); eVDPR7->Caption="$"+IntToHex(tms.VR[7],2);
-    */
+    // Register (F18A or TMS)
     if (emul2.F18A)
     {
         gF18A->Enabled=true;
+        gVDP->Enabled=false;
         for (index = 0; index < gF18A->ControlCount; index ++)
         {
             if(gF18A->Controls[index]->InheritsFrom(__classid(TStaticText)))
@@ -123,8 +129,20 @@ void __fastcall Tiovdpviewer::UpdateChanges()
                 ptxt->Caption="$"+IntToHex(f18a.VDPR[ptxt->Tag],2);
             }
         }
+        eVDPStat1->Caption="$"+IntToHex(tms.SR,2); eVDPlatch1->Caption="$"+IntToHex(tms.DLatch,2);
     }
-    eVDPStat->Caption="$"+IntToHex(tms.SR,2); eVDPlatch->Caption="$"+IntToHex(tms.DLatch,2);
+    else {
+        gF18A->Enabled=false;
+        gVDP->Enabled=true;
+        for (index = 0; index < gVDP->ControlCount; index ++) {
+            if (gVDP->Controls[index]->InheritsFrom(__classid(TStaticText))) {
+                TStaticText *ptxt = (TStaticText*) gVDP->Controls[index];
+                ptxt->Caption="$"+IntToHex(tms.VR[ptxt->Tag],2);
+            }
+        }
+        eVDPStat->Caption="$"+IntToHex(tms.SR,2); eVDPlatch->Caption="$"+IntToHex(tms.DLatch,2);
+    }
+
 
     // Information
     texS="";
@@ -134,9 +152,6 @@ void __fastcall Tiovdpviewer::UpdateChanges()
     texS=texS+"5thS#"+IntToHex(tms.SR&0x1F,2);
     eVDPStatus->Caption=texS;
     eVDPColF->Color=(TColor) cv_pal32[tms.VR[7]>>4];   eVDPColB->Color=(TColor) cv_pal32[tms.VR[7] & 0xF];
-
-    texS=IntToStr((tms.VR[1]>>4) & 1)+" " +IntToStr((tms.VR[1]>>3) & 1)+" " +IntToStr((tms.VR[0]>>1) & 1);
-    eVDPValMod->Caption=texS;
 }
 //---------------------------------------------------------------------------
 void __fastcall Tiovdpviewer::do_refresh()
@@ -167,3 +182,4 @@ void __fastcall Tiovdpviewer::FormClose(TObject *Sender,
     Form1->IOVdpViewer1->Checked=false;
 }
 //---------------------------------------------------------------------------
+

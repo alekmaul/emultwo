@@ -138,6 +138,26 @@ __published:	// IDE-managed Components
     TLabel *Label39;
     TLabel *Label40;
     TLabel *Label41;
+    TLabel *Label42;
+    TStaticText *StaticText27;
+    TLabel *Label43;
+    TStaticText *StaticText28;
+    TLabel *Label44;
+    TStaticText *StaticText29;
+    TLabel *Label45;
+    TStaticText *StaticText30;
+    TLabel *Label46;
+    TStaticText *StaticText31;
+    TLabel *Label47;
+    TStaticText *StaticText32;
+    TLabel *Label48;
+    TStaticText *StaticText33;
+    TLabel *Label49;
+    TStaticText *StaticText34;
+    TLabel *Label50;
+    TStaticText *eVDPStat1;
+    TLabel *Label51;
+    TStaticText *eVDPlatch1;
     void __fastcall ExitClick(TObject *Sender);
     void __fastcall AutoRefresh1AdvancedDrawItem(TObject *Sender,
           TCanvas *ACanvas, TRect &ARect, TOwnerDrawState State);

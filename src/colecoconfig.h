@@ -116,8 +116,8 @@ typedef struct
     int (*contendmem)(int Address, int states, int time);
     int (*contendio)(int Address, int states, int time);
     void (*reset)(void);
-    void (*nmi)(void);
     void (*exit)(void);
+    BYTE interrupt;
 
     void (*vdp_reset)(void);
     void (*vdp_writedata)(unsigned char value);

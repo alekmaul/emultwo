@@ -315,29 +315,29 @@ void TForm1::UpdateMruMenu(void)
 void TForm1::LoadSettings(TIniFile *ini)
 {
     RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI); // DDraw bugs with W11
-    if (!RenderInit())
-        {
-            RenderEnd();
-            exit(0);
-        }
-        AccurateInit(true);
+    if (!RenderInit()) {
+        RenderEnd();
+        exit(0);
+    }
+    // To modify screensize
+    AccurateInit(true);
 
-        if (ini->ReadBool("MAIN","OVS1x",OVS1x->Checked)) OVS1xClick(NULL);
-        if (ini->ReadBool("MAIN","OVS2x",OVS2x->Checked)) OVS2xClick(NULL);
-        if (ini->ReadBool("MAIN","OVS3x",OVS3x->Checked)) OVS3xClick(NULL);
-        if (ini->ReadBool("MAIN","OVS4x",OVS3x->Checked)) OVS4xClick(NULL);
+    if (ini->ReadBool("MAIN","OVS1x",OVS1x->Checked)) OVS1xClick(NULL);
+    if (ini->ReadBool("MAIN","OVS2x",OVS2x->Checked)) OVS2xClick(NULL);
+    if (ini->ReadBool("MAIN","OVS3x",OVS3x->Checked)) OVS3xClick(NULL);
+    if (ini->ReadBool("MAIN","OVS4x",OVS3x->Checked)) OVS4xClick(NULL);
 
-        Top = ini->ReadInteger("MAIN","Top",0);
-        Left = ini->ReadInteger("MAIN","Left",0);
+    Top = ini->ReadInteger("MAIN","Top",0);
+    Left = ini->ReadInteger("MAIN","Left",0);
 
-        // The start up height and width are transferred to the real height and width on the first timer event.
-        // The height and width are also restored to these values after changing the configuration.
-        StartUpHeight = Height;
-        StartUpWidth = Width;
+    // The start up height and width are transferred to the real height and width on the first timer event.
+    // The height and width are also restored to these values after changing the configuration.
+    StartUpHeight = Height;
+    StartUpWidth = Width;
 
-        KeysRead(ini);
+    KeysRead(ini);
 
-        Sound.ReInitialise(0, 0, 8, 44100, 1);
+    Sound.ReInitialise(0, 0, 8, 44100, 1);
 
 /*
         if (!SoundInit(44100,60))
@@ -350,20 +350,20 @@ void TForm1::LoadSettings(TIniFile *ini)
         }
 */
 
-        // Most recent files management
-        MruList->Add(ini->ReadString("RecentFiles","MRU1",""));
-        MruList->Add(ini->ReadString("RecentFiles","MRU2",""));
-        MruList->Add(ini->ReadString("RecentFiles","MRU3",""));
-        MruList->Add(ini->ReadString("RecentFiles","MRU4",""));
-        MruList->Add(ini->ReadString("RecentFiles","MRU5",""));
-        UpdateMruMenu();
+    // Most recent files management
+    MruList->Add(ini->ReadString("RecentFiles","MRU1",""));
+    MruList->Add(ini->ReadString("RecentFiles","MRU2",""));
+    MruList->Add(ini->ReadString("RecentFiles","MRU3",""));
+    MruList->Add(ini->ReadString("RecentFiles","MRU4",""));
+    MruList->Add(ini->ReadString("RecentFiles","MRU5",""));
+    UpdateMruMenu();
 
-        // Always default to the 100% to begin with, before changing to real dimensions upon the next timer event
-        ClientHeight = BaseHeight + StatusBar1->Height;
-        ClientWidth = BaseWidth;
+    // Always default to the 100% to begin with, before changing to real dimensions upon the next timer event
+    ClientHeight = BaseHeight + StatusBar1->Height;
+    ClientWidth = BaseWidth;
 
-        // Update the status bar
-        UpdateStatusBar();
+    // Update the status bar
+    UpdateStatusBar();
 }
 
 void TForm1::SaveSettings(TIniFile *ini)
@@ -442,6 +442,7 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
     int i=0;
     int targetfps;
 
+/*
     static HWND OldhWnd=NULL;
 
     if (Form1->Handle != OldhWnd)
@@ -453,77 +454,72 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         RenderInit();
         AccurateInit(true);
     }
-
-        // Manage startup for size & load command line rom
-        if (startup<=2) startup++;
-        switch(startup)
-        {
-        case 1:
-            if ( (StartUpWidth==0) || (StartUpHeight==0)) OVS1xClick(NULL);
-            else
-            {
-                Width=StartUpWidth;
-                Height=StartUpHeight;
-            }
-            break;
-        case 2:
-            startup++;
-            while(CommandLine[i])
-            {
-                Filename=CommandLine[i];
-                Ext = FileNameGetExt(Filename);
-
-                if (Ext==".COL" || Ext==".BIN" || Ext==".ROM")
-                {
-                    LoadProgram(Filename);
-                    break;
-                }
-                i++;
-            }
-            break;
-        default:
-            break;
+*/
+    // Manage startup for size & load command line rom
+    if (startup<=2) startup++;
+    switch(startup)
+    {
+    case 1:
+        if ( (StartUpWidth==0) || (StartUpHeight==0)) OVS1xClick(NULL);
+        else {
+            Width=StartUpWidth;
+            Height=StartUpHeight;
         }
+        break;
+    case 2:
+        startup++;
+        while(CommandLine[i]) {
+            Filename=CommandLine[i];
+            Ext = FileNameGetExt(Filename);
 
-        // Compute current fps
-        targetfps = emul2.NTSC ? 60:50;
-        if (((targetfps-1) == fps) || ((targetfps+1)==fps)) fps=targetfps;
-        targetfps = (targetfps  * 9) / 10;
-        if (fps > (targetfps+2) && emul2.frameskip>0) emul2.frameskip--;
-        if (fps < targetfps && emul2.frameskip<10 && emul2.frameskip>=0) emul2.frameskip++;
+            if (Ext==".COL" || Ext==".BIN" || Ext==".ROM") {
+                LoadProgram(Filename);
+                break;
+            }
+            i++;
+        }
+        break;
+    default:
+        break;
+    }
 
-        // Add Fps and current state
-        AnsiString text="";
-        if (emul2.stop) text +="Paused";
-     else
-        {
-            if (emul2.singlestep)
-                text +="Debug Mode";
-            else
+    // Compute current fps
+    targetfps = emul2.NTSC ? 60:50;
+    if (((targetfps-1) == fps) || ((targetfps+1)==fps)) fps=targetfps;
+    targetfps = (targetfps  * 9) / 10;
+    if (fps > (targetfps+2) && emul2.frameskip>0) emul2.frameskip--;
+    if (fps < targetfps && emul2.frameskip<10 && emul2.frameskip>=0) emul2.frameskip++;
+
+    // Add Fps and current state
+    AnsiString text="";
+    if (emul2.stop) text +="Paused";
+    else {
+        if (emul2.singlestep)
+            text +="Debug Mode";
+        else  {
+            text += emul2.NTSC ? "NTSC " : "PAL ";
+            text += fps;
+            text += "fps";
+            if (emul2.frameskip>0)
             {
-                text += emul2.NTSC ? "NTSC " : "PAL ";
-                text += fps;
-                text += "fps";
-                if (emul2.frameskip>0)
-                {
-                    text += " FS ";
-                    text += emul2.frameskip;
-                }
+                text += " FS ";
+                text += emul2.frameskip;
             }
         }
-        fps=0;
+    }
+    fps=0;
 
-        // Change Status bar
-        StatusBar1->Panels->Items[1]->Text = text;
+    // Change Status bar
+    StatusBar1->Panels->Items[1]->Text = text;
 
-        // Update viewers if available
-        if (patternviewer->Visible) patternviewer->do_refresh();
-        if (nametabviewer->Visible) nametabviewer->do_refresh();
-        if (spriteviewer->Visible) spriteviewer->do_refresh();
-        if (paletteviewer->Visible) paletteviewer->do_refresh();
-        if (iomapviewer->Visible) iomapviewer->do_refresh();
-        if (iovdpviewer->Visible) iovdpviewer->do_refresh();
-        if (soundviewer->Visible) soundviewer->do_refresh();
+    // Update viewers if available
+    if (patternviewer->Visible) patternviewer->do_refresh();
+    if (nametabviewer->Visible) nametabviewer->do_refresh();
+    if (spriteviewer->Visible) spriteviewer->do_refresh();
+    if (paletteviewer->Visible) paletteviewer->do_refresh();
+    if (iomapviewer->Visible) iomapviewer->do_refresh();
+    if (iovdpviewer->Visible) iovdpviewer->do_refresh();
+    if (soundviewer->Visible) soundviewer->do_refresh();
 }
 
 //---------------------------------------------------------------------------
@@ -856,14 +852,20 @@ void __fastcall TForm1::LoadProgram(AnsiString FileName)
     try
     {
         emul2.stop=1;
+        // Init engine in coleco mode if not in coleco mode
+        if (emul2.machine != MACHINECOLECO)
+        {
+            emul2.machine=MACHINECOLECO;
+            machine.initialise();
+        }
+
         retload=coleco_loadcart(FileName.c_str());
 
         if (retload == ROM_LOAD_PASS)
         {
             // Reset engine in coleco mode
-            emul2.machine=MACHINECOLECO;
             strcpy(emul2.currentrom,FileName.c_str());
-            coleco_reset();
+            machine.reset();
 
             // add to MUR list
             MruList->Insert(0, FileName);
@@ -912,6 +914,14 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
     try
     {
         emul2.stop=1;
+
+        // Init engine in Adam mode
+        if (emul2.machine != MACHINECOLECO)
+        {
+            emul2.machine=MACHINEADAM;
+            machine.initialise();
+        }
+
         if (TypeMedia==0) // Disk
             retload=LoadFDI(&Disks[DiskTapeNum],FileName.c_str(),FMT_ADMDSK);
         else
@@ -926,8 +936,7 @@ void __fastcall TForm1::LoadDiskTape(int TypeMedia, int DiskTapeNum, AnsiString 
 
 
             // Reset engine in Adam mode
-            emul2.machine=MACHINEADAM;
-            coleco_reset();
+            machine.reset();
             strcpy(emul2.currentrom,FileName.c_str());
 
             // Update StatusBar if needed

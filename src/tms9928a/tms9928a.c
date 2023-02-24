@@ -125,11 +125,11 @@ unsigned char Write9918(int iReg,unsigned char value) {
         {
             if (value&TMS9918_REG1_IRQ)
             {
-                z80_set_irq_line(INPUT_LINE_NMI, ASSERT_LINE);
+                z80_set_irq_line(machine.interrupt, ASSERT_LINE);
             }
             else
             {
-                z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
+                z80_set_irq_line(machine.interrupt, CLEAR_LINE);
             }
         }*/
         break;
@@ -219,7 +219,7 @@ unsigned char tms9918_readctrl(void) {
     retval = tms.SR;
     tms.SR &= TMS9918_STAT_5THNUM|TMS9918_STAT_5THSPR;
 
-    z80_set_irq_line(INPUT_LINE_NMI, CLEAR_LINE);
+    z80_set_irq_line(machine.interrupt, CLEAR_LINE);
 
     return(retval);
 }
@@ -782,7 +782,6 @@ unsigned char tms9918_loop(void) {
 		}
         else
             ScanSprites(tms.CurLine-TMS9918_START_LINE,0);
-
 	}
 
 	// Check if VBlank

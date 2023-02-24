@@ -10,6 +10,7 @@
 #include "accsound_.h"
 #include "coleco.h"
 
+#include "z80.h"
 #include "f18a.h"
 #include "tms9928a.h"
 
@@ -208,7 +209,7 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     machine.contendmem = coleco_contend;
     machine.contendio = coleco_contend;
     machine.reset = coleco_reset;
-    machine.nmi = NULL;
+    machine.interrupt = INPUT_LINE_NMI;
     machine.exit = NULL;
     machine.vdp_reset=(emul2.F18A ? f18a_reset : tms9918_reset);
     machine.vdp_writedata=(emul2.F18A ? f18a_writedata : tms9918_writedata);

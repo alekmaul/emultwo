@@ -29,13 +29,18 @@
 #define F18A_VERSION                        0x18
 
 #define F18A_MAX_SCANLINE_SPRITES_JUMPER    1
-#define F18A_SCANLINES_JUMPER               0
+//#define F18A_SCANLINES_JUMPER               0
 
 #define F18A_MODE_GRAPHICS                  0
 #define F18A_MODE_TEXT                      1
 #define F18A_MODE_TEXT_80                   2
 #define F18A_MODE_BITMAP                    3
 #define F18A_MODE_MULTICOLOR                4
+
+#define F18A_COLOR_MODE_NORMAL              0
+#define F18A_COLOR_MODE_ECM_1               1
+#define F18A_COLOR_MODE_ECM_2               2
+#define F18A_COLOR_MODE_ECM_3               3
 
 #define MAXF18ASCREEN                       4   // maximum mode supported
 
@@ -53,8 +58,14 @@
 
 #define F18A_DisplayON                      (f18a.VDPR[1]&F18A_REG1_SCREEN)
 #define F18A_InterruptON                    (f18a.VDPR[1]&F18A_REG1_IRQ)
-#define F18A_SpriteSize                     ((f18a.VR[1]&F18A_REG1_SPR16)>>1)
-#define F18A_SpriteMag                      (f18a.VR[1]&F18A_REG1_BIGSPR)
+#define F18A_SpriteSize                     ((f18a.VDPR[1]&F18A_REG1_SPR16)>>1)
+#define F18A_SpriteMag                      (f18a.VDPR[1]&F18A_REG1_BIGSPR)
+#define F18A_SPColorMode                    (f18a.VDPR[0x31] & 0x03)
+
+#define F18A_TL1Enabled                     ((f18a.VDPR[0x32] & 0x10) == 0) // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
+#define F18A_BMLEnabled                     ((f18a.VDPR[0x1F] & 0x80) != 0) // BML: Enable, Priority over sprites, Transparent, Fat pixels, Palette select
+#define F18A_SPLinkEnabled                  ((f18a.VDPR[0x31] & 0x04) != 0)
+#define F18A_SPRealYCoord                   ((f18a.VDPR[0x31] & 0x08) != 0)
 
 #include "tms9928a.h"
 
@@ -65,62 +76,53 @@ typedef struct {
 
 
 typedef struct {
+    //BYTE FGColor,BGColor;                              // Colors ForeGround and BackGround
+    //unsigned short ColTabM,ChrGenM;                    // VDP tables mask
+    //unsigned short VAddr;                              // Storage for VIDRAM addresses
+    //unsigned short DLatch;                             // Data register latch
+    //BYTE VKey;                                         // VDP address latch key
+    //
+    //unsigned short ChrGen,ChrTab,ColTab;               // VDP tables (screens)
+    //unsigned short SprGen,SprTab;                      // VDP tables (sprites)
+    //unsigned short CurLine;                             // Current scanline
+    //unsigned short ScanLines;                           // Scanlines per frame
+    //BYTE UCount;                                        // Screen update counter
+
     BYTE Version;                                      // Current code version
-
     BYTE VDPR[64];                                     // VDP registers (only 58 used)
-
+    BYTE SRSel;                                        // Status register number 0..15
     BYTE Mode;                                         // Current screen mode
     BYTE unlocked;                                     // Status locked(0)/unlocked (1)
     BYTE Row30;                                        // Default height (24 or 30 8 pix tiles)
-
-    //BYTE FGColor,BGColor;                              // Colors ForeGround and BackGround
-
-    //unsigned short DLatch;                             // Data register latch
-    //BYTE VKey;                                         // VDP address latch key
-
     BYTE DPM;                                          // Data Port Mode
     BYTE PalAutoInc;                                   // AutoInc palette register
     BYTE PalRegNo;                                     // Palette register number 0..63
     BYTE PalRegVal;                                    // Palette register value
     BYTE PalRecalc;                                    // 1 if we need to recalc palette
-    //BYTE SR;                                           // Status register number 0..15
-
-    //unsigned short ChrGen,ChrTab,ColTab;               // VDP tables (screens)
-    //unsigned short SprGen,SprTab;                      // VDP tables (sprites)
     unsigned char *ChrTab2;                            // VDP Name Table 2 Base Address, 1K boundaries. 768-bytes per table for 24 rows, 960-bytes per table for 30 rows
     unsigned char *ColTab2;                            // VDP Color Table 2 Base Address, 64-byte boundaries. Works the same as VR3 in Enhanced Color Modes / Position-Attribute Mode
-    //unsigned short ColTabM,ChrGenM;                    // VDP tables mask
-
     signed char VAddrInc;                              // SIGNED two's-complement increment amount for VRAM address, defaults to 1
-    //unsigned short VAddr;                              // Storage for VIDRAM addresses
-
-    BYTE IdxPal[16];                                    // Palette color index
-
-    //unsigned short CurLine;                             // Current scanline
-    //unsigned short ScanLines;                           // Scanlines per frame
-    //BYTE UCount;                                        // Screen update counter
-
-
+    BYTE IdxPal[16];                                   // Palette color index
+    BYTE TilColMode;                                   // Tile color mode
+    BYTE TL1HOfs,TL1VOfs;                              // Tile-1 horizontal & vertical scroll offset
+    BYTE TL2HOfs,TL2VOfs;                              // Tile-2 horizontal & vertical scroll offset
+    unsigned short HPSize1,VPSize1;                    // HPSIZE = horizontal page size, 0 = 1 page, 1 = 2 pages
+    unsigned short HPSize2,VPSize2;                    // VPSIZE = vertical page size, 0 = 1 page, 1 = 2 pages
+    BYTE SPPalSel,TL1PalSel,TL2PalSel;                 // Extra palette-select bits for original color modes. Sprite, Tile-2, and Tile-1 layers
+    BYTE SPMax;                                        // Stop Sprite to limit the total number of sprites to process, defaults to 32
+    BYTE SPMaxScanLine;                                // Max sprites per scan line, set to 0 to reset sprite max to jumper setting
+    unsigned short SPGSOfs;                            // SPGS = sprite pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
+    unsigned short TPGSOfs;                            // TPGS = tile pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
 
     unsigned int counterElapsed,counterStart,counterSnap;       // Counter management
 
 
     unsigned char interruptScanline;                            // Horizontal Interrupt scan line, 0 to disable, VR0 IE1-bit must = 1
-    unsigned char maxScanlineSprites;                           // Max sprites per scan line, set to 0 to reset sprite max to jumper setting
 
-    unsigned char spritePaletteSelect;                          // Extra palette-select bits for original color modes. Sprite, Tile-2, and Tile-1 layers
-    unsigned char tilePaletteSelect;
-    unsigned char tilePaletteSelect2;
 
-    unsigned char hScroll2,vScroll2;                            // Tile-2 horizontal & vertical scroll offset
-    unsigned char hScroll1,vScroll1;                            // Tile-1 horizontal & vertical scroll offset
 
-    unsigned short hPageSize1,vPageSize1;                       // HPSIZE = horizontal page size, 0 = 1 page, 1 = 2 pages
-    unsigned short hPageSize2,vPageSize2;                       // VPSIZE = vertical page size, 0 = 1 page, 1 = 2 pages
-    unsigned short spritePlaneOffset;                           // SPGS = sprite pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
-    unsigned short tilePlaneOffset;                             // TPGS = tile pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
 
-    unsigned char bitmapEnable;                                 // BML: Enable, Priority over sprites, Transparent, Fat pixels, Palette select
+    //unsigned char bitmapEnable;                                 // BML: Enable, Priority over sprites, Transparent, Fat pixels, Palette select
     unsigned char bitmapPriority;
     unsigned char bitmapTransparent;
     unsigned char bitmapFat;
@@ -132,19 +134,17 @@ typedef struct {
 
 
     unsigned char tileLayer2Enabled;                            // ECM = enhanced color mode, (T)ile and (S)prite
-    unsigned char tileColorMode;
     unsigned char realSpriteYCoord;
-    unsigned char spriteLinkingEnabled;
+    //unsigned char spriteLinkingEnabled;
     unsigned char spriteColorMode;
 
     unsigned char gpuHsyncTrigger;
     unsigned char gpuVsyncTrigger;
-    unsigned char tileLayer1Enabled;
+    //unsigned char tileLayer1Enabled;
     unsigned char reportMax;
     unsigned char ecmPositionAttributes;
     unsigned char tileMap2AlwaysOnTop;
 
-    unsigned char maxSprites;                                   // Stop Sprite to limit the total number of sprites to process, defaults to 32
     unsigned char gpuAddressLatch;
 
 } tF18A;

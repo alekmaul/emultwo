@@ -58,16 +58,17 @@
 
 #define F18AGPUADDCYCLE(n)                  f18agpu.cycles+=n
 /*
-#define FormatII { D=(in&0x00ff); }
 #define FormatIII { Td=0; Ts=(in&0x0030)>>4; D=(in&0x03c0)>>6; S=(in&0x000f); B=0; fixS(); }
 #define FormatIV { D=(in&0x03c0)>>6; Ts=(in&0x0030)>>4; S=(in&0x000f); B=(D<9); fixS(); }           // No destination (CRU ops)
 #define FormatV { D=(in&0x00f0)>>4; S=(in&0x000f); S=WP+(S<<1); }
-#define FormatVI { Ts=(in&0x0030)>>4; S=in&0x000f; B=0; fixS(); }                                   // No destination (single argument instructions)
-#define FormatVII {}                                                                                // no argument
+
 #define FormatVIII_0 { D=(in&0x000f); D=WP+(D<<1); }
 
 #define FormatIX  { D=(in&0x03c0)>>6; Ts=(in&0x0030)>>4; S=(in&0x000f); B=0; fixS(); }              // No destination here (dest calc'd after call) (DIV, MUL, XOP)
 */
+#define F18AGPUFormatII                 { f18agpu.D=(f18agpu.in&0x00ff); }
+#define F18AGPUFormatVI                 { f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.S=f18agpu.in&0x000f; f18agpu.B=0; f18agpu_fixs(); } // No destination (single argument instructions)
+#define F18AGPUFormatVII                {}  // no argument
 #define F18AGPUFORMATI                  { f18agpu.Td=(f18agpu.in&0x0c00)>>10; f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.D=(f18agpu.in&0x03c0)>>6; f18agpu.S=(f18agpu.in&0x000f); f18agpu.B=(f18agpu.in&0x1000)>>12; f18agpu_fixs(); }
 #define F18AGPUFORMATVIII_1             { f18agpu.D=(f18agpu.in&0x000f); f18agpu.D=f18agpu.WP+(f18agpu.D<<1); f18agpu.S=f18agpu_readword(f18agpu.PC); ADDPC(2); }
 

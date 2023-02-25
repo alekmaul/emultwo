@@ -143,11 +143,13 @@ void f18a_reset(void) {
     }
 	for (i=0;i<16;i++) f18a.IdxPal[i] = i;
 
-	memset(tms.ram,0x00, 0x10000);                           // Init tms.VR VRAM
+    memset(tms.VR,0x00,sizeof(tms.VR));                     // Init tms.VR Registers
+	memset(tms.ram,0x00, 0x10000);                          // Init tms.VR VRAM
+
+    memset(f18a.VDPR,0x00,sizeof(f18a.VDPR));               // Init f18a.VR Registers
 
     // Init specific var regarding chipset
-    tms.VKey=1;                                             // tms.VR address latch key
-    tms.SR=0x00;                                            // tms.VR status register
+    f18a.SRSel=0x00;
     f18a.VAddrInc = 1;
     f18a.unlocked = 0;
     f18a.DPM = 0;
@@ -157,6 +159,29 @@ void f18a_reset(void) {
     f18a.gpuAddressLatch = 0;
     f18a.Mode = F18A_MODE_GRAPHICS;
     f18a.PalRecalc = 1;
+    f18a.TL1HOfs = 0;
+    f18a.TL1VOfs = 0;
+    f18a.TL2HOfs = 0;
+    f18a.TL2VOfs = 0;
+    f18a.Row30 = 0;
+    f18a.TilColMode = 0;
+    f18a.ColTab2 = tms.ram;
+    f18a.ChrTab2 = tms.ram;
+    f18a.HPSize1 = 0;
+    f18a.VPSize1 = 0;
+    f18a.HPSize2 = 0;
+    f18a.VPSize2 = 0;
+    f18a.TL1PalSel = 0;
+    f18a.TL2PalSel = 0;
+    f18a.SPPalSel = 0;
+    f18a.SPMax = 32;
+    f18a.SPMaxScanLine = F18A_MAX_SCANLINE_SPRITES_JUMPER ? 32 : 4;
+    f18a.SPGSOfs = 0x800;
+    f18a.TPGSOfs = 0x800;
+
+    // Shared TMS9918 registers & variables
+    tms.VKey=1;                                             // tms.VR address latch key
+    tms.SR=0x00;                                            // tms.VR status register
     tms.ColTab = tms.ram;
     tms.ChrTab = tms.ram;
     tms.ChrGen = tms.ram;
@@ -164,14 +189,11 @@ void f18a_reset(void) {
     tms.SprGen = tms.ram;
     tms.ColTabM = 0x3FFF;
     tms.ChrGenM = 0x3FFF;
-    f18a.ColTab2 = 0;
-    f18a.ChrTab2 = 0;
     tms.FGColor = 0;
     tms.BGColor = 7;
     tms.CurLine=0;                                          // Current scanline
     tms.DLatch = 0;                                         // Current Data latch
     tms.ScanLines = TMS9918_LINES;                          // Default for NTSC
-
 	tms.UCount = 0;
 	tms.VAddr = 0x0000;
 
@@ -179,24 +201,10 @@ void f18a_reset(void) {
         f18a.fakeScanline = null;
         f18a.blanking = 0;
 
-        this.tileColorMode = 0;
-        this.tilePaletteSelect = 0;
-        this.tilePaletteSelect2 = 0;
         this.spriteColorMode = 0;
-        this.spritePaletteSelect = 0;
         this.realSpriteYCoord = 0;
-        this.tileLayer1Enabled = true;
         this.tileLayer2Enabled = false;
-        f18a.Row30 = false;
         this.spriteLinkingEnabled = false;
-        this.hScroll1 = 0;
-        this.vScroll1 = 0;
-        this.hScroll2 = 0;
-        this.vScroll2 = 0;
-        this.hPageSize1 = 0;
-        this.vPageSize1 = 0;
-        this.hPageSize2 = 0;
-        this.vPageSize2 = 0;
         this.bitmapEnable = false;
         this.bitmapPriority = false;
         this.bitmapTransparent = false;
@@ -208,16 +216,12 @@ void f18a_reset(void) {
         this.bitmapWidth = 0;
         this.bitmapHeight = 0;
         this.interruptScanline = 0;
-        this.maxScanlineSprites = F18A.MAX_SCANLINE_SPRITES_JUMPER && !this.enableFlicker ? 32 : 4;
-        this.maxSprites = 32;
         this.tileMap2AlwaysOnTop = true;
         this.ecmPositionAttributes = false;
         this.reportMax = false;
         this.scanLines = F18A.SCANLINES_JUMPER;
         this.gpuHsyncTrigger = false;
         this.gpuVsyncTrigger = false;
-        this.spritePlaneOffset = 0x800;
-        this.tilePlaneOffset = 0x800;
         this.counterElapsed = 0;
         this.counterStart = this.getTime();
         this.counterSnap = 0;
@@ -225,6 +229,9 @@ void f18a_reset(void) {
     // Init all registers
     f18a_resetregs();
 
+    // Init size
+    f18a_setwindowsize();
+    
     // reset gpu
     f18agpu_reset();
 
@@ -392,7 +399,7 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a.ColTab2 = tms.ram+(f18a.VDPR[0x0B] << 6);
         break;
     case 0x0F: // Status register select / counter control
-        tms.SR = f18a.VDPR[0x0F] & 0x0f;
+        f18a.SRSel = f18a.VDPR[0x0F] & 0x0f;
         oldrunsr = (oldvalue & 0x10) != 0;
         runsr = (f18a.VDPR[0x0F] & 0x10) != 0;
         if (oldrunsr && !runsr) {
@@ -428,29 +435,29 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a.interruptScanline = f18a.VDPR[0x13];
         break;
     case 0x18:// Palette select
-        f18a.spritePaletteSelect = f18a.VDPR[0x18] & 0x30;
-        f18a.tilePaletteSelect = (f18a.VDPR[0x18] & 0x03) << 4; // Shift into position
-        f18a.tilePaletteSelect2 = (f18a.VDPR[0x18] & 0x0C) << 2; // Shift into position
+        f18a.SPPalSel = f18a.VDPR[0x18] & 0x30;
+        f18a.TL1PalSel = (f18a.VDPR[0x18] & 0x03) << 4; // Shift into position
+        f18a.TL2PalSel = (f18a.VDPR[0x18] & 0x0C) << 2; // Shift into position
         break;
     case 0x19: // Horizontal scroll offset 2
-        f18a.hScroll2 = f18a.VDPR[0x19];
+        f18a.TL2HOfs = f18a.VDPR[0x19];
         break;
     case 0x1A: // Vertical scroll offset 2
-        f18a.vScroll2 = f18a.VDPR[0x1A];
+        f18a.TL2VOfs = f18a.VDPR[0x1A];
         break;
     case 0x1B: // Horizontal scroll offset 1
-        f18a.hScroll1 = f18a.VDPR[0x1B];
+        f18a.TL1HOfs = f18a.VDPR[0x1B];
         break;
     case 0x1C: // Vertical scroll offset 1
-        f18a.vScroll1 = f18a.VDPR[0x1C];
+        f18a.TL1VOfs = f18a.VDPR[0x1C];
         break;
     case 0x1D: // Page size
-        f18a.hPageSize1 = (f18a.VDPR[0x1D] & 0x02) << 9;
-        f18a.vPageSize1 = (f18a.VDPR[0x1D] & 0x01) << 11;
-        f18a.hPageSize2 = (f18a.VDPR[0x1D] & 0x20) << 5;
-        f18a.vPageSize2 = (f18a.VDPR[0x1D] & 0x10) << 7;
-        f18a.spritePlaneOffset = 0x100 << (3 - ((f18a.VDPR[0x1D] & 0xC0) >> 6));
-        f18a.tilePlaneOffset = 0x100 << (3 - ((f18a.VDPR[0x1D] & 0x0C) >> 2));
+        f18a.HPSize1 = (f18a.VDPR[0x1D] & 0x02) << 9;
+        f18a.VPSize1 = (f18a.VDPR[0x1D] & 0x01) << 11;
+        f18a.HPSize2 = (f18a.VDPR[0x1D] & 0x20) << 5;
+        f18a.VPSize2 = (f18a.VDPR[0x1D] & 0x10) << 7;
+        f18a.SPGSOfs = 0x100 << (3 - ((f18a.VDPR[0x1D] & 0xC0) >> 6));
+        f18a.TPGSOfs = 0x100 << (3 - ((f18a.VDPR[0x1D] & 0x0C) >> 2));
         break;
 
     // Setting this to 0 restores the jumper value (4 or 32). Here assumed to be 32.
@@ -460,13 +467,13 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         if (f18a.VDPR[0x1E] == 0) {
             f18a.VDPR[0x1E] = F18A_MAX_SCANLINE_SPRITES_JUMPER ? 31 : 4;
         }
-        f18a.maxScanlineSprites = f18a.VDPR[0x1E];
-        if (f18a.maxScanlineSprites == 31) {
-            f18a.maxScanlineSprites = 32;
+        f18a.SPMaxScanLine = f18a.VDPR[0x1E];
+        if (f18a.SPMaxScanLine == 31) {
+            f18a.SPMaxScanLine = 32;
         }
         break;
     case 0x1F: // Bitmap control
-        f18a.bitmapEnable = (f18a.VDPR[0x1F] & 0x80) != 0;
+        //f18a.bitmapEnable = (f18a.VDPR[0x1F] & 0x80) != 0;
         f18a.bitmapPriority = (f18a.VDPR[0x1F] & 0x40) != 0;
         f18a.bitmapTransparent = (f18a.VDPR[0x1F] & 0x20) != 0;
         f18a.bitmapFat = (f18a.VDPR[0x1F] & 0x10) != 0;
@@ -506,10 +513,10 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         if (oldvalue != f18a.Row30) {
             f18a_setwindowsize();
         }
-        f18a.tileColorMode = (f18a.VDPR[0x31] & 0x30) >> 4;
-        f18a.realSpriteYCoord = (f18a.VDPR[0x31] & 0x08) != 0;
-        f18a.spriteLinkingEnabled = (f18a.VDPR[0x31] & 0x04) != 0;
-        f18a.spriteColorMode = f18a.VDPR[0x31] & 0x03;
+        f18a.TilColMode = (f18a.VDPR[0x31] & 0x30) >> 4;
+        //f18a.realSpriteYCoord = (f18a.VDPR[0x31] & 0x08) != 0;
+        //f18a.spriteLinkingEnabled = (f18a.VDPR[0x31] & 0x04) != 0;
+        //f18a.spriteColorMode = f18a.VDPR[0x31] & 0x03;
         break;
     case 0x32: // Position vs name attributes, TL2 always on top
         // Write 1 to reset all VDP registers
@@ -521,14 +528,14 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         }
         f18a.gpuHsyncTrigger = (f18a.VDPR[0x32] & 0x40) != 0;
         f18a.gpuVsyncTrigger = (f18a.VDPR[0x32] & 0x20) != 0;
-        f18a.tileLayer1Enabled = (f18a.VDPR[0x32] & 0x10) == 0; // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
+        //f18a.tileLayer1Enabled = (f18a.VDPR[0x32] & 0x10) == 0; // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
         f18a.reportMax = (f18a.VDPR[0x32] & 0x08) != 0; // Report sprite max vs 5th sprite
         tms.CurLine = (f18a.VDPR[0x32] & 0x04) != 0; // Draw scan lines
         f18a.ecmPositionAttributes = (f18a.VDPR[0x32] & 0x02) != 0; // 0 = per name attributes in ECMs, 1 = per position attributes
         f18a.tileMap2AlwaysOnTop = (f18a.VDPR[0x32] & 0x01) == 0; // 0 = TL2 always on top, 1 = TL2 vs sprite priority is considered
         break;
     case 0x33: // Stop Sprite (zero based) to limit the total number of sprites to process. Defaults to 32, i.e. no stop sprite
-        f18a.maxSprites = f18a.VDPR[0x33] & 0x3F;
+        f18a.SPMax = f18a.VDPR[0x33] & 0x3F;
         break;
     case 0x36: // GPU address MSB
         f18a.gpuAddressLatch = 1;
@@ -669,7 +676,7 @@ unsigned char f18a_readctrl(void)
     unsigned char retval=0xFF;
 
     // check which Status register is active
-    if (tms.SR==0)
+    if (f18a.SRSel==0)
     {
         // default TMS register
         retval = tms.SR;
@@ -679,7 +686,7 @@ unsigned char f18a_readctrl(void)
     }
     else
     {
-        switch (tms.SR)
+        switch (f18a.SRSel)
         {
         case 1: // ID
             return 0xe0;
@@ -794,9 +801,10 @@ unsigned char f18a_loop(void) {
 
 		// Set VBlank status flag
 		tms.SR|=F18A_STAT_VBLANK;
-		// Set Sprite Collision status flag
-		if(!(tms.SR&TMS9918_STAT_OVRLAP))
-			if(CheckSprites()) tms.SR|=TMS9918_STAT_OVRLAP;
+
+		// Set Sprite Collision status flag (done in each line)
+		//if(!(tms.SR&TMS9918_STAT_OVRLAP))
+		  //	if(CheckSprites()) tms.SR|=TMS9918_STAT_OVRLAP;
 	}
 
 	// Return IRQ (1) or not (0)
@@ -806,12 +814,289 @@ unsigned char f18a_loop(void) {
 // ----------------------------------------------------------------------------------------
 void _F18A_modegm1(unsigned char uY)
 {
-    unsigned char *P;
-    int i;
+    int i,x,bmpX, index,dx,dy,x1,y1,x2;
+    BYTE *P,ColPix,PalBaseIdx,tilePalBaseIdx;
+    unsigned short ChrTabCanonicalBase,ChrTabBaseAddr,ChrTabAddr,GenTabAddr;
+    unsigned short rowOfs,lineOfs,lineOfs1;
+    unsigned short BMX2,BMY1,BMY2,BMYOfs;
+    BYTE charNo,bit,bitShift,TilAttrByte,TilPrio,TilCol,TransCol0, ColSet,GenByte;
+    BYTE BMBitShift, BMColor;
+    BYTE SPColor;
+    BYTE SPColBuf[256],SPPalBasIdxBuf[256];
+    unsigned short SPMaxAttrAddr,SPParentAttrAddr,SPAttrAddr,SPGenBaseAddr,SPGenAddr;
+    BYTE SCRYOut,SCRYNeg,SPOnline,SPLinkAttr,SPX,SPY;
+    BYTE SPAttr,SPSize,SPMag,SPWidth,SPHeight,SPDimX,SPDimY;
+    BYTE patternNo,SPFlipX,SPFlipY, baseColor,SPPalBaseIdx,pixelOn,sprColor;
+    BYTE SPGenByte0,SPGenByte1,SPGenByte2,SPBit,SPBitShift1,SPBitShift2;
 
+    // GO to current line
     P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
 
     if (F18A_DisplayON) {
+        // Prepare sprite colors
+        memset(SPColBuf,0x01,256);  // 1 because we substract 1 at the end
+        memset(SPPalBasIdxBuf,0x01,256); // 1 because we substract 1 at the end
+        SPOnline = 0;
+        SCRYOut = f18a.Row30 ? 0xF0 : 0xC0;
+        SCRYNeg = f18a.Row30 ? 0xF0 : 0xD0;
+        SPMaxAttrAddr = tms.SprTab -tms.ram + (f18a.SPMax << 2);
+        for (SPAttrAddr = tms.SprTab-tms.ram, index = 0; (f18a.Row30 || tms.ram[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
+            SPParentAttrAddr = 0;
+            if (F18A_SPLinkEnabled) {
+                SPLinkAttr = tms.ram[(tms.SprTab -tms.ram) + 0x80 + ((SPAttrAddr - (tms.SprTab - tms.ram) ) >> 2)];
+                if ((SPLinkAttr & 0x20) != 0)  {
+                    SPParentAttrAddr = (tms.SprTab-tms.ram) + ((SPLinkAttr & 0x1F) << 2);
+                }
+            }
+            SPY = tms.ram[SPAttrAddr];
+            if (SPParentAttrAddr != 0) {
+                SPY = (SPY + tms.ram[SPParentAttrAddr]) & 0xFF;
+            }
+            if (!F18A_SPRealYCoord) {
+                SPY++;
+            }
+            if ( (SPY < SCRYOut) || (SPY > SCRYNeg)) {
+                if (SPY > SCRYNeg)  {
+                    SPY -= 256;
+                }
+                SPAttr = tms.ram[SPAttrAddr + 3];
+                SPSize = !f18a.unlocked || (SPAttr & 0x10) == 0 ? F18A_SpriteSize : 1;
+                SPMag = F18A_SpriteMag;
+                SPHeight = 8 << SPSize; // 8 or 16
+                SPDimY = SPHeight << SPMag; // 8, 16 or 32
+                if ((uY >= SPY) && (uY < SPY + SPDimY) ) {
+                    if (SPOnline < f18a.SPMaxScanLine) {
+                        SPWidth = SPHeight;
+                        SPDimX = SPDimY;
+                        SPX = tms.ram[SPAttrAddr + 1];
+                        if (SPParentAttrAddr == 0)  {
+                            if ((SPAttr & 0x80) != 0)  {
+                                SPX -= 32; // Early clock
+                            }
+                        }
+                        else {
+                            // Linked
+                            SPX = (SPX + tms.ram[SPParentAttrAddr + 1]) & 0xFF;
+                            if ((tms.ram[SPParentAttrAddr + 3] & 0x80) != 0) {
+                                SPX -= 32; // Early clock of parent
+                            }
+                        }
+                        patternNo = (tms.ram[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
+                        SPFlipY = f18a.unlocked && (SPAttr & 0x20) != 0;
+                        SPFlipX = f18a.unlocked && (SPAttr & 0x40) != 0;
+                        baseColor = SPAttr & 0x0F;
+                        SPPalBaseIdx = 0;
+                        switch (F18A_SPColorMode)
+                        {
+                        case F18A_COLOR_MODE_NORMAL:
+                            SPPalBaseIdx = f18a.SPPalSel;
+                            break;
+                        case F18A_COLOR_MODE_ECM_1:
+                            SPPalBaseIdx = (f18a.SPPalSel & 0x20) | (baseColor << 1);
+                            break;
+                        case F18A_COLOR_MODE_ECM_2:
+                            SPPalBaseIdx = (baseColor << 2);
+                            break;
+                        case F18A_COLOR_MODE_ECM_3:
+                            SPPalBaseIdx = ((baseColor & 0x0e) << 2);
+                            break;
+                        }
+                        SPGenBaseAddr = (tms.SprGen-tms.ram) + (patternNo << 3);
+                        dy = (uY - SPY) >> SPMag;
+                        if (SPFlipY) {
+                            dy = SPHeight - dy - 1;
+                        }
+                        for (dx = 0; dx < SPWidth; dx += 8) {
+                            SPGenAddr = SPGenBaseAddr + dy + (dx << 1);
+                            SPGenByte0 = tms.ram[SPGenAddr];
+                            SPGenByte1 = tms.ram[SPGenAddr + f18a.SPGSOfs];
+                            SPGenByte2 = tms.ram[SPGenAddr + (f18a.SPGSOfs << 1)];
+                            SPBit = 0x80;
+                            SPBitShift2 = 7;
+                            for (SPBitShift1 = 0; SPBitShift1 < 8; SPBitShift1++) {
+                                pixelOn = 0;
+                                switch (F18A_SPColorMode)
+                                {
+                                case F18A_COLOR_MODE_NORMAL:
+                                    pixelOn = (SPGenByte0 & SPBit) != 0;
+                                    sprColor = pixelOn ? baseColor : 0;
+                                    break;
+                                case F18A_COLOR_MODE_ECM_1:
+                                    sprColor = (SPGenByte0 & SPBit) >> SPBitShift2;
+                                    break;
+                                case F18A_COLOR_MODE_ECM_2:
+                                    sprColor =((SPGenByte0 & SPBit) >> SPBitShift2) |
+                                                        (((SPGenByte1 & SPBit) >> SPBitShift2) << 1);
+                                    break;
+                                case F18A_COLOR_MODE_ECM_3:
+                                    sprColor =((SPGenByte0 & SPBit) >> SPBitShift2) |
+                                                        (((SPGenByte1 & SPBit) >> SPBitShift2) << 1) |
+                                                        (((SPGenByte2 & SPBit) >> SPBitShift2) << 2);
+                                    break;
+                                }
+                                if ( (sprColor > 0) || pixelOn) {
+                                    x2 = SPX + ((SPFlipX ? SPDimX - (dx + SPBitShift1) - 1 : dx + SPBitShift1) << SPMag);
+                                    if ((x2 >= 0) && (x2 < TVW)) {
+                                        if (SPColBuf[x2] == 0) {
+                                            SPColBuf[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                            SPPalBasIdxBuf[x2] = SPPalBaseIdx;
+                                        }
+                                        else {
+                                            tms.SR|=TMS9918_STAT_OVRLAP;
+                                        }
+                                    }
+                                    if (SPMag) {
+                                        x2++;
+                                        if ( (x2 >= 0) && (x2 < TVW) ) {
+                                            if (SPColBuf[x2] == 0) {
+                                                SPColBuf[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                                SPPalBasIdxBuf[x2] = SPPalBaseIdx;
+                                            }
+                                            else {
+                                                tms.SR|=TMS9918_STAT_OVRLAP;
+                                            }
+                                        }
+                                    } // if (SPMag) {
+                                }
+                                SPBit >>= 1;
+                                SPBitShift2--;
+                            } // for (SPBitShift1 = 0; SPBitShift1 < 8; SPBitShift1++) {
+                        }
+                    }
+                }
+                SPOnline++;
+/*TODO                if (SPOnline == 5 && !this.fifthSprite) {
+                    this.fifthSprite = true;
+                    this.fifthSpriteIndex = index;
+                }*/
+            }
+        }
+
+        // Prepare values for Tile layer 1
+        ChrTabCanonicalBase = f18a.VPSize1 ? (tms.ChrTab-tms.ram) & 0x3000 : (f18a.HPSize1 ? (tms.ChrTab-tms.ram) & 0x3800 : (tms.ChrTab-tms.ram));
+        ChrTabBaseAddr = (tms.ChrTab-tms.ram);
+        y1 = uY + f18a.TL1VOfs;
+        if (y1 >= TVH) {
+            y1 -= TVH;
+            ChrTabBaseAddr ^= f18a.VPSize1;
+        }
+        rowOfs=(y1 >> 3) << 5;
+        lineOfs = y1 & 7;
+
+        // Prepare values for Bitmap layer
+        if (F18A_BMLEnabled) {
+            BMX2 = f18a.bitmapX + f18a.bitmapWidth;
+            BMY1 = uY - f18a.bitmapY;
+            BMY2 = f18a.bitmapY + f18a.bitmapHeight;
+            BMYOfs = BMY1 * f18a.bitmapWidth;
+        }
+
+        // Draw line
+        for (x = 0; x < 256; x++) {
+            // Init default color / palette
+            ColPix = tms.BGColor;
+            PalBaseIdx=0;
+            // Tile layer 1
+            if (F18A_TL1Enabled) {
+                ChrTabAddr = ChrTabBaseAddr;
+                x1 = x - (f18a.TL1HOfs << 0);
+                if (x1 >= TVW) {
+                    x1 -= TVW;
+                    ChrTabAddr ^= f18a.HPSize1;
+                }
+                ChrTabAddr += (x1 >> 3) + rowOfs;
+                charNo = tms.ram[ChrTabAddr];
+                bitShift = x1 & 7;
+                lineOfs1 = lineOfs;
+                if (f18a.TilColMode != F18A_COLOR_MODE_NORMAL) {
+                    TilAttrByte = tms.ram[tms.ColTab-tms.ram + (f18a.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
+                    TilPrio = (TilAttrByte & 0x80) != 0;
+                    if ((TilAttrByte & 0x40) != 0) {
+                        // Flip X
+                        bitShift = 7 - bitShift;
+                    }
+                    if ((TilAttrByte & 0x20) != 0) {
+                        // Flip y
+                        lineOfs1 = 7 - lineOfs1;
+                    }
+                    TransCol0 = (TilAttrByte & 0x10) != 0;
+                }
+                bit = 0x80 >> bitShift;
+                GenTabAddr = tms.ChrGen -tms.ram + (charNo << 3) + lineOfs1;
+                GenByte = tms.ram[GenTabAddr];
+                switch (f18a.TilColMode)
+                {
+                case F18A_COLOR_MODE_NORMAL:
+                    ColSet = tms.ram[tms.ColTab-tms.ram + (charNo >> 3)];
+                    TilCol = (GenByte & bit) != 0 ? (ColSet & 0xF0) >> 4 : ColSet & 0x0F;
+                    tilePalBaseIdx = f18a.TL1PalSel;
+                    TransCol0 = true;
+                    TilPrio = false;
+                    break;
+                case F18A_COLOR_MODE_ECM_1:
+                    TilCol = ((GenByte & bit) >> (7 - bitShift));
+                    tilePalBaseIdx = (f18a.TL1PalSel & 0x20) | ((TilAttrByte & 0x0f) << 1);
+                    break;
+                case F18A_COLOR_MODE_ECM_2:
+                    TilCol = ((GenByte & bit) >> (7 - bitShift)) |
+                            (((tms.ram[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
+                    tilePalBaseIdx = ((TilAttrByte & 0x0f) << 2);
+                    break;
+                case F18A_COLOR_MODE_ECM_3:
+                    TilCol =((GenByte & bit) >> (7 - bitShift)) |
+                        (((tms.ram[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
+                        (((tms.ram[GenTabAddr + (f18a.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
+                    tilePalBaseIdx = ((TilAttrByte & 0x0e) << 2);
+                    break;
+                }
+                if (TilCol > 0 || !TransCol0) {
+                    ColPix = TilCol;
+                    PalBaseIdx = tilePalBaseIdx;
+                }
+            } // if (F18A_TL1Enabled) {
+
+            // Bitmap layer
+            if (F18A_BMLEnabled) {
+                bmpX = f18a.Mode != F18A_MODE_TEXT_80 ? x : x >> 1;
+                if ( (bmpX >= f18a.bitmapX) && (bmpX < BMX2) && (uY >= f18a.bitmapY) && (uY < BMY2)) {
+                /*
+                    var bitmapX1 = x - this.bitmapX;
+                    var bitmapPixelOffset = bitmapX1 + BMYOfs;
+                    var bitmapByte = this.ram[this.bitmapBaseAddr + (bitmapPixelOffset >> 2)];
+                    if (this.bitmapFat) {
+                        // 16 color bitmap with fat pixels
+                        BMBitShift = (2 - (bitmapPixelOffset & 2)) << 1;
+                        BMColor = (bitmapByte >> BMBitShift) & 0x0F;
+                    }
+                    else {
+                        // 4 color bitmap
+                        BMBitShift = (3 - (bitmapPixelOffset & 3)) << 1;
+                        BMColor = (bitmapByte >> BMBitShift) & 0x03;
+                    }
+                    if ((BMColor > 0 || !this.bitmapTransparent) && (color === tms.BGColor || this.bitmapPriority)) {
+                        ColPix = BMColor;
+                        PalBaseIdx = this.bitmapPaletteSelect;
+                    }
+                */
+                }
+            }
+
+            // Sprite layer
+            SPColor=0;
+            if (!TilPrio || (TransCol0 && (ColPix == 0)) ) {
+                SPColor = SPColBuf[x] - 1;
+                if (SPColor > 0) {
+                    ColPix = SPColor;
+                    PalBaseIdx = SPPalBasIdxBuf[x];
+                }
+                else {
+                    SPColor = 0;
+                }
+            }
+
+            // Draw pixel
+            *P++=ColPix+PalBaseIdx;
+        }
     }
     else {
         // Empty scanline
@@ -857,12 +1142,56 @@ void _F18A_modet80(unsigned char uY)
 
 void _F18A_modetgm2(unsigned char uY)
 {
-    unsigned char *P;
-    int i;
+    BYTE *P,ColPix,PalBaseIdx,tilePalBaseIdx;
+    unsigned short ChrTabCanonicalBase,ChrTabBaseAddr,ChrTabAddr,GenTabAddr,ColTabAddr;
+    unsigned short rowOfs,lineOfs,lineOfs1,x1,y1;
+    int i,x;
+    BYTE charNo,charSetOfs,bit,bitShift,TilAttrByte,TilPrio,TilCol,TransCol0, ColSet,GenByte,ColByte;
 
     P  = cv_display + TVW*(uY+(TVH-192)/2) + TVW/2-128;
 
     if (F18A_DisplayON) {
+        // Prepare values for Tile layer 1
+        ChrTabCanonicalBase = f18a.VPSize1 ? (tms.ChrTab-tms.ram) & 0x3000 : (f18a.HPSize1 ? (tms.ChrTab-tms.ram) & 0x3800 : (tms.ChrTab-tms.ram));
+        ChrTabBaseAddr = (tms.ChrTab-tms.ram);
+        y1 = uY + f18a.TL1VOfs;
+        if (y1 >= TVH) {
+            y1 -= TVH;
+            ChrTabBaseAddr ^= f18a.VPSize1;
+        }
+        rowOfs=(y1 >> 3) << 5;
+        lineOfs = y1 & 7;
+
+        // Draw line
+        for (x = 0; x < 256; x++) {
+            // Init default color / palette
+            ColPix = tms.BGColor;
+            PalBaseIdx=0;
+            // Tile layer 1
+            if (F18A_TL1Enabled) {
+                ChrTabAddr = ChrTabBaseAddr;
+                x1 = x - (f18a.TL1HOfs << 0);
+                if (x1 >= TVW) {
+                    x1 -= TVW;
+                    ChrTabAddr ^= f18a.HPSize1;
+                }
+                charNo = tms.ram[ChrTabAddr + (x1 >> 3) + rowOfs];
+                bitShift = x1 & 7;
+                bit = 0x80 >> bitShift;
+                charSetOfs = (uY & 0xC0) << 5;
+                GenByte = tms.ram[tms.ChrGen -tms.ram + (((charNo << 3) + charSetOfs) & tms.ChrGenM) + lineOfs];
+                ColTabAddr = tms.ColTab -tms.ram + (((charNo << 3) + charSetOfs) & tms.ColTabM) + lineOfs;
+                ColByte = tms.ram[ColTabAddr];
+                TilCol = (GenByte & bit) != 0 ? (ColByte & 0xF0) >> 4 : (ColByte & 0x0F);
+                if (TilCol > 0) {
+                    ColPix = TilCol;
+                    PalBaseIdx = f18a.TL1PalSel;
+                }
+            } // if (F18A_TL1Enabled) {
+
+            // Draw pixel
+            *P++=ColPix+PalBaseIdx;
+        }
     }
     else {
         // Empty scanline
@@ -901,151 +1230,151 @@ void f18a_drawscanline(int line)
 
     if (F18A_DisplayON) {
         if (f18a.unlocked || ((f18a.Mode != F18A_MODE_TEXT) && (f18a.Mode != F18A_MODE_TEXT_80) )) {
-            spriteColorBuffer = new Uint8Array(this.drawWidth);
-            spritePaletteBaseIndexBuffer = new Uint8Array(this.drawWidth);
-            var spritesOnLine = 0;
-            var outOfScreenY = f18a.Row30 ? 0xF0 : 0xC0;
-            var negativeScreenY = f18a.Row30 ? 0xF0 : 0xD0;
-            var maxSpriteAttrAddr = tms.SprTab + (this.maxSprites << 2);
-            for (var spriteAttrAddr = tms.SprTab, index = 0; (f18a.Row30 || this.ram[spriteAttrAddr] !== 0xd0) && spriteAttrAddr < maxSpriteAttrAddr && spritesOnLine <= this.maxScanlineSprites; spriteAttrAddr += 4, index++)
+            SPColBuf = new Uint8Array(this.drawWidth);
+            SPPalBasIdxBuf = new Uint8Array(this.drawWidth);
+            var SPOnline = 0;
+            var SCRYOut = f18a.Row30 ? 0xF0 : 0xC0;
+            var SCRYNeg = f18a.Row30 ? 0xF0 : 0xD0;
+            var SPMaxAttrAddr = tms.SprTab + (this.SPMax << 2);
+            for (var SPAttrAddr = tms.SprTab, index = 0; (f18a.Row30 || this.ram[SPAttrAddr] !== 0xd0) && SPAttrAddr < SPMaxAttrAddr && SPOnline <= this.SPMaxScanLine; SPAttrAddr += 4, index++)
             {
-                var parentSpriteAttrAddr = null;
+                var SPParentAttrAddr = null;
                 if (this.spriteLinkingEnabled)
                 {
-                    var spriteLinkingAttr = this.ram[tms.SprTab + 0x80 + ((spriteAttrAddr - tms.SprTab) >> 2)];
-                    if ((spriteLinkingAttr & 0x20) !== 0)
+                    var SPLinkAttr = this.ram[tms.SprTab + 0x80 + ((SPAttrAddr - tms.SprTab) >> 2)];
+                    if ((SPLinkAttr & 0x20) !== 0)
                     {
-                        parentSpriteAttrAddr = tms.SprTab + ((spriteLinkingAttr & 0x1F) << 2);
+                        SPParentAttrAddr = tms.SprTab + ((SPLinkAttr & 0x1F) << 2);
                     }
                 }
-                var spriteY = this.ram[spriteAttrAddr];
-                if (parentSpriteAttrAddr !== null)
+                var SPY = this.ram[SPAttrAddr];
+                if (SPParentAttrAddr !== null)
                 {
-                    spriteY = (spriteY + this.ram[parentSpriteAttrAddr]) & 0xFF;
+                    SPY = (SPY + this.ram[SPParentAttrAddr]) & 0xFF;
                 }
-                if (!this.realSpriteYCoord)
+                if (!F18A_SPRealYCoord)
                 {
-                    spriteY++;
+                    SPY++;
                 }
-                if (spriteY < outOfScreenY || spriteY > negativeScreenY)
+                if (SPY < SCRYOut || SPY > SCRYNeg)
                 {
-                    if (spriteY > negativeScreenY)
+                    if (SPY > SCRYNeg)
                     {
-                        spriteY -= 256;
+                        SPY -= 256;
                     }
-                    var spriteAttr = this.ram[spriteAttrAddr + 3];
-                    var spriteSize = !this.unlocked || (spriteAttr & 0x10) === 0 ? this.spriteSize : 1;
-                    var spriteMag = this.spriteMag;
-                    var spriteHeight = 8 << spriteSize; // 8 or 16
-                    var spriteDimensionY = spriteHeight << spriteMag; // 8, 16 or 32
-                    if (y >= spriteY && y < spriteY + spriteDimensionY)
+                    var SPAttr = this.ram[SPAttrAddr + 3];
+                    var SPSize = !this.unlocked || (SPAttr & 0x10) === 0 ? this.SPSize : 1;
+                    var SPMag = this.SPMag;
+                    var SPHeight = 8 << SPSize; // 8 or 16
+                    var SPDimY = SPHeight << SPMag; // 8, 16 or 32
+                    if (y >= SPY && y < SPY + SPDimY)
                     {
-                        if (spritesOnLine < this.maxScanlineSprites)
+                        if (SPOnline < this.SPMaxScanLine)
                         {
                             //noinspection JSSuspiciousNameCombination
-                            var spriteWidth = spriteHeight;
+                            var SPWidth = SPHeight;
                             //noinspection JSSuspiciousNameCombination
-                            var spriteDimensionX = spriteDimensionY;
-                            var spriteX = this.ram[spriteAttrAddr + 1];
-                            if (parentSpriteAttrAddr === null)
+                            var SPDimX = SPDimY;
+                            var SPX = this.ram[SPAttrAddr + 1];
+                            if (SPParentAttrAddr === null)
                             {
-                                if ((spriteAttr & 0x80) !== 0)
+                                if ((SPAttr & 0x80) !== 0)
                                 {
-                                    spriteX -= 32; // Early clock
+                                    SPX -= 32; // Early clock
                                 }
                             }
                             else
                             {
                                 // Linked
-                                spriteX = (spriteX + this.ram[parentSpriteAttrAddr + 1]) & 0xFF;
-                                if ((this.ram[parentSpriteAttrAddr + 3] & 0x80) !== 0)
+                                SPX = (SPX + this.ram[SPParentAttrAddr + 1]) & 0xFF;
+                                if ((this.ram[SPParentAttrAddr + 3] & 0x80) !== 0)
                                 {
-                                    spriteX -= 32; // Early clock of parent
+                                    SPX -= 32; // Early clock of parent
                                 }
                             }
-                            var patternNo = (this.ram[spriteAttrAddr + 2] & (spriteSize !== 0 ? 0xFC : 0xFF));
-                            var spriteFlipY = this.unlocked && (spriteAttr & 0x20) !== 0;
-                            var spriteFlipX = this.unlocked && (spriteAttr & 0x40) !== 0;
-                            var baseColor = spriteAttr & 0x0F;
-                            var sprPaletteBaseIndex = 0;
+                            var patternNo = (this.ram[SPAttrAddr + 2] & (SPSize !== 0 ? 0xFC : 0xFF));
+                            var SPFlipY = this.unlocked && (SPAttr & 0x20) !== 0;
+                            var SPFlipX = this.unlocked && (SPAttr & 0x40) !== 0;
+                            var baseColor = SPAttr & 0x0F;
+                            var SPPalBaseIdx = 0;
                             switch (this.spriteColorMode)
                             {
                             case F18A.COLOR_MODE_NORMAL:
-                                sprPaletteBaseIndex = this.spritePaletteSelect;
+                                SPPalBaseIdx = this.SPPalSel;
                                 break;
                             case F18A.COLOR_MODE_ECM_1:
-                                    sprPaletteBaseIndex = (this.spritePaletteSelect & 0x20) | (baseColor << 1);
+                                SPPalBaseIdx = (this.SPPalSel & 0x20) | (baseColor << 1);
                                 break;
                             case F18A.COLOR_MODE_ECM_2:
-                                sprPaletteBaseIndex = (baseColor << 2);
+                                SPPalBaseIdx = (baseColor << 2);
                                 break;
                             case F18A.COLOR_MODE_ECM_3:
-                                sprPaletteBaseIndex = ((baseColor & 0x0e) << 2);
+                                SPPalBaseIdx = ((baseColor & 0x0e) << 2);
                                 break;
                             }
-                            var spritePatternBaseAddr = tms.SprGen + (patternNo << 3);
-                            var dy = (y - spriteY) >> spriteMag;
-                            if (spriteFlipY)
+                            var SPGenBaseAddr = tms.SprGen + (patternNo << 3);
+                            var dy = (y - SPY) >> SPMag;
+                            if (SPFlipY)
                             {
-                                dy = spriteHeight - dy - 1;
+                                dy = SPHeight - dy - 1;
                             }
-                            for (var dx = 0; dx < spriteWidth; dx += 8)
+                            for (var dx = 0; dx < SPWidth; dx += 8)
                             {
-                                var spritePatternAddr = spritePatternBaseAddr + dy + (dx << 1);
-                                var spritePatternByte0 = this.ram[spritePatternAddr];
-                                var spritePatternByte1 = this.ram[spritePatternAddr + this.spritePlaneOffset];
-                                var spritePatternByte2 = this.ram[spritePatternAddr + (this.spritePlaneOffset << 1)];
-                                var spriteBit = 0x80;
-                                var spriteBitShift2 = 7;
-                                for (var spriteBitShift1 = 0; spriteBitShift1 < 8; spriteBitShift1++)
+                                var SPGenAddr = SPGenBaseAddr + dy + (dx << 1);
+                                var SPGenByte0 = this.ram[SPGenAddr];
+                                var SPGenByte1 = this.ram[SPGenAddr + this.SPGSOfs];
+                                var SPGenByte2 = this.ram[SPGenAddr + (this.SPGSOfs << 1)];
+                                var SPBit = 0x80;
+                                var SPBitShift2 = 7;
+                                for (var SPBitShift1 = 0; SPBitShift1 < 8; SPBitShift1++)
                                 {
                                     var sprColor;
                                     var pixelOn = 0;
                                     switch (this.spriteColorMode)
                                     {
                                     case F18A.COLOR_MODE_NORMAL:
-                                        pixelOn = (spritePatternByte0 & spriteBit) !== 0;
+                                        pixelOn = (SPGenByte0 & SPBit) !== 0;
                                         sprColor = pixelOn ? baseColor : 0;
                                         break;
                                     case F18A.COLOR_MODE_ECM_1:
-                                        sprColor = (spritePatternByte0 & spriteBit) >> spriteBitShift2;
+                                        sprColor = (SPGenByte0 & SPBit) >> SPBitShift2;
                                         break;
                                     case F18A.COLOR_MODE_ECM_2:
                                         sprColor =
-                                                        ((spritePatternByte0 & spriteBit) >> spriteBitShift2) |
-                                                        (((spritePatternByte1 & spriteBit) >> spriteBitShift2) << 1);
+                                                        ((SPGenByte0 & SPBit) >> SPBitShift2) |
+                                                        (((SPGenByte1 & SPBit) >> SPBitShift2) << 1);
                                             break;
                                         case F18A.COLOR_MODE_ECM_3:
                                             sprColor =
-                                                        ((spritePatternByte0 & spriteBit) >> spriteBitShift2) |
-                                                        (((spritePatternByte1 & spriteBit) >> spriteBitShift2) << 1) |
-                                                        (((spritePatternByte2 & spriteBit) >> spriteBitShift2) << 2);
+                                                        ((SPGenByte0 & SPBit) >> SPBitShift2) |
+                                                        (((SPGenByte1 & SPBit) >> SPBitShift2) << 1) |
+                                                        (((SPGenByte2 & SPBit) >> SPBitShift2) << 2);
                                             break;
                                     }
                                     if (sprColor > 0 || pixelOn)
                                     {
-                                        var x2 = spriteX + ((spriteFlipX ? spriteDimensionX - (dx + spriteBitShift1) - 1 : dx + spriteBitShift1) << spriteMag);
+                                        var x2 = SPX + ((SPFlipX ? SPDimX - (dx + SPBitShift1) - 1 : dx + SPBitShift1) << SPMag);
                                         if (x2 >= 0 && x2 < this.drawWidth)
                                         {
-                                            if (spriteColorBuffer[x2] === 0)
+                                            if (SPColBuf[x2] === 0)
                                             {
-                                                spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                                spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                                SPColBuf[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                                SPPalBasIdxBuf[x2] = SPPalBaseIdx;
                                             }
                                             else
                                             {
                                                 this.collision = true;
                                             }
                                         }
-                                        if (spriteMag)
+                                        if (SPMag)
                                         {
                                             x2++;
                                             if (x2 >= 0 && x2 < this.drawWidth)
                                             {
-                                                if (spriteColorBuffer[x2] === 0)
+                                                if (SPColBuf[x2] === 0)
                                                 {
-                                                    spriteColorBuffer[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
-                                                    spritePaletteBaseIndexBuffer[x2] = sprPaletteBaseIndex;
+                                                    SPColBuf[x2] = sprColor + 1; // Add one here so 0 means uninitialized. Subtract one before drawing.
+                                                    SPPalBasIdxBuf[x2] = SPPalBaseIdx;
                                                 }
                                                 else
                                                 {
@@ -1054,13 +1383,13 @@ void f18a_drawscanline(int line)
                                             }
                                         }
                                     }
-                                    spriteBit >>= 1;
-                                    spriteBitShift2--;
+                                    SPBit >>= 1;
+                                    SPBitShift2--;
                                 }
                             }
                         }
-                        spritesOnLine++;
-                        if (spritesOnLine === 5 && !this.fifthSprite)
+                        SPOnline++;
+                        if (SPOnline === 5 && !this.fifthSprite)
                         {
                             this.fifthSprite = true;
                             this.fifthSpriteIndex = index;
@@ -1072,10 +1401,10 @@ void f18a_drawscanline(int line)
             {
                 for (x1 = this.drawWidth >> 1; x1 >= 0; x1--)
                 {
-                    spriteColorBuffer[x1 << 1] = spriteColorBuffer[x1];
-                    spritePaletteBaseIndexBuffer[x1 << 1] = spritePaletteBaseIndexBuffer[x1];
-                    spriteColorBuffer[(x1 << 1) + 1] = spriteColorBuffer[x1];
-                    spritePaletteBaseIndexBuffer[(x1 << 1) + 1] = spritePaletteBaseIndexBuffer[x1];
+                    SPColBuf[x1 << 1] = SPColBuf[x1];
+                    SPPalBasIdxBuf[x1 << 1] = SPPalBasIdxBuf[x1];
+                    SPColBuf[(x1 << 1) + 1] = SPColBuf[x1];
+                    SPPalBasIdxBuf[(x1 << 1) + 1] = SPPalBasIdxBuf[x1];
                 }
             }
         }
@@ -1085,12 +1414,12 @@ void f18a_drawscanline(int line)
             var borderWidth = f18a.Mode === F18A.MODE_TEXT ? 8 : (f18a.Mode === F18A.MODE_TEXT_80 ? 16 : 0);
             scrollWidth -= (borderWidth << 1);
             // Prepare values for Tile layer 1
-            var nameTableCanonicalBase = this.vPageSize1 ? tms.ChrTab & 0x3000 : (this.hPageSize1 ? tms.ChrTab & 0x3800 : tms.ChrTab);
-            var nameTableBaseAddr = tms.ChrTab;
-            var y1 = y + this.vScroll1;
+            var ChrTabCanonicalBase = this.VPSize1 ? tms.ChrTab & 0x3000 : (this.HPSize1 ? tms.ChrTab & 0x3800 : tms.ChrTab);
+            var ChrTabBaseAddr = tms.ChrTab;
+            var y1 = y + this.TL1VOFS;
             if (y1 >= scrollHeight) {
                 y1 -= scrollHeight;
-                nameTableBaseAddr ^= this.vPageSize1;
+                ChrTabBaseAddr ^= this.VPSize1;
             }
             var rowOffset;
             switch (f18a.Mode) {
@@ -1109,20 +1438,20 @@ void f18a_drawscanline(int line)
             var lineOffset = y1 & 7;
             // Prepare values for Bitmap layer
             if (this.bitmapEnable) {
-                var bitmapX2 = this.bitmapX + this.bitmapWidth;
-                var bitmapY1 = y - this.bitmapY;
-                var bitmapY2 = this.bitmapY + this.bitmapHeight;
-                var bitmapYOffset = bitmapY1 * this.bitmapWidth;
+                var BMX2 = this.bitmapX + this.bitmapWidth;
+                var BMY1 = y - this.bitmapY;
+                var BMY2 = this.bitmapY + this.bitmapHeight;
+                var BMYOfs = BMY1 * this.bitmapWidth;
             }
             // Prepare values for Tile layer 2
-            var rowOffset2, nameTableBaseAddr2, lineOffset2;
+            var rowOffset2, ChrTabBaseAddr2, lineOffset2;
             if (this.tileLayer2Enabled) {
-                var nameTableCanonicalBase2 = this.vPageSize2 ? tms.ChrTab2 & 0x3000 : (this.hPageSize2 ? tms.ChrTab2 & 0x3800 : tms.ChrTab2);
-                nameTableBaseAddr2 = tms.ChrTab2;
-                var y12 = y + this.vScroll2;
+                var ChrTabCanonicalBase2 = this.vPageSize2 ? tms.ChrTab2 & 0x3000 : (this.HPSize2 ? tms.ChrTab2 & 0x3800 : tms.ChrTab2);
+                ChrTabBaseAddr2 = tms.ChrTab2;
+                var y12 = y + this.TL2VOfs;
                 if (y12 >= scrollHeight) {
                     y12 -= scrollHeight;
-                    nameTableBaseAddr2 ^= this.vPageSize2;
+                    ChrTabBaseAddr2 ^= this.vPageSize2;
                 }
                 switch (f18a.Mode) {
                     case F18A.MODE_GRAPHICS:
@@ -1139,148 +1468,149 @@ void f18a_drawscanline(int line)
                 }
                 lineOffset2 = y12 & 7;
             }
+
             // Draw line
             for (i = 0; i < 256; i++) {
                 // Draw pixel
                 var color = tms.BGColor;
-                var paletteBaseIndex = 0;
+                var PalBaseIdx = 0;
                 if (xc >= this.leftBorder && xc < this.leftBorder + this.drawWidth) {
                     var x = xc - this.leftBorder;
                     // Tile layer 1
                     if (this.tileLayer1Enabled) {
-                        var nameTableAddr = nameTableBaseAddr;
-                        var x1 = x - borderWidth + (this.hScroll1 << (f18a.Mode === F18A.MODE_TEXT_80 ? 1 : 0));
+                        var ChrTabAddr = ChrTabBaseAddr;
+                        var x1 = x - borderWidth + (this.TL1HOfs << (f18a.Mode === F18A.MODE_TEXT_80 ? 1 : 0));
                         if (x1 >= scrollWidth) {
                             x1 -= scrollWidth;
-                            nameTableAddr ^= this.hPageSize1;
+                            ChrTabAddr ^= this.HPSize1;
                         }
-                        var charNo, bitShift, bit, patternAddr, patternByte;
-                        var tileColor, tilePriority, tileAttributeByte, transparentColor0;
-                        var tilePaletteBaseIndex, lineOffset1;
+                        var charNo, bitShift, bit, GenTabAddr, GenByte;
+                        var TilCol, TilPrio, TilAttrByte, TransCol0;
+                        var tilePalBaseIdx, lineOffset1;
                         switch (f18a.Mode) {
                             case F18A.MODE_GRAPHICS:
-                                nameTableAddr += (x1 >> 3) + rowOffset;
-                                charNo = this.ram[nameTableAddr];
+                                ChrTabAddr += (x1 >> 3) + rowOffset;
+                                charNo = this.ram[ChrTabAddr];
                                 bitShift = x1 & 7;
                                 lineOffset1 = lineOffset;
-                                if (this.tileColorMode !== F18A.COLOR_MODE_NORMAL) {
-                                    tileAttributeByte = this.ram[tms.ColTab + (this.ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo)];
-                                    tilePriority = (tileAttributeByte & 0x80) !== 0;
-                                    if ((tileAttributeByte & 0x40) !== 0) {
+                                if (this.TilColMode !== F18A.COLOR_MODE_NORMAL) {
+                                    TilAttrByte = this.ram[tms.ColTab + (this.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
+                                    TilPrio = (TilAttrByte & 0x80) !== 0;
+                                    if ((TilAttrByte & 0x40) !== 0) {
                                         // Flip X
                                         bitShift = 7 - bitShift;
                                     }
-                                    if ((tileAttributeByte & 0x20) !== 0) {
+                                    if ((TilAttrByte & 0x20) !== 0) {
                                         // Flip y
                                         lineOffset1 = 7 - lineOffset1;
                                     }
-                                    transparentColor0 = (tileAttributeByte & 0x10) !== 0;
+                                    TransCol0 = (TilAttrByte & 0x10) !== 0;
                                 }
                                 bit = 0x80 >> bitShift;
-                                patternAddr = tms.ChrGen + (charNo << 3) + lineOffset1;
-                                patternByte = this.ram[patternAddr];
-                                switch (this.tileColorMode) {
+                                GenTabAddr = tms.ChrGen + (charNo << 3) + lineOffset1;
+                                GenByte = this.ram[GenTabAddr];
+                                switch (this.TilColMode) {
                                     case F18A.COLOR_MODE_NORMAL:
-                                        var colorSet = this.ram[tms.ColTab + (charNo >> 3)];
-                                        tileColor = (patternByte & bit) !== 0 ? (colorSet & 0xF0) >> 4 : colorSet & 0x0F;
-                                        tilePaletteBaseIndex = this.tilePaletteSelect;
-                                        transparentColor0 = true;
-                                        tilePriority = false;
+                                        var ColSet = this.ram[tms.ColTab + (charNo >> 3)];
+                                        TilCol = (GenByte & bit) !== 0 ? (ColSet & 0xF0) >> 4 : ColSet & 0x0F;
+                                        tilePalBaseIdx = this.TL1PalSel;
+                                        TransCol0 = true;
+                                        TilPrio = false;
                                         break;
                                     case F18A.COLOR_MODE_ECM_1:
-                                        tileColor = ((patternByte & bit) >> (7 - bitShift));
-                                        tilePaletteBaseIndex = (this.tilePaletteSelect & 0x20) | ((tileAttributeByte & 0x0f) << 1);
+                                        TilCol = ((GenByte & bit) >> (7 - bitShift));
+                                        tilePalBaseIdx = (this.TL1PalSel & 0x20) | ((TilAttrByte & 0x0f) << 1);
                                         break;
                                     case F18A.COLOR_MODE_ECM_2:
-                                        tileColor =
-                                            ((patternByte & bit) >> (7 - bitShift)) |
-                                            (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1);
-                                        tilePaletteBaseIndex = ((tileAttributeByte & 0x0f) << 2);
+                                        TilCol =
+                                            ((GenByte & bit) >> (7 - bitShift)) |
+                                            (((this.ram[GenTabAddr + this.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
+                                        tilePalBaseIdx = ((TilAttrByte & 0x0f) << 2);
                                         break;
                                     case F18A.COLOR_MODE_ECM_3:
-                                        tileColor =
-                                            ((patternByte & bit) >> (7 - bitShift)) |
-                                            (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1) |
-                                            (((this.ram[patternAddr + (this.tilePlaneOffset << 1)] & bit) >> (7 - bitShift)) << 2);
-                                        tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
+                                        TilCol =
+                                            ((GenByte & bit) >> (7 - bitShift)) |
+                                            (((this.ram[GenTabAddr + this.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
+                                            (((this.ram[GenTabAddr + (this.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
+                                        tilePalBaseIdx = ((TilAttrByte & 0x0e) << 2);
                                         break;
                                 }
-                                if (tileColor > 0 || !transparentColor0) {
-                                    color = tileColor;
-                                    paletteBaseIndex = tilePaletteBaseIndex;
+                                if (TilCol > 0 || !TransCol0) {
+                                    color = TilCol;
+                                    PalBaseIdx = tilePalBaseIdx;
                                 }
                                 break;
                             case F18A.MODE_BITMAP:
-                                charNo = this.ram[nameTableAddr + (x1 >> 3) + rowOffset];
+                                charNo = this.ram[ChrTabAddr + (x1 >> 3) + rowOffset];
                                 bitShift = x1 & 7;
                                 bit = 0x80 >> bitShift;
                                 var charSetOffset = (y & 0xC0) << 5;
-                                patternByte = this.ram[tms.ChrGen + (((charNo << 3) + charSetOffset) & this.ChrGenM) + lineOffset];
+                                GenByte = this.ram[tms.ChrGen + (((charNo << 3) + charSetOffset) & this.ChrGenM) + lineOffset];
                                 var colorAddr = tms.ColTab + (((charNo << 3) + charSetOffset) & tms.ColTabM) + lineOffset;
                                 var colorByte = this.ram[colorAddr];
-                                tileColor = (patternByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
-                                if (tileColor > 0) {
-                                    color = tileColor;
-                                    paletteBaseIndex = this.tilePaletteSelect;
+                                TilCol = (GenByte & bit) !== 0 ? (colorByte & 0xF0) >> 4 : (colorByte & 0x0F);
+                                if (TilCol > 0) {
+                                    color = TilCol;
+                                    PalBaseIdx = this.TL1PalSel;
                                 }
                                 break;
                             case F18A.MODE_TEXT:
                             case F18A.MODE_TEXT_80:
                                 if (x >= borderWidth && x < this.drawWidth - borderWidth) {
-                                    nameTableAddr += Math.floor(x1 / 6) + rowOffset;
-                                    charNo = this.ram[nameTableAddr];
+                                    ChrTabAddr += Math.floor(x1 / 6) + rowOffset;
+                                    charNo = this.ram[ChrTabAddr];
                                     bitShift = x1 % 6;
                                     lineOffset1 = lineOffset;
-                                    if (this.tileColorMode !== F18A.COLOR_MODE_NORMAL) {
-                                        tileAttributeByte = this.ram[tms.ColTab + (this.ecmPositionAttributes ? nameTableAddr - nameTableCanonicalBase : charNo)];
-                                        tilePriority = (tileAttributeByte & 0x80) !== 0;
-                                        if ((tileAttributeByte & 0x40) !== 0) {
+                                    if (this.TilColMode !== F18A.COLOR_MODE_NORMAL) {
+                                        TilAttrByte = this.ram[tms.ColTab + (this.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
+                                        TilPrio = (TilAttrByte & 0x80) !== 0;
+                                        if ((TilAttrByte & 0x40) !== 0) {
                                             // Flip X
                                             bitShift = 5 - bitShift;
                                         }
-                                        if ((tileAttributeByte & 0x20) !== 0) {
+                                        if ((TilAttrByte & 0x20) !== 0) {
                                             // Flip y
                                             lineOffset1 = 7 - lineOffset1;
                                         }
-                                        transparentColor0 = (tileAttributeByte & 0x10) !== 0;
+                                        TransCol0 = (TilAttrByte & 0x10) !== 0;
                                     }
                                     bit = 0x80 >> bitShift;
-                                    patternAddr = tms.ChrGen + (charNo << 3) + lineOffset1;
-                                    patternByte = this.ram[patternAddr];
-                                    switch (this.tileColorMode) {
+                                    GenTabAddr = tms.ChrGen + (charNo << 3) + lineOffset1;
+                                    GenByte = this.ram[GenTabAddr];
+                                    switch (this.TilColMode) {
                                         case F18A.COLOR_MODE_NORMAL:
                                             if (this.unlocked && this.ecmPositionAttributes) {
-                                                tileAttributeByte = this.ram[tms.ColTab + nameTableAddr - nameTableCanonicalBase];
-                                                tileColor = (patternByte & bit) !== 0 ? tileAttributeByte >> 4 : tileAttributeByte & 0xF;
+                                                TilAttrByte = this.ram[tms.ColTab + ChrTabAddr - ChrTabCanonicalBase];
+                                                TilCol = (GenByte & bit) !== 0 ? TilAttrByte >> 4 : TilAttrByte & 0xF;
                                             }
                                             else {
-                                                tileColor = (patternByte & bit) !== 0 ? tms.FGColor : tms.BGColor;
+                                                TilCol = (GenByte & bit) !== 0 ? tms.FGColor : tms.BGColor;
                                             }
-                                            tilePaletteBaseIndex = this.tilePaletteSelect;
-                                            transparentColor0 = true;
-                                            tilePriority = false;
+                                            tilePalBaseIdx = this.TL1PalSel;
+                                            TransCol0 = true;
+                                            TilPrio = false;
                                             break;
                                         case F18A.COLOR_MODE_ECM_1:
-                                            tileColor = ((patternByte & bit) >> (7 - bitShift));
-                                            tilePaletteBaseIndex = (this.tilePaletteSelect & 0x20) | ((tileAttributeByte & 0x0f) << 1);
+                                            TilCol = ((GenByte & bit) >> (7 - bitShift));
+                                            tilePalBaseIdx = (this.TL1PalSel & 0x20) | ((TilAttrByte & 0x0f) << 1);
                                             break;
                                         case F18A.COLOR_MODE_ECM_2:
-                                            tileColor =
-                                                ((patternByte & bit) >> (7 - bitShift)) |
-                                                (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1);
-                                            tilePaletteBaseIndex = ((tileAttributeByte & 0x0f) << 2);
+                                            TilCol =
+                                                ((GenByte & bit) >> (7 - bitShift)) |
+                                                (((this.ram[GenTabAddr + this.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
+                                            tilePalBaseIdx = ((TilAttrByte & 0x0f) << 2);
                                             break;
                                         case F18A.COLOR_MODE_ECM_3:
-                                            tileColor =
-                                                ((patternByte & bit) >> (7 - bitShift)) |
-                                                (((this.ram[patternAddr + this.tilePlaneOffset] & bit) >> (7 - bitShift)) << 1) |
-                                                (((this.ram[patternAddr + (this.tilePlaneOffset << 1)] & bit) >> (7 - bitShift)) << 2);
-                                            tilePaletteBaseIndex = ((tileAttributeByte & 0x0e) << 2);
+                                            TilCol =
+                                                ((GenByte & bit) >> (7 - bitShift)) |
+                                                (((this.ram[GenTabAddr + this.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
+                                                (((this.ram[GenTabAddr + (this.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
+                                            tilePalBaseIdx = ((TilAttrByte & 0x0e) << 2);
                                             break;
                                     }
-                                    if (tileColor > 0 || !transparentColor0) {
-                                        color = tileColor;
-                                        paletteBaseIndex = tilePaletteBaseIndex;
+                                    if (TilCol > 0 || !TransCol0) {
+                                        color = TilCol;
+                                        PalBaseIdx = tilePalBaseIdx;
                                     }
                                 }
                                 else {
@@ -1288,12 +1618,12 @@ void f18a_drawscanline(int line)
                                 }
                                 break;
                             case F18A.MODE_MULTICOLOR:
-                                charNo = this.ram[nameTableAddr + (x1 >> 3) + rowOffset];
+                                charNo = this.ram[ChrTabAddr + (x1 >> 3) + rowOffset];
                                 colorByte = this.ram[tms.ChrGen + (charNo << 3) + ((y1 & 0x1c) >> 2)];
-                                tileColor = (x1 & 4) === 0 ? (colorByte & 0xf0) >> 4 : (colorByte & 0x0f);
-                                if (tileColor > 0) {
-                                    color = tileColor;
-                                    paletteBaseIndex = this.tilePaletteSelect;
+                                TilCol = (x1 & 4) === 0 ? (colorByte & 0xf0) >> 4 : (colorByte & 0x0f);
+                                if (TilCol > 0) {
+                                    color = TilCol;
+                                    PalBaseIdx = this.TL1PalSel;
                                 }
                                 break;
                         }
@@ -1301,34 +1631,34 @@ void f18a_drawscanline(int line)
                     // Bitmap layer
                     if (this.bitmapEnable) {
                         var bmpX = f18a.Mode !== F18A.MODE_TEXT_80 ? x : x >> 1;
-                        if (bmpX >= this.bitmapX && bmpX < bitmapX2 && y >= this.bitmapY && y < bitmapY2) {
+                        if (bmpX >= this.bitmapX && bmpX < BMX2 && y >= this.bitmapY && y < BMY2) {
                             var bitmapX1 = x - this.bitmapX;
-                            var bitmapPixelOffset = bitmapX1 + bitmapYOffset;
+                            var bitmapPixelOffset = bitmapX1 + BMYOfs;
                             var bitmapByte = this.ram[this.bitmapBaseAddr + (bitmapPixelOffset >> 2)];
-                            var bitmapBitShift, bitmapColor;
+                            var BMBitShift, BMColor;
                             if (this.bitmapFat) {
                                 // 16 color bitmap with fat pixels
-                                bitmapBitShift = (2 - (bitmapPixelOffset & 2)) << 1;
-                                bitmapColor = (bitmapByte >> bitmapBitShift) & 0x0F;
+                                BMBitShift = (2 - (bitmapPixelOffset & 2)) << 1;
+                                BMColor = (bitmapByte >> BMBitShift) & 0x0F;
                             }
                             else {
                                 // 4 color bitmap
-                                bitmapBitShift = (3 - (bitmapPixelOffset & 3)) << 1;
-                                bitmapColor = (bitmapByte >> bitmapBitShift) & 0x03;
+                                BMBitShift = (3 - (bitmapPixelOffset & 3)) << 1;
+                                BMColor = (bitmapByte >> BMBitShift) & 0x03;
                             }
-                            if ((bitmapColor > 0 || !this.bitmapTransparent) && (color === tms.BGColor || this.bitmapPriority)) {
-                                color = bitmapColor;
-                                paletteBaseIndex = this.bitmapPaletteSelect;
+                            if ((BMColor > 0 || !this.bitmapTransparent) && (color === tms.BGColor || this.bitmapPriority)) {
+                                color = BMColor;
+                                PalBaseIdx = this.bitmapPaletteSelect;
                             }
                         }
                     }
                     // Sprite layer
                     var spriteColor = null;
-                    if ((this.unlocked || (f18a.Mode !== F18A.MODE_TEXT && f18a.Mode !== F18A.MODE_TEXT_80)) && (!tilePriority || transparentColor0 && color === 0)) {
-                        spriteColor = spriteColorBuffer[x] - 1;
+                    if ((this.unlocked || (f18a.Mode !== F18A.MODE_TEXT && f18a.Mode !== F18A.MODE_TEXT_80)) && (!TilPrio || TransCol0 && color === 0)) {
+                        spriteColor = SPColBuf[x] - 1;
                         if (spriteColor > 0) {
                             color = spriteColor;
-                            paletteBaseIndex = spritePaletteBaseIndexBuffer[x];
+                            PalBaseIdx = SPPalBasIdxBuf[x];
                         }
                         else {
                             spriteColor = null;
@@ -1337,150 +1667,150 @@ void f18a_drawscanline(int line)
                     // Tile layer 2
                     // The following is almost just a copy of the code from TL1, so this could be coded more elegantly
                     if (this.tileLayer2Enabled) {
-                        var nameTableAddr2 = nameTableBaseAddr2;
-                        var x12 = x - borderWidth + (this.hScroll2 << (f18a.Mode === F18A.MODE_TEXT_80 ? 1 : 0));
+                        var ChrTabAddr2 = ChrTabBaseAddr2;
+                        var x12 = x - borderWidth + (this.TL2HOfs << (f18a.Mode === F18A.MODE_TEXT_80 ? 1 : 0));
                         if (x12 >= scrollWidth) {
                             x12 -= scrollWidth;
-                            nameTableAddr2 ^= this.hPageSize2;
+                            ChrTabAddr2 ^= this.HPSize2;
                         }
-                        var charNo2, bitShift2, bit2, patternAddr2, patternByte2;
-                        var tileColor2, tilePriority2, tileAttributeByte2, transparentColor02;
-                        var tilePaletteBaseIndex2, lineOffset12;
+                        var charNo2, bitShift2, bit2, GenTabAddr2, GenByte2;
+                        var TilCol2, TilPrio2, TilAttrByte2, TransCol02;
+                        var tilePalBaseIdx2, lineOffset12;
                         switch (f18a.Mode) {
                             case F18A.MODE_GRAPHICS:
-                                nameTableAddr2 += (x12 >> 3) + rowOffset2;
-                                charNo2 = this.ram[nameTableAddr2];
+                                ChrTabAddr2 += (x12 >> 3) + rowOffset2;
+                                charNo2 = this.ram[ChrTabAddr2];
                                 bitShift2 = x12 & 7;
                                 lineOffset12 = lineOffset2;
-                                if (this.tileColorMode !== F18A.COLOR_MODE_NORMAL) {
-                                    tileAttributeByte2 = this.ram[tms.ColTab2 + (this.ecmPositionAttributes ? nameTableAddr2 - nameTableCanonicalBase2 : charNo2)];
-                                    tilePriority2 = (tileAttributeByte2 & 0x80) !== 0;
-                                    if ((tileAttributeByte2 & 0x40) !== 0) {
+                                if (this.TilColMode !== F18A.COLOR_MODE_NORMAL) {
+                                    TilAttrByte2 = this.ram[tms.ColTab2 + (this.ecmPositionAttributes ? ChrTabAddr2 - ChrTabCanonicalBase2 : charNo2)];
+                                    TilPrio2 = (TilAttrByte2 & 0x80) !== 0;
+                                    if ((TilAttrByte2 & 0x40) !== 0) {
                                         // Flip X
                                         bitShift2 = 7 - bitShift2;
                                     }
-                                    if ((tileAttributeByte2 & 0x20) !== 0) {
+                                    if ((TilAttrByte2 & 0x20) !== 0) {
                                         // Flip y
                                         lineOffset12 = 7 - lineOffset12;
                                     }
-                                    transparentColor02 = (tileAttributeByte2 & 0x10) !== 0;
+                                    TransCol02 = (TilAttrByte2 & 0x10) !== 0;
                                 }
                                 bit2 = 0x80 >> bitShift2;
-                                patternAddr2 = tms.ChrGen + (charNo2 << 3) + lineOffset12;
-                                patternByte2 = this.ram[patternAddr2];
-                                switch (this.tileColorMode) {
+                                GenTabAddr2 = tms.ChrGen + (charNo2 << 3) + lineOffset12;
+                                GenByte2 = this.ram[GenTabAddr2];
+                                switch (this.TilColMode) {
                                     case F18A.COLOR_MODE_NORMAL:
-                                        var colorSet2 = this.ram[tms.ColTab2 + (charNo2 >> 3)];
-                                        tileColor2 = (patternByte2 & bit2) !== 0 ? (colorSet2 & 0xF0) >> 4 : colorSet2 & 0x0F;
-                                        tilePaletteBaseIndex2 = this.tilePaletteSelect2;
-                                        transparentColor02 = true;
-                                        tilePriority2 = false;
+                                        var ColSet2 = this.ram[tms.ColTab2 + (charNo2 >> 3)];
+                                        TilCol2 = (GenByte2 & bit2) !== 0 ? (ColSet2 & 0xF0) >> 4 : ColSet2 & 0x0F;
+                                        tilePalBaseIdx2 = this.TL1PalSel2;
+                                        TransCol02 = true;
+                                        TilPrio2 = false;
                                         break;
                                     case F18A.COLOR_MODE_ECM_1:
-                                        tileColor2 = ((patternByte2 & bit2) >> (7 - bitShift2));
-                                        tilePaletteBaseIndex2 = (this.tilePaletteSelect2 & 0x20) | ((tileAttributeByte2 & 0x0f) << 1);
+                                        TilCol2 = ((GenByte2 & bit2) >> (7 - bitShift2));
+                                        tilePalBaseIdx2 = (this.TL1PalSel2 & 0x20) | ((TilAttrByte2 & 0x0f) << 1);
                                         break;
                                     case F18A.COLOR_MODE_ECM_2:
-                                        tileColor2 =
-                                            ((patternByte2 & bit2) >> (7 - bitShift2)) |
-                                            (((this.ram[patternAddr2 + this.tilePlaneOffset] & bit2) >> (7 - bitShift2)) << 1);
-                                        tilePaletteBaseIndex2 = ((tileAttributeByte2 & 0x0f) << 2);
+                                        TilCol2 =
+                                            ((GenByte2 & bit2) >> (7 - bitShift2)) |
+                                            (((this.ram[GenTabAddr2 + this.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1);
+                                        tilePalBaseIdx2 = ((TilAttrByte2 & 0x0f) << 2);
                                         break;
                                     case F18A.COLOR_MODE_ECM_3:
-                                        tileColor2 =
-                                            ((patternByte2 & bit2) >> (7 - bitShift2)) |
-                                            (((this.ram[patternAddr2 + this.tilePlaneOffset] & bit2) >> (7 - bitShift2)) << 1) |
-                                            (((this.ram[patternAddr2 + (this.tilePlaneOffset << 1)] & bit2) >> (7 - bitShift2)) << 2);
-                                        tilePaletteBaseIndex2 = ((tileAttributeByte2 & 0x0e) << 2);
+                                        TilCol2 =
+                                            ((GenByte2 & bit2) >> (7 - bitShift2)) |
+                                            (((this.ram[GenTabAddr2 + this.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1) |
+                                            (((this.ram[GenTabAddr2 + (this.TPGSOfs << 1)] & bit2) >> (7 - bitShift2)) << 2);
+                                        tilePalBaseIdx2 = ((TilAttrByte2 & 0x0e) << 2);
                                         break;
                                 }
                                 break;
                             case F18A.MODE_BITMAP:
-                                charNo2 = this.ram[nameTableAddr2 + (x12 >> 3) + rowOffset2];
+                                charNo2 = this.ram[ChrTabAddr2 + (x12 >> 3) + rowOffset2];
                                 bitShift2 = x12 & 7;
                                 bit2 = 0x80 >> bitShift2;
                                 var charSetOffset2 = (y & 0xC0) << 5;
-                                patternByte2 = this.ram[tms.ChrGen + (((charNo2 << 3) + charSetOffset2) & this.ChrGenM) + lineOffset2];
+                                GenByte2 = this.ram[tms.ChrGen + (((charNo2 << 3) + charSetOffset2) & this.ChrGenM) + lineOffset2];
                                 var colorAddr2 = tms.ColTab2 + (((charNo2 << 3) + charSetOffset2) & tms.ColTabM) + lineOffset2;
                                 var colorByte2 = this.ram[colorAddr2];
-                                tileColor2 = (patternByte2 & bit2) !== 0 ? (colorByte2 & 0xF0) >> 4 : (colorByte2 & 0x0F);
-                                tilePaletteBaseIndex2 = this.tilePaletteSelect2;
-                                transparentColor02 = true;
-                                tilePriority2 = false;
+                                TilCol2 = (GenByte2 & bit2) !== 0 ? (colorByte2 & 0xF0) >> 4 : (colorByte2 & 0x0F);
+                                tilePalBaseIdx2 = this.TL1PalSel2;
+                                TransCol02 = true;
+                                TilPrio2 = false;
                                 break;
                             case F18A.MODE_TEXT:
                             case F18A.MODE_TEXT_80:
                                 if (x >= borderWidth && x < this.drawWidth - borderWidth) {
-                                    nameTableAddr2 += Math.floor(x12 / 6) + rowOffset2;
-                                    charNo2 = this.ram[nameTableAddr2];
+                                    ChrTabAddr2 += Math.floor(x12 / 6) + rowOffset2;
+                                    charNo2 = this.ram[ChrTabAddr2];
                                     bitShift2 = x12 % 6;
                                     lineOffset12 = lineOffset2;
-                                    if (this.tileColorMode !== F18A.COLOR_MODE_NORMAL) {
-                                        tileAttributeByte2 = this.ram[tms.ColTab2 + (this.ecmPositionAttributes ? nameTableAddr2 - nameTableCanonicalBase2 : charNo2)];
-                                        tilePriority2 = (tileAttributeByte2 & 0x80) !== 0;
-                                        if ((tileAttributeByte2 & 0x40) !== 0) {
+                                    if (this.TilColMode !== F18A.COLOR_MODE_NORMAL) {
+                                        TilAttrByte2 = this.ram[tms.ColTab2 + (this.ecmPositionAttributes ? ChrTabAddr2 - ChrTabCanonicalBase2 : charNo2)];
+                                        TilPrio2 = (TilAttrByte2 & 0x80) !== 0;
+                                        if ((TilAttrByte2 & 0x40) !== 0) {
                                             // Flip X
                                             bitShift2 = 5 - bitShift2;
                                         }
-                                        if ((tileAttributeByte2 & 0x20) !== 0) {
+                                        if ((TilAttrByte2 & 0x20) !== 0) {
                                             // Flip y
                                             lineOffset12 = 7 - lineOffset12;
                                         }
-                                        transparentColor02 = (tileAttributeByte2 & 0x10) !== 0;
+                                        TransCol02 = (TilAttrByte2 & 0x10) !== 0;
                                     }
                                     bit2 = 0x80 >> bitShift2;
-                                    patternAddr2 = tms.ChrGen + (charNo2 << 3) + lineOffset12;
-                                    patternByte2 = this.ram[patternAddr2];
-                                    switch (this.tileColorMode) {
+                                    GenTabAddr2 = tms.ChrGen + (charNo2 << 3) + lineOffset12;
+                                    GenByte2 = this.ram[GenTabAddr2];
+                                    switch (this.TilColMode) {
                                         case F18A.COLOR_MODE_NORMAL:
                                             if (this.unlocked && this.ecmPositionAttributes) {
-                                                tileAttributeByte2 = this.ram[tms.ColTab2 + nameTableAddr2 - nameTableCanonicalBase2];
-                                                tileColor2 = (patternByte2 & bit2) !== 0 ? tileAttributeByte2 >> 4 : tileAttributeByte2 & 0xF;
+                                                TilAttrByte2 = this.ram[tms.ColTab2 + ChrTabAddr2 - ChrTabCanonicalBase2];
+                                                TilCol2 = (GenByte2 & bit2) !== 0 ? TilAttrByte2 >> 4 : TilAttrByte2 & 0xF;
                                             }
                                             else {
-                                                tileColor2 = (patternByte2 & bit2) !== 0 ? tms.FGColor : tms.BGColor;
+                                                TilCol2 = (GenByte2 & bit2) !== 0 ? tms.FGColor : tms.BGColor;
                                             }
-                                            tilePaletteBaseIndex2 = this.tilePaletteSelect2;
-                                            transparentColor02 = true;
-                                            tilePriority2 = false;
+                                            tilePalBaseIdx2 = this.TL1PalSel2;
+                                            TransCol02 = true;
+                                            TilPrio2 = false;
                                             break;
                                         case F18A.COLOR_MODE_ECM_1:
-                                            tileColor2 = ((patternByte2 & bit2) >> (7 - bitShift2));
-                                            tilePaletteBaseIndex2 = (this.tilePaletteSelect2 & 0x20) | ((tileAttributeByte2 & 0x0f) << 1);
+                                            TilCol2 = ((GenByte2 & bit2) >> (7 - bitShift2));
+                                            tilePalBaseIdx2 = (this.TL1PalSel2 & 0x20) | ((TilAttrByte2 & 0x0f) << 1);
                                             break;
                                         case F18A.COLOR_MODE_ECM_2:
-                                            tileColor2 =
-                                                ((patternByte2 & bit2) >> (7 - bitShift2)) |
-                                                (((this.ram[patternAddr2 + this.tilePlaneOffset] & bit2) >> (7 - bitShift2)) << 1);
-                                            tilePaletteBaseIndex2 = ((tileAttributeByte2 & 0x0f) << 2);
+                                            TilCol2 =
+                                                ((GenByte2 & bit2) >> (7 - bitShift2)) |
+                                                (((this.ram[GenTabAddr2 + this.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1);
+                                            tilePalBaseIdx2 = ((TilAttrByte2 & 0x0f) << 2);
                                             break;
                                         case F18A.COLOR_MODE_ECM_3:
-                                            tileColor2 =
-                                                ((patternByte2 & bit2) >> (7 - bitShift2)) |
-                                                (((this.ram[patternAddr2 + this.tilePlaneOffset] & bit2) >> (7 - bitShift2)) << 1) |
-                                                (((this.ram[patternAddr2 + (this.tilePlaneOffset << 1)] & bit2) >> (7 - bitShift2)) << 2);
-                                            tilePaletteBaseIndex2 = ((tileAttributeByte2 & 0x0e) << 2);
+                                            TilCol2 =
+                                                ((GenByte2 & bit2) >> (7 - bitShift2)) |
+                                                (((this.ram[GenTabAddr2 + this.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1) |
+                                                (((this.ram[GenTabAddr2 + (this.TPGSOfs << 1)] & bit2) >> (7 - bitShift2)) << 2);
+                                            tilePalBaseIdx2 = ((TilAttrByte2 & 0x0e) << 2);
                                             break;
                                     }
                                 }
                                 else {
-                                    tileColor2 = 0;
-                                    transparentColor02 = true;
-                                    tilePriority2 = false;
+                                    TilCol2 = 0;
+                                    TransCol02 = true;
+                                    TilPrio2 = false;
                                 }
                                 break;
                             case F18A.MODE_MULTICOLOR:
-                                charNo2 = this.ram[nameTableAddr2 + (x12 >> 3) + rowOffset2];
+                                charNo2 = this.ram[ChrTabAddr2 + (x12 >> 3) + rowOffset2];
                                 colorByte2 = this.ram[tms.ChrGen + (charNo2 << 3) + ((y12 & 0x1c) >> 2)];
-                                tileColor2 = (x12 & 4) === 0 ? (colorByte2 & 0xf0) >> 4 : (colorByte2 & 0x0f);
-                                tilePaletteBaseIndex2 = this.tilePaletteSelect2;
-                                transparentColor02 = true;
-                                tilePriority2 = false;
+                                TilCol2 = (x12 & 4) === 0 ? (colorByte2 & 0xf0) >> 4 : (colorByte2 & 0x0f);
+                                tilePalBaseIdx2 = this.TL1PalSel2;
+                                TransCol02 = true;
+                                TilPrio2 = false;
                                 break;
                         }
-                        if ((tileColor2 > 0 || !transparentColor02) && (this.tileMap2AlwaysOnTop || tilePriority2 || spriteColor === null)) {
-                            color = tileColor2;
-                            paletteBaseIndex = tilePaletteBaseIndex2;
+                        if ((TilCol2 > 0 || !TransCol02) && (this.tileMap2AlwaysOnTop || TilPrio2 || spriteColor === null)) {
+                            color = TilCol2;
+                            PalBaseIdx = tilePalBaseIdx2;
                         }
                     }
                 }

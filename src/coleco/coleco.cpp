@@ -707,14 +707,13 @@ void coleco_initialise(void)
     z80_init();
     tStatesCount = 0;
 
-    f18agpu_init();
-
     // Init rom banking
     coleco_megasize = 2;
     coleco_megacart = 0;
     emul2.romCartridge == ROMCARTRIDGENONE;
 
-        //ResetLastIOAccesses();
+    // Init graphics processors
+    f18agpu_init();
 
     // Init all rom memory
     memset(ROM_Memory,0xFF,MAX_CART_SIZE * 1024);
@@ -796,6 +795,7 @@ void coleco_initialise(void)
 
     // Prepare Coleco palette
     coleco_setpalette(emul2.palette);
+
 }
 //---------------------------------------------------------------------------
 
@@ -840,6 +840,8 @@ void coleco_WriteByte(int Address, int Data)
             RAM_Memory[0x6800+Address]=RAM_Memory[0x6C00+Address]=
             RAM_Memory[0x7000+Address]=RAM_Memory[0x7400+Address]=
             RAM_Memory[0x7800+Address]=RAM_Memory[0x7C00+Address]=Data;
+
+            if (Address==0x227) MessageBox(NULL, "Error","i=0",2);
             return;
         }
         // Allow SRAM if cart doesn't extend this high...
@@ -1115,7 +1117,7 @@ int coleco_do_scanline(void)
                 CurScanLine_len+=MaxScanLen;
 
                 // Update sound and screen
-                Sound.Frame(tms.CurLine);
+                //Sound.Frame(tms.CurLine);
                 AccurateDraw(tms.CurLine);
 
                 // go to next line and check nmi
@@ -1128,6 +1130,7 @@ int coleco_do_scanline(void)
                 if (tms.CurLine==TMS9918_END_LINE)
                 {
                     //SoundUpdate(tms.ScanLines-1);
+                    Sound.Frame(tms.ScanLines-1);
                     break;
                 }
             }

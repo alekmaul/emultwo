@@ -474,8 +474,7 @@ void AccurateDraw(unsigned int Line)
         for(i=0; i<TVW; i++)
         {
             c = *(pcv_display+i);
-            *(DWORD *)(dest+(i*BPP)) = cv_pal32[(c)];
-            //Plot(i*BPP,c);
+            Plot(i*BPP,c);
         }
         dest+=TVP;
     }

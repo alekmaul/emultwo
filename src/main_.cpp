@@ -442,7 +442,6 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
     int i=0;
     int targetfps;
 
-/*
     static HWND OldhWnd=NULL;
 
     if (Form1->Handle != OldhWnd)
@@ -454,7 +453,7 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         RenderInit();
         AccurateInit(true);
     }
-*/
+
     // Manage startup for size & load command line rom
     if (startup<=2) startup++;
     switch(startup)

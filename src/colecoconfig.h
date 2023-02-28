@@ -56,10 +56,13 @@
 #define BDW                     16                  // Screen border width
 #define BDH                     16                  // Screen border height
 
-#define TVW_TMS                     (256+BDW)       // Screen buffer width in TMS mode
-#define TVH_TMS                     (192+BDH)       // Screen buffer height in TMS mode
-#define TVW_F18A                    (256+BDW)       // Screen buffer width in F18A mode
-#define TVH_F18A                    (240+BDH)       // Screen buffer height in F18A mode
+#define TVH_DEF                 192
+#define TVH_ROW30               240
+
+#define TVW_TMS                 (256+BDW)       // Screen buffer width in TMS mode
+#define TVH_TMS                 (TVH_DEF+BDH)       // Screen buffer height in TMS mode
+#define TVW_F18A                (256+BDW)       // Screen buffer width in F18A mode
+#define TVH_F18A                (TVH_ROW30+BDH)       // Screen buffer height in F18A mode
 
 typedef struct
 {

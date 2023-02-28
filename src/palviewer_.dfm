@@ -1,6 +1,6 @@
 object paletteviewer: Tpaletteviewer
-  Left = 125
-  Top = 95
+  Left = 288
+  Top = 110
   BorderStyle = bsToolWindow
   Caption = 'Palette Viewer'
   ClientHeight = 345
@@ -134,6 +134,7 @@ object paletteviewer: Tpaletteviewer
     Width = 193
     Height = 188
     Caption = 'TMS 9918/9928A Palette'
+    Enabled = False
     TabOrder = 1
     object lVVPal4: TLabel
       Left = 8

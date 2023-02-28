@@ -101,25 +101,27 @@ void __fastcall Tpaletteviewer::UpdateChanges()
 
     //example grab from https://stackoverflow.com/questions/2391325/bcb-how-to-iterate-over-controls-on-a-form
 
-    // TMS9918 Colors
-    for (int index = 0; index < gTMS->ControlCount; index ++)
-    {
-        if(gTMS->Controls[index]->InheritsFrom(__classid(TPaintBox)))
-        {
-            TPaintBox *pbox = (TPaintBox*) gTMS->Controls[index];
-            SetTColor(pbox,cv_palette[pbox->Tag*3+0],cv_palette[pbox->Tag*3+1],cv_palette[pbox->Tag*3+2]);
-        }
-    }
-
     // F18A Colors if enable
     if (emul2.F18A)
     {
         gF18A->Enabled=true;
+        gTMS->Enabled=false;
         for (index = 0; index < gF18A->ControlCount; index ++)
         {
             if(gF18A->Controls[index]->InheritsFrom(__classid(TPaintBox)))
             {
                 TPaintBox *pbox = (TPaintBox*) gF18A->Controls[index];
+                SetTColor(pbox,cv_palette[pbox->Tag*3+0],cv_palette[pbox->Tag*3+1],cv_palette[pbox->Tag*3+2]);
+            }
+        }
+    }
+    // TMS9918 Colors
+    else {
+        gF18A->Enabled=false;
+        gTMS->Enabled=true;
+        for (int index = 0; index < gTMS->ControlCount; index ++) {
+            if(gTMS->Controls[index]->InheritsFrom(__classid(TPaintBox))) {
+                TPaintBox *pbox = (TPaintBox*) gTMS->Controls[index];
                 SetTColor(pbox,cv_palette[pbox->Tag*3+0],cv_palette[pbox->Tag*3+1],cv_palette[pbox->Tag*3+2]);
             }
         }

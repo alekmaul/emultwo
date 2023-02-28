@@ -419,7 +419,7 @@ void f18agpu_reset(void)
             tms.ram[0x4000 + i] = hexVal;
         }
     //}
-    f18agpu_setpc(0x4000);
+    //f18agpu_setpc(0x4000);
 };
 // ----------------------------------------------------------------------------------------
 
@@ -447,6 +447,7 @@ void f18agpu_writeword(unsigned short addr, unsigned short value)
 void f18agpu_writebyte(unsigned short addr, BYTE value)
 {
     BYTE colno;
+
     // GPU register
     if (addr >= f18agpu.WP) // GPU register
     {
@@ -877,10 +878,6 @@ void f18agpu_limi(void)
     // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
 void f18agpu_idle(void)
 {
-/*
-        this.setIdle(true);
-        return 10;
-*/
     f18agpu.cpuIdle=1;
     F18AGPUADDCYCLE(10);
 };
@@ -2142,37 +2139,36 @@ void f18agpu_call(void)
 
 void f18agpu_ret(void)
 {
-//    FormatVII;
+    unsigned short x1;
 
-/*
-        var x1 = this.readMemoryWord(this.WP + 30); // get R15
-        x1 += 2;
-        this.PC = this.readMemoryWord(x1);          // get PC
-        this.writeMemoryWord(this.WP + 30, x1);     // update R15
-        return 8;
-*/
+    F18AGPUFormatVII;
+
+    x1 = f18agpu_readword(f18agpu.WP + 30);	// get R15
+    x1+=2;
+    f18agpu.PC=f18agpu_readword(x1);          // get PC
+    f18agpu_writeword(f18agpu.WP + 30,x1); // update R15
     F18AGPUADDCYCLE(8);
 };
 
 void f18agpu_push(void)
 {
-//    FormatVI;
+    unsigned short x1,x2;
 
-/*
-        var x1 = this.readMemoryWord(this.S);
-        var x2 = this.readMemoryWord(this.WP + 30); // get R15
-        this.writeMemoryWord(x2, x1);               // Push the word on the stack
-        x2 -= 2;                                    // the stack pointer post-decrements (per Matthew)
-        this.writeMemoryWord(this.WP + 30, x2);		// update R15
-        f18agpu_postIncrement(F18AGPU_SRC);
-        return 8;
-*/
+    F18AGPUFormatVI;
+
+    x1 = f18agpu_readword(f18agpu.S);
+    x2 = f18agpu_readword(f18agpu.WP + 30); // get R15
+    f18agpu_writeword(x2, x1);               // Push the word on the stack
+    x2 -= 2;                                    // the stack pointer post-decrements (per Matthew)
+    f18agpu_writeword(f18agpu.WP + 30, x2);		// update R15
+    f18agpu_postIncrement(F18AGPU_SRC);
+
     F18AGPUADDCYCLE(8);
 };
 
 void f18agpu_slc(void)
 {
-//    FormatVI;
+    F18AGPUFormatVI;
 
 /*
         var cycles = 0;

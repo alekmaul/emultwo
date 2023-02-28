@@ -64,6 +64,7 @@
 
 #define F18A_TL1Enabled                     ((f18a.VDPR[0x32] & 0x10) == 0) // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
 #define F18A_BMLEnabled                     ((f18a.VDPR[0x1F] & 0x80) != 0) // BML: Enable, Priority over sprites, Transparent, Fat pixels, Palette select
+#define F18A_BMFat                          ((f18a.VDPR[0x1F] & 0x10) != 0)
 #define F18A_SPLinkEnabled                  ((f18a.VDPR[0x31] & 0x04) != 0)
 #define F18A_SPRealYCoord                   ((f18a.VDPR[0x31] & 0x08) != 0)
 
@@ -87,6 +88,7 @@ typedef struct {
     //unsigned short CurLine;                             // Current scanline
     //unsigned short ScanLines;                           // Scanlines per frame
     //BYTE UCount;                                        // Screen update counter
+    //BYTE IdxPal[16];                                   // Palette color index
 
     BYTE Version;                                      // Current code version
     BYTE VDPR[64];                                     // VDP registers (only 58 used)
@@ -102,7 +104,6 @@ typedef struct {
     unsigned char *ChrTab2;                            // VDP Name Table 2 Base Address, 1K boundaries. 768-bytes per table for 24 rows, 960-bytes per table for 30 rows
     unsigned char *ColTab2;                            // VDP Color Table 2 Base Address, 64-byte boundaries. Works the same as VR3 in Enhanced Color Modes / Position-Attribute Mode
     signed char VAddrInc;                              // SIGNED two's-complement increment amount for VRAM address, defaults to 1
-    BYTE IdxPal[16];                                   // Palette color index
     BYTE TilColMode;                                   // Tile color mode
     BYTE TL1HOfs,TL1VOfs;                              // Tile-1 horizontal & vertical scroll offset
     BYTE TL2HOfs,TL2VOfs;                              // Tile-2 horizontal & vertical scroll offset
@@ -113,19 +114,15 @@ typedef struct {
     BYTE SPMaxScanLine;                                // Max sprites per scan line, set to 0 to reset sprite max to jumper setting
     unsigned short SPGSOfs;                            // SPGS = sprite pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
     unsigned short TPGSOfs;                            // TPGS = tile pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
+    BYTE WinHeight;                                    // WIn height for screen rendering
 
     unsigned int counterElapsed,counterStart,counterSnap;       // Counter management
 
 
     unsigned char interruptScanline;                            // Horizontal Interrupt scan line, 0 to disable, VR0 IE1-bit must = 1
 
-
-
-
-    //unsigned char bitmapEnable;                                 // BML: Enable, Priority over sprites, Transparent, Fat pixels, Palette select
     unsigned char bitmapPriority;
     unsigned char bitmapTransparent;
-    unsigned char bitmapFat;
     unsigned char bitmapPaletteSelect;
 
     unsigned short bitmapBaseAddr;                              // Bitmap Layer Base Address, 64-byte boundaries
@@ -135,12 +132,10 @@ typedef struct {
 
     unsigned char tileLayer2Enabled;                            // ECM = enhanced color mode, (T)ile and (S)prite
     unsigned char realSpriteYCoord;
-    //unsigned char spriteLinkingEnabled;
     unsigned char spriteColorMode;
 
     unsigned char gpuHsyncTrigger;
     unsigned char gpuVsyncTrigger;
-    //unsigned char tileLayer1Enabled;
     unsigned char reportMax;
     unsigned char ecmPositionAttributes;
     unsigned char tileMap2AlwaysOnTop;
@@ -165,6 +160,7 @@ extern unsigned char f18a_readdata(void);
 extern unsigned char f18a_writectrl(unsigned char value);
 extern unsigned char f18a_readctrl(void);
 
+extern void _F18A_refreshborder(unsigned char uY);
 extern void _F18A_modegm1(unsigned char uY);
 extern void _F18A_modet(unsigned char uY);
 extern void _F18A_modet80(unsigned char uY);

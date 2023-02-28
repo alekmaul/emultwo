@@ -47,7 +47,7 @@
     <MAINSOURCE value="emultwo.cpp"/>
     <INCLUDEPATH value="src\f18a;emultwo\src;F:\src\;src\eeprom;src\ay8910;src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\adam;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\eeprom;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\ay8910;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src;C:\CBuilder5\Projects\;\\VBoxSvr\vboxshared\DropboxSvnClient\colecodev\emulators\emultwo\src\tms9928a;src\sn76489;src\tms9928a;src\coleco;src\z80;libs\animtimer5\lib;libs\libpngstat;src;$(BCB)\include;$(BCB)\include\vcl"/>
     <LIBPATH value="src\f18a;src\eeprom;src\ay8910;src\adam;src\tms9928a;C:\CBuilder5\Projects\;src\sn76489;src\coleco;src\z80;$(BCB)\Projects\Lib;libs\animtimer5\lib;src;$(BCB)\lib\obj;$(BCB)\lib;libs\directdraw;libs\libpngstat;libs\directsound"/>
-    <WARNINGS value="-w-par"/>
+    <WARNINGS value="-wuse -w-par -wdef"/>
   </MACROS>
   <OPTIONS>
     <IDLCFLAGS value="-Isrc\f18a -Iemultwo\src -IF:\src\. -Isrc\eeprom -Isrc\ay8910 -Isrc\adam 

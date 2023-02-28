@@ -164,7 +164,7 @@ void Tnametabviewer::CreateTile(void)
         if (iy!=7)
             idTiValue->Caption=idTiValue->Caption+",";
     }
-    StretchBlt(TileAlone->Canvas->Handle, 0,0, 136,136,
+    StretchBlt(TileAlone->Canvas->Handle, 0,0, 128,128,
         mOfftileBitmap->Canvas->Handle, 0, 0, 8, 8,SRCCOPY);
 
     // Draw a grid of 16x16 pix if needed

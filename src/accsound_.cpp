@@ -25,8 +25,6 @@
 //---------------------------------------------------------------------------
 #include <dsound.h>
 
-#include <stdio.h>
-
 #include "accsound_.h"
 
 #include "tms9928a.h"
@@ -513,12 +511,6 @@ void CSound::Frame(unsigned int lineupdate )
     {
         unsigned int tinybit;
         if (lineupdate==0) FillPos=0;
-        if (lineupdate>=smptab_len) MessageBox(NULL, "eeror","Error",2);
-                if (smptab[lineupdate]<FillPos) {
-                char toto[256];
-                sprintf(toto,"size=%d val=%d line=%d Fill=%d",smptab_len,smptab[lineupdate],lineupdate,FillPos);
-                 MessageBox(NULL, "eeror",toto,2);
-                 }
         tinybit = smptab[lineupdate] - FillPos;
 
         // Generate SN76489 sample data
@@ -557,8 +549,6 @@ int CSound::SoundPrepSmpTab(int linesperframe)
         double calc = (FrameSize * i);
         calc = calc / (double)smptab_len;
         smptab[i] = (int)calc;
-        if (((int) calc==0) && (i))
-            MessageBox(NULL, "Error","i=0",2);
     }
 
     return (1);

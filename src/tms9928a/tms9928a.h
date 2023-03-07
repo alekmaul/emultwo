@@ -83,7 +83,6 @@ typedef struct {
     unsigned char *ChrGen,*ChrTab,*ColTab;                  // VDP tables (screens)
     unsigned char *SprGen,*SprTab;                          // VDP tables (sprites)
     unsigned int ColTabM,ChrGenM;                           // VDP tables mask
-    unsigned char ram[0x10000];                             // VDP video memory (64K for F18A support)
     unsigned short CurLine;                                 // Current scanline
     unsigned short ScanLines;                               // Scanlines per frame
     unsigned char MaxSprites;                               // Number of sprites/line

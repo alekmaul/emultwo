@@ -83,7 +83,7 @@ bool DDError(bool result, AnsiString Message)
 
 void DDEnd(void)
 {
-    if (m_pDD)
+    if (m_pDD!= NULL)
     {
         if (m_pddsFrontBuffer != NULL)
         {
@@ -294,7 +294,7 @@ void GDIAccurateInit(int resize)
 {
     float OrigW, OrigH, ScaleW, ScaleH;
 
-    if (GDIFrame)
+    if (GDIFrame!= NULL)
     {
         delete GDIFrame;
         GDIFrame=NULL;
@@ -323,9 +323,6 @@ void GDIAccurateInit(int resize)
 
     BPP = 4; //2; //
 
-    dest=buffer=(unsigned char *) GDIFrame->ScanLine[0];
-    TVP = ((char *)GDIFrame->ScanLine[1]) - ((char *)GDIFrame->ScanLine[0]);
-
     if (resize)
     {
         Form1->BaseWidth=WinR-WinL;
@@ -338,6 +335,9 @@ void GDIAccurateInit(int resize)
         Form1->ClientWidth = OrigW;
         Form1->ClientHeight = OrigH;
     }
+
+    dest=buffer=(unsigned char *) GDIFrame->ScanLine[0];
+    TVP = ((char *)GDIFrame->ScanLine[1]) - ((char *)GDIFrame->ScanLine[0]);
 
     RenderCalcPalette(cv_palette,16*4);
     RecalcWinSize();
@@ -369,9 +369,6 @@ void GDIAccurateUpdateDisplay(bool singlestep)
 // -----------------------------------------------------------------------------
 void RecalcWinSize(void)
 {
-    int sw,sh, dw,dh, scale;
-    int bw,bh;
-
     rcdest.Top=0; rcdest.Bottom=Form1->ClientHeight;
     rcdest.Left=0; rcdest.Right=Form1->ClientWidth;
     rcdest.Bottom -= Form1->StatusBar1->Height;
@@ -419,11 +416,11 @@ void RenderCalcPalette(unsigned char *palette, int palsize)
     }
     else
     {
-        rsz=8; //5;
-        gsz=8; // 6;
-        bsz=8; // 5;
-        rsh=16; //11;
-        gsh=8; // 5;
+        rsz=8;
+        gsz=8;
+        bsz=8;
+        rsh=16;
+        gsh=8;
         bsh=0;
     }
 
@@ -448,6 +445,7 @@ void RenderCalcPalette(unsigned char *palette, int palsize)
 
 void AccurateInit(int resize)
 {
+    dest=buffer=NULL;
         if (Form1->RenderMode==RENDERDDRAW)
             DDAccurateInit(resize);
         else
@@ -466,21 +464,23 @@ void AccurateUpdateDisplay(bool singlestep)
 void AccurateDraw(unsigned int Line)
 {
     unsigned char c;
-    unsigned char *pcv_display=cv_display+TVW*Line;
+    unsigned char *pcv_display;
     int i;
 
     if (Line<TVH)
     {
+        pcv_display=cv_display+TVW*Line;
+        dest=buffer+Line*TVP;
         for(i=0; i<TVW; i++)
         {
             c = *(pcv_display+i);
             Plot(i*BPP,c);
         }
-        dest+=TVP;
     }
     if (Line==TVH)
     {
         dest=buffer;
+        AccurateUpdateDisplay(false);
     }
 }
 // -----------------------------------------------------------------------------

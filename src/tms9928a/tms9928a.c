@@ -51,7 +51,7 @@ void tms9918_reset(void) {
 	unsigned char i;
 
 	memset(tms.VR,0x00,sizeof(tms.VR));                     // Init tms.VR Registers
-	memset(tms.ram,0x00, 0x4000);                           // Init tms.VR VRAM
+	memset(VDP_Memory,0x00, 0x4000);                           // Init tms.VR VRAM
 
 	tms.VKey=1;                                             // tms.VR address latch key
 	tms.SR=0x00;                                            // tms.VR status register
@@ -62,8 +62,8 @@ void tms9918_reset(void) {
     tms.ScanLines = TMS9918_LINES;                          // Default for NTSC
 
     tms.MaxSprites = TMS9918_MAXSPRITES;                    // Default for chipset
-	tms.ChrTab=tms.ColTab=tms.ChrGen=tms.ram;               // tms.VR tables (screen)
-	tms.SprTab=tms.SprGen=tms.ram;                          // tms.VR tables (sprites)
+	tms.ChrTab=tms.ColTab=tms.ChrGen=VDP_Memory;               // tms.VR tables (screen)
+	tms.SprTab=tms.SprGen=VDP_Memory;                          // tms.VR tables (sprites)
 
 	tms.ColTabM = ~0;                                       // tms mask tables
 	tms.ChrGenM = ~0;
@@ -112,11 +112,11 @@ unsigned char Write9918(int iReg,unsigned char value) {
 		if((J!=tms.Mode)||!VRAMMask)
         {
 		    VRAMMask    = TMS9918_VRAMMask;
-		    tms.ChrTab=tms.ram+(((int)(tms.VR[2]&SCR[J].R2)<<10)&VRAMMask);
-			tms.ColTab=tms.ram+(((int)(tms.VR[3]&SCR[J].R3)<<6)&VRAMMask);
-			tms.ChrGen=tms.ram+(((int)(tms.VR[4]&SCR[J].R4)<<11)&VRAMMask);
-			tms.SprTab=tms.ram+(((int)(tms.VR[5]&SCR[J].R5)<<7)&VRAMMask);
-			tms.SprGen=tms.ram+(((int)(tms.VR[6]&SCR[J].R6)<<11)&VRAMMask);
+		    tms.ChrTab=VDP_Memory+(((int)(tms.VR[2]&SCR[J].R2)<<10)&VRAMMask);
+			tms.ColTab=VDP_Memory+(((int)(tms.VR[3]&SCR[J].R3)<<6)&VRAMMask);
+			tms.ChrGen=VDP_Memory+(((int)(tms.VR[4]&SCR[J].R4)<<11)&VRAMMask);
+			tms.SprTab=VDP_Memory+(((int)(tms.VR[5]&SCR[J].R5)<<7)&VRAMMask);
+			tms.SprGen=VDP_Memory+(((int)(tms.VR[6]&SCR[J].R6)<<11)&VRAMMask);
             tms.ColTabM = ((int)(tms.VR[3]|~SCR[J].M3)<<6)|0x1C03F;
             tms.ChrGenM = ((int)(tms.VR[4]|~SCR[J].M4)<<11)|0x007FF;
 			tms.Mode=J;
@@ -134,21 +134,21 @@ unsigned char Write9918(int iReg,unsigned char value) {
         }*/
         break;
     case  2: // Name Table
-	    tms.ChrTab=tms.ram+(((int)(value&SCR[tms.Mode].R2)<<10)&VRAMMask);
+	    tms.ChrTab=VDP_Memory+(((int)(value&SCR[tms.Mode].R2)<<10)&VRAMMask);
 		break;
     case  3: // Color Table
-	    tms.ColTab=tms.ram+(((int)(value&SCR[tms.Mode].R3)<<6)&VRAMMask);
+	    tms.ColTab=VDP_Memory+(((int)(value&SCR[tms.Mode].R3)<<6)&VRAMMask);
 	    tms.ColTabM = ((int)(value|~SCR[tms.Mode].M3)<<6)|0x1C03F;
 		break;
     case  4: // Pattern Table
-        tms.ChrGen=tms.ram+(((int)(value&SCR[tms.Mode].R4)<<11)&VRAMMask);
+        tms.ChrGen=VDP_Memory+(((int)(value&SCR[tms.Mode].R4)<<11)&VRAMMask);
         tms.ChrGenM = ((int)(value|~SCR[tms.Mode].M4)<<11)|0x007FF;
         break;
     case  5: // Sprite Attributes
-	    tms.SprTab=tms.ram+(((int)(value&SCR[tms.Mode].R5)<<7)&VRAMMask);
+	    tms.SprTab=VDP_Memory+(((int)(value&SCR[tms.Mode].R5)<<7)&VRAMMask);
         break;
     case  6: // Sprite Patterns
-        tms.SprGen=tms.ram+(((int)(value&SCR[tms.Mode].R6)<<11)&VRAMMask);
+        tms.SprGen=VDP_Memory+(((int)(value&SCR[tms.Mode].R6)<<11)&VRAMMask);
 		break;
     case  7:  // Foreground and background colors
 	    tms.FGColor=tms.IdxPal[value>>4];
@@ -166,7 +166,7 @@ unsigned char Write9918(int iReg,unsigned char value) {
 // Write a value to the tms.VR Data Port.
 void tms9918_writedata(unsigned char value) {
     tms.DLatch = value;
-    tms.ram[tms.VAddr] = value;
+    VDP_Memory[tms.VAddr] = value;
     tms.VAddr = (tms.VAddr+1)&0x3FFF;
 }
 
@@ -176,7 +176,7 @@ unsigned char tms9918_readdata(void) {
     unsigned char retval;
 
     retval = tms.DLatch;
-    tms.DLatch = tms.ram[tms.VAddr];
+    tms.DLatch = VDP_Memory[tms.VAddr];
 	tms.VAddr = (tms.VAddr+1)&0x3FFF;
 
 	return(retval);
@@ -198,7 +198,7 @@ unsigned char tms9918_writectrl(unsigned char value) {
         {
         case 0x00:
             // In READ mode, read the first unsigned char from VRAM
-            tms.DLatch = tms.ram[tms.VAddr];
+            tms.DLatch = VDP_Memory[tms.VAddr];
             tms.VAddr  = (tms.VAddr+1)&0x3FFF;
 			break;
         case 0x80:

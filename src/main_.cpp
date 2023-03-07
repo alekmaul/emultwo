@@ -86,7 +86,6 @@ __fastcall TForm1::TForm1(TComponent* Owner)
         : TForm(Owner)
 {
     AnsiString IniPath;
-    char path[256];
     int i;
 
     RunFrameEnable=false;
@@ -227,7 +226,6 @@ void __fastcall TForm1::FormClose(TObject *Sender, TCloseAction &Action)
 void __fastcall TForm1::FormCreate(TObject *Sender)
 {
     TIniFile *ini;
-    char soundfile[256];
 
     RunFrameEnable=false;
 
@@ -449,9 +447,10 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         OldhWnd=Form1->Handle;
         Sound.ReInitialise(OldhWnd, 0,0,0,0);
 
-        RenderEnd();
-        RenderInit();
-        AccurateInit(true);
+        //RenderEnd();
+        //RenderInit();
+        //AccurateInit(true);
+        UpdateStatusBar();
     }
 
     // Manage startup for size & load command line rom
@@ -635,7 +634,7 @@ void __fastcall TForm1::RunFrame()
 
     // Update emulation
     machine.do_scanline();
-    AccurateUpdateDisplay(emul2.singlestep ? true : false);//false : true);
+    //AccurateUpdateDisplay(emul2.singlestep ? true : false);//false : true);
 }
 //---------------------------------------------------------------------------
 

@@ -265,7 +265,7 @@ void Thardware::SaveSettings(TIniFile *ini)
     ini->WriteInteger("HWARE","NTSC",cSEPalNtsc->ItemIndex);
 
     ini->WriteInteger("HWARE","PALETTE",cboPal->ItemIndex);
-    ini->WriteInteger("HWARE","DSPDRV",cboSEDispD->ItemIndex);
+    ini->WriteInteger("MAIN","RenderMode",cboSEDispD->ItemIndex);
 
     ini->WriteInteger("HWARE","HACKPAL",cSEPFreq->Checked);
     ini->WriteInteger("HWARE","HACKDLAY",cSENodelay->Checked);
@@ -300,7 +300,7 @@ void Thardware::LoadSettings(TIniFile *ini)
 
     cSEPalNtsc->ItemIndex=ini->ReadInteger("HWARE","NTSC",cSEPalNtsc->ItemIndex);
     cboPal->ItemIndex=ini->ReadInteger("HWARE","PALETTE",cboPal->ItemIndex);
-    cboSEDispD->ItemIndex=ini->ReadInteger("HWARE","DSPDRV",cboSEDispD->ItemIndex);
+    cboSEDispD->ItemIndex=ini->ReadInteger("MAIN","RenderMode",cboSEDispD->ItemIndex);
 
     cSEPFreq->Checked=ini->ReadInteger("HWARE","HACKPAL",cSEPFreq->Checked);
     cSENodelay->Checked=ini->ReadInteger("HWARE","HACKPAL",cSENodelay->Checked);

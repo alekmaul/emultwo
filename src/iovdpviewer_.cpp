@@ -72,6 +72,7 @@ void __fastcall Tiovdpviewer::UpdateChanges()
 {
     AnsiString texS;
     int index;
+    BYTE valVR;
 
     // Put VDP information
     // Mode and others features
@@ -111,8 +112,8 @@ void __fastcall Tiovdpviewer::UpdateChanges()
 
     // Address
     eVDPBGmap->Caption="$"+IntToHex(coleco_gettmsaddr(CHRMAP,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRMAP,0,0)+32*24-1,4);
-    eVDPBGtile->Caption="$"+IntToHex(coleco_gettmsaddr(CHRGEN,0,0),4);
     eVDPBGcolor->Caption="$"+IntToHex(coleco_gettmsaddr(CHRCOL,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRCOL,0,0)+32*24-1,4);
+    eVDPBGtile->Caption="$"+IntToHex(coleco_gettmsaddr(CHRGEN,0,0),4);
     eVDPSPRdata->Caption="$"+IntToHex(coleco_gettmsaddr(SPRATTR,0,0),4);
     eVDPSPRtile->Caption="$"+IntToHex(coleco_gettmsaddr(SPRGEN,0,0),4);
 
@@ -121,15 +122,39 @@ void __fastcall Tiovdpviewer::UpdateChanges()
     {
         gF18A->Enabled=true;
         gVDP->Enabled=false;
-        for (index = 0; index < gF18A->ControlCount; index ++)
-        {
-            if(gF18A->Controls[index]->InheritsFrom(__classid(TStaticText)))
-            {
+        for (index = 0; index < gF18A->ControlCount; index ++) {
+            if(gF18A->Controls[index]->InheritsFrom(__classid(TStaticText))) {
                 TStaticText *ptxt = (TStaticText*) gF18A->Controls[index];
                 ptxt->Caption="$"+IntToHex(f18a.VDPR[ptxt->Tag],2);
             }
         }
         eVDPStat1->Caption="$"+IntToHex(tms.SR,2); eVDPlatch1->Caption="$"+IntToHex(tms.DLatch,2);
+        eF18ALock->Caption=f18a.unlocked ? "Unlocked" : "Locked";
+        eF18ASelNo->Caption="$"+IntToHex(f18a.SRSel,2);
+        // Specific values
+        valVR=F18A_TLColorMode;
+        switch (valVR)
+        {
+        case F18A_COLOR_MODE_NORMAL: eF18ATCMo->Caption="Normal";break;
+        case F18A_COLOR_MODE_ECM_1: eF18ATCMo->Caption="ECM1";break;
+        case F18A_COLOR_MODE_ECM_2: eF18ATCMo->Caption="ECM2";break;
+        case F18A_COLOR_MODE_ECM_3: eF18ATCMo->Caption="ECM3";break;
+        }
+        valVR=F18A_SPColorMode;
+        switch (valVR)
+        {
+        case F18A_COLOR_MODE_NORMAL: eF18ASCMo->Caption="Normal";break;
+        case F18A_COLOR_MODE_ECM_1: eF18ASCMo->Caption="ECM1";break;
+        case F18A_COLOR_MODE_ECM_2: eF18ASCMo->Caption="ECM2";break;
+        case F18A_COLOR_MODE_ECM_3: eF18ASCMo->Caption="ECM3";break;
+        }
+        chkT1On->Checked=F18A_TL1Enabled ? true :false;
+        chkT2On->Checked=F18A_TL2Enabled ? true :false;
+        chkBMOn->Checked=F18A_BMLEnabled ? true :false;
+
+        // specific address
+        eVDPBGmap2->Caption="$"+IntToHex(coleco_gettmsaddr(CHRMAP2,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRMAP2,0,0)+32*24-1,4);
+        eF18ABGCol2->Caption="$"+IntToHex(coleco_gettmsaddr(CHRCOL2,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRCOL2,0,0)+32*24-1,4);
     }
     else {
         gF18A->Enabled=false;

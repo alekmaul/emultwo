@@ -49,7 +49,6 @@ __published:	// Composants gérés par l'EDI
     TMenuItem *Refresh1;
     TSaveDialog *dlgSVPic;
     TGroupBox *gCHRTile;
-        TStaticText *eGVVCloc;
     TStaticText *eGVVCTNo;
     TStaticText *eGVVCMAddr;
     TStaticText *eGVVCCAddr;
@@ -64,6 +63,8 @@ __published:	// Composants gérés par l'EDI
         TCheckBox *chkGrid;
         TCheckBox *chkTiles;
         TPaintBox *VRam;
+    TStaticText *eGVVCloc;
+    TButton *bRestCHMap;
     void __fastcall SaveasBMP1Click(TObject *Sender);
     void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
     void __fastcall FormShow(TObject *Sender);
@@ -75,11 +76,13 @@ __published:	// Composants gérés par l'EDI
         void __fastcall Copytoclipboard1Click(TObject *Sender);
         void __fastcall chkGridClick(TObject *Sender);
         void __fastcall chkTilesClick(TObject *Sender);
+    void __fastcall eGVVCMAddrClick(TObject *Sender);
+    void __fastcall bRestCHMapClick(TObject *Sender);
 private:	// Déclarations de l'utilisateur
     Graphics::TBitmap *mOffscreenBitmap;
     Graphics::TBitmap *mOfftileBitmap;
 
-    int mVramTile;
+    int mVramTile,nNamTabVal;
     void CreateMap(TCanvas *Acanvas, int w, int h);
     void CreateTile(void);
 public:		// Déclarations de l'utilisateur

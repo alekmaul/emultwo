@@ -48,8 +48,8 @@ const char F18AGPU_PRELOAD[] = {
 
 tF18AGPU f18agpu;
 
-BYTE wStatusLookup[0x10000];
-BYTE bStatusLookup[0x100];
+unsigned short wStatusLookup[0x10000];
+unsigned short bStatusLookup[0x100];
 
 typedef void (*F18AGPUFctn)(void);			// function pointers to opcode
 
@@ -250,7 +250,7 @@ void f18agpu_init(void)
 
     f18agpu.WP = 0xF000; // Place workspace in an unused part of the memory space
     for (i = 0; i < 32; i++) {
-        tms.ram[f18agpu.WP + i] = 0;
+        VDP_Memory[f18agpu.WP + i] = 0;
     }
 
     // Lookup tables
@@ -308,30 +308,27 @@ void f18agpu_init(void)
     }
     // new opcodes
     // CALL 0C80 - 0000 1100 10Ts SSSS
-    for (int idx=0x0C80; idx<=0x0CBF; idx++)
-    {
-        opcodef18agpu[idx] = &f18agpu_call;
+    for (int idx=0x0C80; idx<=0x0CBF; idx++) {
+        opcodef18agpu[idx] = &f18agpu_callf18;
     }
 
     // RET  0C00 - 0000 1100 0000 0000
-    opcodef18agpu[0x0c00] = &f18agpu_ret;
+    opcodef18agpu[0x0c00] = &f18agpu_retf18;
 
     // PUSH 0D00 - 0000 1101 00Ts SSSS
     for (int idx=0x0D00; idx<=0x0D3F; idx++)
     {
-        opcodef18agpu[idx]=&f18agpu_push;
+        opcodef18agpu[idx]=&f18agpu_pushf18;
     }
 
     // POP  0F00 - 0000 1111 00Td DDDD
-    for (int idx=0x0F00; idx<=0x0f3F; idx++)
-    {
-        opcodef18agpu[idx]=&f18agpu_pop;
+    for (int idx=0x0F00; idx<=0x0f3F; idx++) {
+        opcodef18agpu[idx]=&f18agpu_popf18;
     }
 
     // SLC  0E00 - 0000 1110 00Ts SSSS
-    for (int idx=0x0E00; idx<=0x0E3F; idx++)
-    {
-        opcodef18agpu[idx]=&f18agpu_slc;
+    for (int idx=0x0E00; idx<=0x0E3F; idx++) {
+        opcodef18agpu[idx]=&f18agpu_slcf18;
     }
 
     // Word status lookup table
@@ -346,8 +343,7 @@ void f18agpu_init(void)
     }
 
     // Byte status lookup table
-    for (i = 0; i < 0x100; i++)
-    {
+    for (i = 0; i < 0x100; i++) {
         x = (i & 0xFF);
         bStatusLookup[i] = 0;
         if (i > 0) bStatusLookup[i] |= F18AGPU_BIT_LGT; // LGT
@@ -357,8 +353,7 @@ void f18agpu_init(void)
         if (i == 0x80) bStatusLookup[i] |= F18AGPU_BIT_OV; // OV
 
         // OP
-        for (z = 0; x != 0; x = (x & (x - 1)) & 0xFF)
-        {
+        for (z = 0; x != 0; x = (x & (x - 1)) & 0xFF) {
             z++;						// black magic?
         }
         if ((z & 1) != 0) bStatusLookup[i] |= F18AGPU_BIT_OP;		    // set bit if an odd number
@@ -367,7 +362,7 @@ void f18agpu_init(void)
 /*
     // Flash RAM
     var that = this;
-    this.flash = new F18AFlash(function (restored) {
+    f18agpu.flash = new F18AFlash(function (restored) {
         that.flashLoaded = restored;
         that.reset();
     });
@@ -407,16 +402,16 @@ void f18agpu_reset(void)
 
     f18agpu_intreset();
 
-//this.flash.reset();
+//f18agpu.flash.reset();
     // Load and execute GPU code
-    //if (this.flashLoaded)
+    //if (f18agpu.flashLoaded)
     //{
         for (i = 0; i < F18AGPU_PRELOADSIZE; i++)
         {
             shexval[0]=F18AGPU_PRELOAD[i*2];
             shexval[1]=F18AGPU_PRELOAD[i*2+1];
             hexVal=(int)strtoul(shexval, NULL, 16);
-            tms.ram[0x4000 + i] = hexVal;
+            VDP_Memory[0x4000 + i] = hexVal;
         }
     //}
     //f18agpu_setpc(0x4000);
@@ -446,27 +441,25 @@ void f18agpu_writeword(unsigned short addr, unsigned short value)
 
 void f18agpu_writebyte(unsigned short addr, BYTE value)
 {
-    BYTE colno;
+    BYTE colno,dmacopy,dmasrcByte;
+    unsigned short dmasrc,dmadst,dmawidth,dmaheight,dmastride,x,y;
+    signed short dmadiff;
+    signed char dmadir;
 
     // GPU register
-    if (addr >= f18agpu.WP) // GPU register
-    {
-        tms.ram[addr] = value;
+    if (addr >= f18agpu.WP) { // GPU register
+        VDP_Memory[addr] = value;
     }
-    else if (addr < 0x4000) // VRAM
-    {
-        tms.ram[addr] = value;
-//    this.f18a.redrawRequired = true;
+    else if (addr < 0x4000) { // VRAM
+        VDP_Memory[addr] = value;
+//    f18agpu.f18a.redrawRequired = true;
     }
-    else if (addr < 0x5000) // GRAM
-    {
-        tms.ram[addr & 0x47FF] = value;
+    else if (addr < 0x5000) { // GRAM
+        VDP_Memory[addr & 0x47FF] = value;
     }
-    else if (addr < 0x6000) // PRAM
-    {
+    else if (addr < 0x6000) { // PRAM
         colno = ((addr & 0x7F) >> 1)*3;
-        if ((addr & 1) == 0)
-        {
+        if ((addr & 1) == 0) {
             cv_palette[colno+0] = (value & 0x0F) * 17; // MSB
         }
         else
@@ -484,70 +477,59 @@ void f18agpu_writebyte(unsigned short addr, BYTE value)
     {
             //  Read only
     }
-    else if (addr < 0x9000) // DMA
-    {
+    else if (addr < 0x9000) { // DMA
         if ((addr & 0xF) == 8) {
-        /*
-                // Trigger DMA
-                var src = (this.vdpRAM[0x8000] << 8) | this.vdpRAM[0x8001];
-                var dst = (this.vdpRAM[0x8002] << 8) | this.vdpRAM[0x8003];
-                var width = this.vdpRAM[0x8004];
-                // if (width === 0) {
-                //     width = 0x100;
-                // }
-                var height = this.vdpRAM[0x8005];
-                // if (height === 0) {
-                //     height = 0x100;
-                // }
-                var stride = this.vdpRAM[0x8006];
-                // if (stride === 0) {
-                //     stride = 0x100;
-                // }
-                var dir = (this.vdpRAM[0x8007] & 0x02) === 0 ? 1 : -1;
-                var diff = dir * (stride - width);
-                var copy = (this.vdpRAM[0x8007] & 0x01) === 0;
-                var srcByte = this.vdpRAM[src];
-                this.log.debug("DMA triggered src=" + src.toHexWord() + " dst=" + dst.toHexWord() + " width=" + width.toHexByte() + " height=" + height.toHexByte() + " stride=" + stride + " copy=" + copy + " dir=" + dir + " srcByte=" + srcByte);
-                var x,y;
-                if (copy) {
-                    for (y = 0; y < height; y++) {
-                        for (x = 0; x < width; x++) {
-                            this.vdpRAM[dst] = this.vdpRAM[src];
-                            src += dir;
-                            dst += dir;
-                        }
-                        src += diff;
-                        dst += diff;
+            // Trigger DMA
+            dmasrc = (VDP_Memory[0x8000] << 8) | VDP_Memory[0x8001];
+            dmadst = (VDP_Memory[0x8002] << 8) | VDP_Memory[0x8003];
+            dmawidth = VDP_Memory[0x8004];
+            // if (width === 0) { width = 0x100; }
+            dmaheight = VDP_Memory[0x8005];
+            // if (height === 0) { height = 0x100; }
+            dmastride = VDP_Memory[0x8006];
+            // if (stride === 0) { stride = 0x100; }
+            dmadir = (VDP_Memory[0x8007] & 0x02) == 0 ? 1 : -1;
+            dmadiff = dmadir * (dmastride - dmawidth);
+            dmacopy = (VDP_Memory[0x8007] & 0x01) == 0 ? 1 : 0;
+            dmasrcByte = VDP_Memory[dmasrc];
+            if (dmadst==0) {
+                dmadst=456;
+            }
+            if (dmacopy) {
+                for (y = 0; y < dmaheight; y++) {
+                    for (x = 0; x < dmawidth; x++) {
+                        VDP_Memory[dmadst] = VDP_Memory[dmasrc];
+                        dmasrc += dmadir;
+                        dmadst += dmadir;
                     }
+                    dmasrc += dmadiff;
+                    dmadst += dmadiff;
                 }
-                else {
-                    for (y = 0; y < height; y++) {
-                        for (x = 0; x < width; x++) {
-                            this.vdpRAM[dst] = srcByte;
-                            dst += dir;
-                        }
-                        dst += diff;
+            }
+            else {
+                for (y = 0; y < dmaheight; y++) {
+                    for (x = 0; x < dmawidth; x++) {
+                        VDP_Memory[dmadst] = dmasrcByte;
+                        dmadst += dmadir;
                     }
+                    dmadst += dmadiff;
                 }
-                this.addCycles(width * height); // ?
-                this.f18a.redrawRequired = true;
-*/
+            }
+            F18AGPUADDCYCLE(dmawidth * dmaheight); // ?
+            //f18agpu.f18a.redrawRequired = true;
         }
-        else {
+        else { //   -- DMA              @ >8000 to >8xx7 (1000 xxxx xxxx 0111) --
             // Setup
-            tms.ram[addr & 0x800F] = value;
+            VDP_Memory[addr & 0x800F] = value;
         }
     }
-    else if (addr < 0xA000)        // Unused
-    {
+    else if (addr < 0xA000) {
     }
-    else if (addr < 0xB000)         // Version
-    {
+    else if (addr < 0xB000)  {//   -- F18A version     @ >A000 to >Axxx (1010 xxxx xxxx xxxx) --
         //  Read only
     }
-    else if (addr < 0xC000) // Status data
-    {
-        tms.ram[0xB000] = value & 0x7F; // 7 least significant bits, goes to an enhanced status register for the host CPU to read
+    else if (addr < 0xC000) { // //   -- GPU status data  @ >B000 to >Bxxx (1011 xxxx xxxx xxxx) --
+        VDP_Memory[0xB000] = value & 0x7F; // 7 least significant bits, goes to an enhanced status register for the host CPU to read
     }
 };
 // ----------------------------------------------------------------------------------------
@@ -562,58 +544,45 @@ BYTE f18agpu_readbyte(unsigned short addr)
 {
     BYTE color;
 
-    if (addr >= f18agpu.WP) // GPU register
-    {
-        return tms.ram[addr];
+    if (addr >= f18agpu.WP) { // GPU register
+        return VDP_Memory[addr];
     }
-    if (addr < 0x4000) // VRAM
-    {
-        return tms.ram[addr];
+    if (addr < 0x4000) { // VRAM
+        return VDP_Memory[addr];
     }
-    if (addr < 0x5000) // GRAM
-    {
-        return tms.ram[addr & 0x47FF];
+    if (addr < 0x5000) { // GRAM
+        return VDP_Memory[addr & 0x47FF];
     }
-    if (addr < 0x6000) // PRAM
-    {
+    if (addr < 0x6000) { // PRAM
         color = ((addr & 0x7F) >> 1)*3;
-        if ((addr & 1) == 0)
-        {
+        if ((addr & 1) == 0) {
             return (cv_palette[color] / 17); // MSB
         }
-        else
-        {
+        else {
             return ( ((cv_palette[color+1] / 17) << 4) | (cv_palette[color+2] / 17)); // LSB
         }
     }
-    if (addr < 0x7000) // VREG >6000->603F
-    {
+    if (addr < 0x7000) { // VREG >6000->603F
         return f18a.VDPR[addr & 0x3F];
     }
-    if (addr < 0x8000) // Scanline and blanking
-    {
-        if ((addr & 1) == 0)
-        {
+    if (addr < 0x8000) { // Scanline and blanking
+        if ((addr & 1) == 0) {
             // Current scanline
-            return 0x00; // TODO return this.f18a.getCurrentScanline();
+            return 0x00; // TODO return f18agpu.f18a.getCurrentScanline();
         }
-        else
-        {
+        else  {
             // Blanking
-            return 0x00; // TODO return this.f18a.getBlanking();
+            return 0x00; // TODO return f18agpu.f18a.getBlanking();
         }
     }
-    if (addr < 0x9000) // DMA
-    {
+    if (addr < 0x9000) { // DMA
         // TODO: can you read the DMA?
         return 0;
     }
-    else if (addr < 0xA000) // Unused
-    {
+    else if (addr < 0xA000) { // Unused
         return 0;
     }
-    else if (addr < 0xB000) // Version
-    {
+    else if (addr < 0xB000) { // Version
         return F18A_VERSION;
     }
     else if (addr < 0xC000) { // Status data
@@ -680,13 +649,11 @@ void f18agpu_fixs(void)
         cycles += 4;
         break;
     case 2:
-        if (f18agpu.S != 0)
-        {
+        if (f18agpu.S != 0) {
             // indexed (@>1000(R1))	Address is the contents of the argument plus the contents of the register
             f18agpu.S = f18agpu_readword(f18agpu.PC) + f18agpu_readword(f18agpu.WP + (f18agpu.S << 1));
         }
-        else
-        {
+        else {
             // symbolic	 (@>1000) Address is the contents of the argument
             f18agpu.S = f18agpu_readword(f18agpu.PC);
         }
@@ -722,13 +689,11 @@ void f18agpu_fixd(void)
         cycles += 4;
         break;
     case 2:
-        if (f18agpu.D != 0)
-        {
+        if (f18agpu.D != 0) {
             // indexed
             f18agpu.D = f18agpu_readword(f18agpu.PC) + f18agpu_readword(f18agpu.WP + (f18agpu.D << 1));
         }
-        else
-        {
+        else {
             // symbolic
             f18agpu.D = f18agpu_readword(f18agpu.PC);
         }
@@ -752,7 +717,7 @@ void f18agpu_fixd(void)
 // ----------------------------------------------------------------------------------------
 
 // all 9900 / F18A opcodes
-    // Load Immediate: LI src, imm
+// Load Immediate: LI src, imm
 void f18agpu_li(void)
 {
     F18AGPUFORMATVIII_1;       // read immediate
@@ -764,542 +729,590 @@ void f18agpu_li(void)
     F18AGPUADDCYCLE(12);
 };
 
-    // Add Immediate: AI src, imm
+// Add Immediate: AI src, imm
 void f18agpu_ai(void)
 {
+    unsigned short x1,x3;
 
-/*
-        var x1 = this.readMemoryWord(this.D);
+    F18AGPUFORMATVIII_1;       // read immediate
 
-        var x3 = (x1 + this.S) & 0xFFFF;
+    x1 = f18agpu_readword(f18agpu.D);
+    x3 = (x1 + f18agpu.S) & 0xFFFF;
 
-        this.writeMemoryWord(this.D, x3);
+    f18agpu_writeword(f18agpu.D, x3);
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
 
-        if (x3 < x1) this.setC();
-        if (((x1 & 0x8000) === (this.S & 0x8000)) && ((x3 & 0x8000) !== (this.S & 0x8000))) this.setOV();
+    if (x3 < x1) F18AGPUSET_C;
+    if (((x1 & 0x8000) == (f18agpu.S & 0x8000)) && ((x3 & 0x8000) != (f18agpu.S & 0x8000))) F18AGPUSET_OV;
 
-        return 14;
-*/
     F18AGPUADDCYCLE(14);
 };
 
-    // AND Immediate: ANDI src, imm
+// AND Immediate: ANDI src, imm
 void f18agpu_andi(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.D);
-        var x2 = x1 & this.S;
-        this.writeMemoryWord(this.D, x2);
+    unsigned short x1,x2;
 
-        this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x2] & this.maskLGT_AGT_EQ;
+    F18AGPUFORMATVIII_1;       // read immediate
 
-        return 14;
-*/
-};
+    x1 = f18agpu_readword(f18agpu.D);
+    x2 = x1 & f18agpu.S;
+    f18agpu_writeword(f18agpu.D, x2);
 
-    // OR Immediate: ORI src, imm
-void f18agpu_ori(void)
-{
-/*
-        var x1 = this.readMemoryWord(this.D);
-        var x2 = x1 | this.S;
-        this.writeMemoryWord(this.D, x2);
+    F18AGPURESETLGT_AGT_EQ;
+    f18agpu.ST |= wStatusLookup[x2] & F18AGPU_MSKLGT_AGT_EQ;
 
-        this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x2] & this.maskLGT_AGT_EQ;
-
-        return 14;
-*/
-};
-
-    // Compare Immediate: CI src, imm
-void f18agpu_ci(void)
-{
-/*
-        var x3 = this.readMemoryWord(this.D);
-
-        this.resetLGT_AGT_EQ();
-        if (x3 > this.S) this.setLGT();
-        if (x3 === this.S) this.setEQ();
-        if ((x3 & 0x8000) === (this.S & 0x8000)) {
-            if (x3 > this.S) this.setAGT();
-        } else {
-            if ((this.S & 0x8000) !== 0) this.setAGT();
-        }
-
-        return 14;
-*/
-};
-
-    // STore Workspace Pointer: STWP src
-    // Copy the workspace pointer to memory
-void f18agpu_stwp(void)
-{
-/*
-        // Not implemented
-        return null;
-*/
-};
-
-    // STore STatus: STST src
-    // Copy the status register to memory
-void f18agpu_stst(void)
-{
-/*
-        this.writeMemoryWord(this.D, this.ST);
-        return 8;
-*/
-};
-
-    // Load Workspace Pointer Immediate: LWPI imm
-    // changes the Workspace Pointer
-void f18agpu_lwpi(void)
-{
-/*
-        // Not implemented
-        return null;
-*/
-};
-
-    // Load Interrupt Mask Immediate: LIMI imm
-    // Sets the CPU interrupt mask
-void f18agpu_limi(void)
-{
-/*
-        return null;
-        // Not implemented
-*/
-};
-
-    // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
-void f18agpu_idle(void)
-{
-    f18agpu.cpuIdle=1;
-    F18AGPUADDCYCLE(10);
-};
-
-    // This will set A0-A2 to 011 and pulse CRUCLK (so not emulated)
-    // However, it does have an effect, it zeros the interrupt mask
-void f18agpu_rset(void)
-{
-/*
-        // Not implemented
-        return null;
-*/
-};
-
-    // ReTurn with Workspace Pointer: RTWP
-    // The matching return for BLWP, see BLWP for description
-    // F18A Modified, does not use R13, only performs R14->PC, R15->status flags
-void f18agpu_rtwp(void)
-{
-/*
-        this.ST = this.readMemoryWord(this.WP + 30); // R15
-        this.PC = this.readMemoryWord(this.WP + 28); // R14
-        return 14;
-*/
     F18AGPUADDCYCLE(14);
 };
 
-    // This is the SPI_EN instruction of the F18A GPU
-void f18agpu_ckon(void)
+// OR Immediate: ORI src, imm
+void f18agpu_ori(void)
 {
-    F18AGPUFormatVII;
-    //this.flash.enable();
-    F18AGPUADDCYCLE(12);
+    unsigned short x1,x2;
+
+    F18AGPUFORMATVIII_1;       // read immediate
+
+    x1 = f18agpu_readword(f18agpu.D);
+    x2 = x1 | f18agpu.S;
+    f18agpu_writeword(f18agpu.D, x2);
+
+    F18AGPURESETLGT_AGT_EQ;
+    f18agpu.ST |= wStatusLookup[x2] & F18AGPU_MSKLGT_AGT_EQ;
+
+    F18AGPUADDCYCLE(14);
 };
 
-    // This is the SPI_DS instruction of the F18A GPU
-void f18agpu_ckof(void)
+// Compare Immediate: CI src, imm
+void f18agpu_ci(void)
 {
-    F18AGPUFormatVII;
-    //this.flash.disable();
-    F18AGPUADDCYCLE(12);
+    unsigned short x3;
+
+    F18AGPUFORMATVIII_1;       // read source
+
+    x3 = f18agpu_readword(f18agpu.D);
+
+    F18AGPURESETLGT_AGT_EQ;
+    if (x3 > f18agpu.S) F18AGPUSET_LGT;
+    if (x3 == f18agpu.S) F18AGPUSET_EQ;
+    if ((x3 & 0x8000) == (f18agpu.S & 0x8000)) {
+        if (x3 > f18agpu.S) F18AGPUSET_AGT;
+    }
+    else {
+        if ((f18agpu.S & 0x8000) != 0) F18AGPUSET_AGT;
+    }
+
+    F18AGPUADDCYCLE(14);
 };
 
-    // This will set A0-A2 to 111 and pulse CRUCLK
-void f18agpu_lrex(void)
+// STore Workspace Pointer: STWP src
+// Copy the workspace pointer to memory
+void f18agpu_stwp(void)
 {
-/*
-        // Not implemented
-        return null;
-*/
-};
+    // Base cycles: 8
+    // 2 memory accesses:
+    //  Read instruction (already done)
+    //  Write dest
+    F18AGPUFORMATVIII_0;
 
-    // Branch and Load Workspace Pointer: BLWP src
-    // A context switch. The src address points to a 2 word table.
-    // the first word is the new workspace address, the second is
-    // the address to branch to. The current Workspace Pointer,
-    // Program Counter (return address), and Status register are
-    // stored in the new R13, R14 and R15, respectively
-    // Return is performed with RTWP
-void f18agpu_blwp(void)
-{
-/*
-        // Not implemented
-        return null;
-*/
-};
+    f18agpu_writeword(f18agpu.D,f18agpu.WP);   // write dest
 
-    // Branch: B src
-    // Unconditional absolute branch
-void f18agpu_b(void)
-{
-/*
-        this.PC = this.S;
-        f18agpu_postIncrement(F18AGPU_SRC);
-        return 8;
-*/
     F18AGPUADDCYCLE(8);
 };
 
-    // eXecute: X src
-    // The argument is interpreted as an instruction and executed
-void f18agpu_x(void)
+// STore STatus: STST src
+// Copy the status register to memory
+void f18agpu_stst(void)
 {
-/*
-        if (this.flagX !== 0) {
-            this.log.info("Recursive X instruction!");
-        }
+    // Base cycles: 8
+    // 2 memory accesses:
+    //  Read instruction (already done)
+    //  Write dest
+    F18AGPUFORMATVIII_0;
 
-        var xInstr = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);	// does this go before or after the eXecuted instruction??
-        // skip_interrupt=1;	    // (ends up having no effect because we call the function inline, but technically still correct)
+    f18agpu_writeword(f18agpu.D, f18agpu.ST);   // write dest
 
-        var cycles = 8 - 4;	        // For X, add this time to the execution time of the instruction found at the source address, minus 4 clock cycles and 1 memory access.
-        this.flagX = this.PC;	    // set flag and save true post-X address for the JMPs (AFTER X's operands but BEFORE the instruction's operands, if any)
-        cycles += this.execute(xInstr);
-        this.flagX = 0;			    // clear flag
-
-        return cycles;
-*/
+    F18AGPUADDCYCLE(8);
 };
 
-    // CLeaR: CLR src
-    // sets word to 0
+// Load Workspace Pointer Immediate: LWPI imm
+// changes the Workspace Pointer
+void f18agpu_lwpi(void)
+{
+    // Base cycles: 10
+    // 2 memory accesses:
+    //  Read instruction (already done)
+    //  Read immediate
+    F18AGPUFORMATVIII_1;   // read immediate
+
+    f18agpu.WP=f18agpu.S&0xfffe;
+
+    F18AGPUADDCYCLE(8);
+};
+
+// Load Interrupt Mask Immediate: LIMI imm
+// Sets the CPU interrupt mask
+void f18agpu_limi(void)
+{
+    F18AGPUFORMATVIII_1;   // read immediate
+    f18agpu.ST=(f18agpu.ST&0xfff0)|(f18agpu.S&0xf);
+
+    F18AGPUADDCYCLE(16);
+};
+
+// This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
+void f18agpu_idle(void)
+{
+    F18AGPUFormatVII;
+
+    f18agpu.cpuIdle=1;
+    F18AGPUADDCYCLE(12);
+};
+
+// This will set A0-A2 to 011 and pulse CRUCLK (so not emulated)
+// However, it does have an effect, it zeros the interrupt mask
+void f18agpu_rset(void)
+{
+    F18AGPUFormatVII;
+
+    f18agpu.ST&=0xfff0;
+    F18AGPUADDCYCLE(12);
+};
+
+// ReTurn with Workspace Pointer: RTWP
+// The matching return for BLWP, see BLWP for description
+// F18A Modified, does not use R13, only performs R14->PC, R15->status flags
+void f18agpu_rtwp(void)
+{
+    F18AGPUFormatVII;
+
+    f18agpu.ST = f18agpu_readword(f18agpu.WP + 30); // R15
+    f18agpu.PC = f18agpu_readword(f18agpu.WP + 28); // R14
+
+    F18AGPUADDCYCLE(14);
+};
+
+// This is the SPI_EN instruction of the F18A GPU
+// This will set A0-A2 to 101 and pulse CRUCLK (so not emulated)
+void f18agpu_ckon(void)
+{
+    F18AGPUFormatVII;
+    //f18agpu.flash.enable();
+    F18AGPUADDCYCLE(12);
+};
+
+// This is the SPI_DS instruction of the F18A GPU
+// This will set A0-A2 to 110 and pulse CRUCLK (so not emulated)
+void f18agpu_ckof(void)
+{
+    F18AGPUFormatVII;
+    //f18agpu.flash.disable();
+    F18AGPUADDCYCLE(12);
+};
+
+// This will set A0-A2 to 111 and pulse CRUCLK
+void f18agpu_lrex(void)
+{
+    F18AGPUFormatVII;
+
+    F18AGPUADDCYCLE(12);
+
+};
+
+// Branch and Load Workspace Pointer: BLWP src
+// A context switch. The src address points to a 2 word table.
+// the first word is the new workspace address, the second is
+// the address to branch to. The current Workspace Pointer,
+// Program Counter (return address), and Status register are
+// stored in the new R13, R14 and R15, respectively
+// Return is performed with RTWP
+void f18agpu_blwp(void)
+{
+    F18AGPUFormatVI;
+/*
+        // Not implemented
+    if (0 == GetReturnAddress()) {
+        SetReturnAddress(PC);
+    }
+    x1=WP;
+    SetWP(ROMWORD(S));      // read WP
+    WRWORD(WP+26,x1);       // write WP->R13
+    WRWORD(WP+28,PC);       // write PC->R14
+    WRWORD(WP+30,ST);       // write ST->R15
+    SetPC(ROMWORD(S+2));    // read PC
+
+*/
+    F18AGPUADDCYCLE(26);
+};
+
+// Branch: B src
+// Unconditional absolute branch
+void f18agpu_b(void)
+{
+    F18AGPUFormatVI;
+
+    f18agpu.PC = f18agpu.S;
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    F18AGPUADDCYCLE(8);
+};
+
+// eXecute: X src
+// The argument is interpreted as an instruction and executed
+void f18agpu_x(void)
+{
+    unsigned short xInstr,cycles;
+
+    F18AGPUFormatVI;
+
+    if (f18agpu.flagX != 0) {
+            //f18agpu.log.info("Recursive X instruction!");
+    }
+
+    xInstr = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);	// does this go before or after the eXecuted instruction??
+        // skip_interrupt=1;	    // (ends up having no effect because we call the function inline, but technically still correct)
+
+    cycles = 8 - 4;	        // For X, add this time to the execution time of the instruction found at the source address, minus 4 clock cycles and 1 memory access.
+    f18agpu.flagX = f18agpu.PC;	    // set flag and save true post-X address for the JMPs (AFTER X's operands but BEFORE the instruction's operands, if any)
+    (*opcodef18agpu[xInstr])();
+
+    f18agpu.flagX = 0;			    // clear flag
+
+    F18AGPUADDCYCLE(cycles);
+};
+
+// CLeaR: CLR src
+// sets word to 0
 void f18agpu_clr(void)
 {
-/*
-        this.writeMemoryWord(this.S, 0);
-        f18agpu_postIncrement(F18AGPU_SRC);
-        return 10;
-*/
+    F18AGPUFormatVI;
+
+    f18agpu_writeword(f18agpu.S, 0);
     F18AGPUADDCYCLE(10);
 };
 
-    // NEGate: NEG src
+// NEGate: NEG src
 void f18agpu_neg(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
+    unsigned short x1;
 
-        x1 = ((~x1) + 1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
+    x1 = f18agpu_readword(f18agpu.S);
 
-        return 12;
-*/
+    x1 = ((~x1) + 1) & 0xFFFF;
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OV_C;
+
     F18AGPUADDCYCLE(12);
 };
 
     // INVert: INV src
 void f18agpu_inv(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        x1 = (~x1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1;
 
-        this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    F18AGPUFormatVI;
 
-        return 10;
-*/
+    x1 = f18agpu_readword(f18agpu.S);
+    x1 = (~x1) & 0xFFFF;
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    F18AGPURESETLGT_AGT_EQ;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
+
     F18AGPUADDCYCLE(10);
 };
 
-    // INCrement: INC src
+// INCrement: INC src
 void f18agpu_inc(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
+    unsigned short x1;
 
-        x1 = (x1 + 1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV_C;
+    x1 = f18agpu_readword(f18agpu.S);
 
-        return 10;
-*/
+    x1 = (x1 + 1) & 0xFFFF;
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OV_C;
+
     F18AGPUADDCYCLE(10);
 };
 
-    // INCrement by Two: INCT src
+// INCrement by Two: INCT src
 void f18agpu_inct(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
+    unsigned short x1;
 
-        x1 = (x1 + 2) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    x1 = (x1 + 2) & 0xFFFF;
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        if (x1 < 2) this.setC();
-        if ((x1 === 0x8000) || (x1 === 0x8001)) this.setOV();
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        return 10;
-*/
+    if (x1 < 2) F18AGPUSET_C;
+    if ((x1 == 0x8000) || (x1 == 0x8001)) F18AGPUSET_OV;
+
     F18AGPUADDCYCLE(10);
 };
 
-            // DECrement: DEC src
+// DECrement: DEC src
 void f18agpu_dec(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
+    unsigned short x1;
 
-        x1 = (x1 - 1) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    x1 = (x1 - 1) & 0xFFFF;
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        if (x1 !== 0xffff) this.setC();
-        if (x1 === 0x7fff) this.setOV();
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        return 10;
-*/
+    if (x1 != 0xffff) F18AGPUSET_C;
+    if (x1 == 0x7fff) F18AGPUSET_OV;
+
     F18AGPUADDCYCLE(10);
 };
 
-    // DECrement by Two: DECT src
+// DECrement by Two: DECT src
 void f18agpu_dect(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
+    unsigned short x1;
 
-        x1 = (x1 - 2) & 0xFFFF;
-        this.writeMemoryWord(this.S, x1);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    x1 = (x1 - 2) & 0xFFFF;
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        // if (x1 < 0xfffe) this.set_C();
-        if (x1 < 0xfffe) this.setC();
-        if ((x1 === 0x7fff) || (x1 === 0x7ffe)) this.setOV();
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        return 10;
-*/
+    if (x1 < 0xfffe) F18AGPUSET_C;
+    if ((x1 == 0x7fff) || (x1 == 0x7ffe)) F18AGPUSET_OV;
+
     F18AGPUADDCYCLE(10);
 };
 
-
+// Branch and Link: BL src
+// Essentially a subroutine jump - return address is stored in R11
+// Note there is no stack, and no official return function.
+// A return is simply B *R11. Some assemblers define RT as f18agpu.
 void f18agpu_bl(void)
 {
-/*
-        // Branch and Link: BL src
-        // Essentially a subroutine jump - return address is stored in R11
-        // Note there is no stack, and no official return function.
-        // A return is simply B *R11. Some assemblers define RT as this.
+    F18AGPUFormatVI;
 
-        this.writeMemoryWord(this.WP + 22, this.PC);
-        this.PC = this.S;
-        f18agpu_postIncrement(F18AGPU_SRC);
+    f18agpu_writeword(f18agpu.WP + 22, f18agpu.PC);
+    f18agpu.PC = f18agpu.S;
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 12;
-*/
     F18AGPUADDCYCLE(12);
 };
 
-    // SWaP Bytes: SWPB src
-    // swap the high and low bytes of a word
+// SWaP Bytes: SWPB src
+// swap the high and low bytes of a word
 void f18agpu_swpb(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
+    unsigned short x1,x2;
 
-        var x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
-        this.writeMemoryWord(this.S, x2);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        return 10;
-*/
+    x1 = f18agpu_readword(f18agpu.S);
+    x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
+    f18agpu_writeword(f18agpu.S, x2);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
     F18AGPUADDCYCLE(10);
 };
 
-    // SET to One: SETO src
-    // sets word to 0xffff
+// SET to One: SETO src
+// sets word to 0xffff
 void f18agpu_seto(void)
 {
-/*
-        this.writeMemoryWord(this.S, 0xffff);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        return 10;
-*/
+    f18agpu_writeword(f18agpu.S, 0xffff);
+    f18agpu_postIncrement(F18AGPU_SRC);
     F18AGPUADDCYCLE(10);
 };
 
-    // ABSolute value: ABS src
+// ABSolute value: ABS src
 void f18agpu_abs(void)
 {
-/*
-        var cycles = 0;
-        var x1 = this.readMemoryWord(this.S);
+    BYTE cycles;
+    unsigned short x1,x2;
 
-        if ((x1 & 0x8000) !== 0) {
-            var x2 = ((~x1) + 1) & 0xFFFF;	// if negative, make positive
-            this.writeMemoryWord(this.S, x2);
-            cycles += 2;
-        }
-        f18agpu_postIncrement(F18AGPU_SRC);
+    F18AGPUFormatVI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ_OV;
+    cycles = 0;
+    x1 = f18agpu_readword(f18agpu.S);
 
-        return cycles + 12;
-*/
+    if ((x1 & 0x8000) != 0) {
+        x2 = ((~x1) + 1) & 0xFFFF;	// if negative, make positive
+        f18agpu_writeword(f18agpu.S, x2);
+        cycles += 2;
+    }
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OV;
+
+    F18AGPUADDCYCLE(cycles+12);
 };
 
-    // Shift Right Arithmetic: SRA src, dst
-    // For the shift instructions, a count of '0' means use the
-    // value in register 0. If THAT is zero, the count is 16.
-    // The arithmetic operations preserve the sign bit
+// Shift Right Arithmetic: SRA src, dst
+// For the shift instructions, a count of '0' means use the
+// value in register 0. If THAT is zero, the count is 16.
+// The arithmetic operations preserve the sign bit
 void f18agpu_sra(void)
 {
-/*
-        var cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) this.D = 16;
+    BYTE cycles;
+    unsigned short x1,x2,x3,x4;
+
+    F18AGPUFormatV;
+
+    cycles = 0;
+    if (f18agpu.D == 0) {
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        if (f18agpu.D == 0) f18agpu.D = 16;
             cycles += 8;
-        }
-        var x1 = this.readMemoryWord(this.S);
-        var x4 = x1 & 0x8000;
-        var x3 = 0;
+    }
+    x1 = f18agpu_readword(f18agpu.S);
+    x4 = x1 & 0x8000;
+    x3 = 0;
 
-        for (var x2 = 0; x2 < this.D; x2++) {
-            x3 = x1 & 1;   // save carry
-            x1 = x1 >> 1;  // shift once
-            x1 = x1 | x4;  // extend sign bit
-        }
-        this.writeMemoryWord(this.S, x1);
+    for (x2 = 0; x2 < f18agpu.D; x2++) {
+        x3 = x1 & 1;   // save carry
+        x1 = x1 >> 1;  // shift once
+        x1 = x1 | x4;  // extend sign bit
+    }
+    f18agpu_writeword(f18agpu.S, x1);
 
-        this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    F18AGPURESETEQ_LGT_AGT_C;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        if (x3 !== 0) this.setC();
+    if (x3 != 0) F18AGPUSET_C;
 
-        return cycles + 12 + 2 * this.D;
-*/
+    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
 };
 
-    // Shift Right Logical: SRL src, dst
-    // The logical shifts do not preserve the sign
+// Shift Right Logical: SRL src, dst
+// The logical shifts do not preserve the sign
 void f18agpu_srl(void)
 {
-/*
-        var cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) this.D = 16;
+    BYTE cycles;
+    unsigned short x1,x2,x3;
+
+    F18AGPUFormatV;
+
+    cycles = 0;
+    if (f18agpu.D == 0) {
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        if (f18agpu.D == 0) f18agpu.D = 16;
             cycles += 8;
-        }
-        var x1 = this.readMemoryWord(this.S);
-        var x3 = 0;
+    }
+    x1 = f18agpu_readword(f18agpu.S);
+    x3 = 0;
 
-        for (var x2 = 0; x2 < this.D; x2++) {
-            x3 = x1 & 1;
-            x1= x1 >> 1;
-        }
-        this.writeMemoryWord(this.S, x1);
+    for (x2 = 0; x2 < f18agpu.D; x2++) {
+        x3 = x1 & 1;                                 
+        x1= x1 >> 1;
+    }
+    f18agpu_writeword(f18agpu.S, x1);
 
-        this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    F18AGPURESETEQ_LGT_AGT_C;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        if (x3 !== 0) this.setC();
+    if (x3 != 0) F18AGPUSET_C;
 
-        return cycles + 12 + 2 * this.D;
-*/
+    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
 };
 
 // Shift Left Arithmetic: SLA src, dst
 void f18agpu_sla(void)
 {
-/*
-        var cycles = 0;
-        if (this.D === 0) {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) this.D = 16;
-            cycles += 8;
-        }
-        var x1 = this.readMemoryWord(this.S);
-        var x4 = x1 & 0x8000;
-        this.resetEQ_LGT_AGT_C_OV();
+    BYTE cycles;
+    unsigned short x1,x2,x3,x4;
 
-        var x3=0;
-        for (var x2 = 0; x2 < this.D; x2++) {
-            x3 = x1 & 0x8000;
-            x1 = x1 << 1;
-            if ((x1 & 0x8000) !== x4) this.setOV();
-        }
-        x1 = x1 & 0xFFFF;
-        this.writeMemoryWord(this.S , x1);
+    F18AGPUFormatV;
 
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    cycles = 0;
+    if (f18agpu.D == 0) {
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        if (f18agpu.D == 0) f18agpu.D = 16;
+        cycles += 8;
+    }
+    x1 = f18agpu_readword(f18agpu.S);
+    x4 = x1 & 0x8000;
+    F18AGPURESETEQ_LGT_AGT_C_OV;
 
-        if (x3 !== 0) this.setC();
+    x3=0;
+    for (x2 = 0; x2 < f18agpu.D; x2++) {
+        x3 = x1 & 0x8000;
+        x1 = x1 << 1;
+        if ((x1 & 0x8000) != x4) F18AGPUSET_OV;
+    }
+    x1 = x1 & 0xFFFF;
+    f18agpu_writeword(f18agpu.S , x1);
 
-        return cycles + 12 + 2 * this.D;
-*/
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
+
+    if (x3 != 0) F18AGPUSET_C;
+
+    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
 };
 
-    // Shift Right Circular: SRC src, dst
-    // Circular shifts pop bits off one end and onto the other
-    // The carry bit is not a part of these shifts, but it set
-    // as appropriate
+// Shift Right Circular: SRC src, dst
+// Circular shifts pop bits off one end and onto the other
+// The carry bit is not a part of these shifts, but it set
+// as appropriate
 void f18agpu_src(void)
 {
-/*
-        var cycles = 0;
-        if (this.D === 0)
-        {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) this.D=16;
-            cycles += 8;
+    BYTE cycles;
+    unsigned short x1,x2,x4;
+
+    F18AGPUFormatV;
+
+    cycles = 0;
+    if (f18agpu.D == 0) {
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        if (f18agpu.D == 0) f18agpu.D=16;
+        cycles += 8;
+    }
+    x1 = f18agpu_readword(f18agpu.S);
+    for (x2 = 0; x2 < f18agpu.D; x2++) {
+        x4 = x1 & 0x1;
+        x1 = x1 >> 1;
+        if (x4 != 0) {
+            x1 = x1 | 0x8000;
         }
-        var x1 = this.readMemoryWord(this.S);
-        for (var x2 = 0; x2 < this.D; x2++) {
-            var x4 = x1 & 0x1;
-            x1 = x1 >> 1;
-            if (x4 !== 0) {
-                x1 = x1 | 0x8000;
-            }
-        }
-        this.writeMemoryWord(this.S, x1);
+    }
+    f18agpu_writeword(f18agpu.S, x1);
 
-        this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    F18AGPURESETEQ_LGT_AGT_C;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        if (x4 !== 0) this.setC();
+    if (x4 != 0) F18AGPUSET_C;
 
-        return cycles + 12 + 2 * this.D;
-*/
+    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
 };
 
 // JuMP: JMP dsp
@@ -1322,50 +1335,50 @@ void f18agpu_jmp(void)
     F18AGPUADDCYCLE(10);
 };
 
-    // Jump if Less Than: JLT dsp
+// Jump if Less Than: JLT dsp
 void f18agpu_jlt(void)
 {
-/*
-        if (this.getAGT() === 0 && this.getEQ() === 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUFormatII;
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            }
-            else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
-        } else {
-            return 8;
+    if (((f18agpu.ST & F18AGPU_BIT_AGT) == 0) && ((f18agpu.ST & F18AGPU_BIT_EQ) == 0)) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-*/
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        }
+        else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
+        }
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
 // Jump if Low or Equal: JLE dsp
 void f18agpu_jle(void)
 {
-/*
-        if ((this.getLGT() === 0) || (this.getEQ() !== 0)) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUFormatII;
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            }
-            else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
-        } else {
-            return 8;
+    if (((f18agpu.ST & F18AGPU_BIT_LGT) == 0) && ((f18agpu.ST & F18AGPU_BIT_EQ) != 0)) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-*/
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        }
+        else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
+        }
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
 // Jump if equal: JEQ dsp
@@ -1373,105 +1386,105 @@ void f18agpu_jle(void)
 // the number of words to branch
 void f18agpu_jeq(void)
 {
-/*
-        if (this.getEQ() !== 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUFormatII;
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            } else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
-        } else {
-            return 8;
+    if ((f18agpu.ST & F18AGPU_BIT_EQ) != 0) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-*/
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
+        }
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
-    // Jump if High or Equal: JHE dsp
+// Jump if High or Equal: JHE dsp
 void f18agpu_jhe(void)
 {
-/*
-        if ((this.getLGT() !== 0) || (this.getEQ() !== 0)) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUFormatII;
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            } else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
-        } else {
-            return 8;
+    if (((f18agpu.ST & F18AGPU_BIT_LGT) != 0) && ((f18agpu.ST & F18AGPU_BIT_EQ) != 0)) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-*/
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
+        }
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
-    // Jump if Greater Than: JGT dsp
+// Jump if Greater Than: JGT dsp
 void f18agpu_jgt(void)
 {
-/*
-        if (this.getAGT() !== 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUFormatII;
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128-(this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            } else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
-        } else {
-            return 8;
+    if ((f18agpu.ST & F18AGPU_BIT_AGT) != 0)  {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-*/
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128-(f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
+        }
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
-    // Jump if Not Equal: JNE dsp
+// Jump if Not Equal: JNE dsp
 void f18agpu_jne(void)
 {
-/*
-        if (this.getEQ() === 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            } else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
+    F18AGPUFormatII;
+
+    if ((f18agpu.ST & F18AGPU_BIT_EQ) == 0)  {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-        else {
-            return 8;
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-*/
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
-    // Jump if No Carry: JNC dsp
+// Jump if No Carry: JNC dsp
 void f18agpu_jnc(void)
 {
 /*
-        if (this.getC() === 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+        if (f18agpu.getC() === 0) {
+            if (f18agpu.flagX !== 0) {
+                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((f18agpu.D & 0x80) !== 0) {
+                f18agpu.D = 128 - (f18agpu.D & 0x7f);
+                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
             } else {
-                this.addPC(this.D + this.D);
+                f18agpu.addPC(f18agpu.D + f18agpu.D);
             }
             return 10;
         }
@@ -1485,16 +1498,16 @@ void f18agpu_jnc(void)
 void f18agpu_joc(void)
 {
 /*
-        if (this.getC() !== 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+        if (f18agpu.getC() !== 0) {
+            if (f18agpu.flagX !== 0) {
+                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((f18agpu.D & 0x80) !== 0) {
+                f18agpu.D = 128 - (f18agpu.D & 0x7f);
+                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
             } else {
-                this.addPC(this.D + this.D);
+                f18agpu.addPC(f18agpu.D + f18agpu.D);
             }
             return 10;
         }
@@ -1508,16 +1521,16 @@ void f18agpu_joc(void)
 void f18agpu_jno(void)
 {
 /*
-        if (this.getOV() === 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+        if (f18agpu.getOV() === 0) {
+            if (f18agpu.flagX !== 0) {
+                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((f18agpu.D & 0x80) !== 0) {
+                f18agpu.D = 128 - (f18agpu.D & 0x7f);
+                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
             } else {
-                this.addPC(this.D + this.D);
+                f18agpu.addPC(f18agpu.D + f18agpu.D);
             }
             return 10;
         }
@@ -1530,16 +1543,16 @@ void f18agpu_jno(void)
 void f18agpu_jl(void)
 {
 /*
-        if ((this.getLGT() === 0) && (this.getEQ() === 0)) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+        if ((f18agpu.getLGT() === 0) && (f18agpu.getEQ() === 0)) {
+            if (f18agpu.flagX !== 0) {
+                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((f18agpu.D & 0x80) !== 0) {
+                f18agpu.D = 128 - (f18agpu.D & 0x7f);
+                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
             } else {
-                this.addPC(this.D + this.D);
+                f18agpu.addPC(f18agpu.D + f18agpu.D);
             }
             return 10;
         }
@@ -1553,17 +1566,17 @@ void f18agpu_jl(void)
 void f18agpu_jh(void)
 {
 /*
-        if ((this.getLGT() !== 0) && (this.getEQ() === 0))
+        if ((f18agpu.getLGT() !== 0) && (f18agpu.getEQ() === 0))
         {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
+            if (f18agpu.flagX !== 0) {
+                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
             }
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
+            if ((f18agpu.D & 0x80) !== 0) {
+                f18agpu.D = 128 - (f18agpu.D & 0x7f);
+                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
             } else {
-                this.addPC(this.D + this.D);
+                f18agpu.addPC(f18agpu.D + f18agpu.D);
             }
             return 10;
         } else {
@@ -1575,51 +1588,86 @@ void f18agpu_jh(void)
 // Jump on Odd Parity: JOP dsp
 void f18agpu_jop(void)
 {
-/*
-        if (this.getOP() !== 0) {
-            if (this.flagX !== 0) {
-                this.PC = this.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUFormatII;
 
-            if ((this.D & 0x80) !== 0) {
-                this.D = 128 - (this.D & 0x7f);
-                this.addPC(-(this.D + this.D));
-            } else {
-                this.addPC(this.D + this.D);
-            }
-            return 10;
+    if ((f18agpu.ST & F18AGPU_BIT_OP) != 0) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
+        }
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
         }
         else {
-            return 8;
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-*/
+        F18AGPUADDCYCLE(10);
+    }
+    else {
+        F18AGPUADDCYCLE(8);
+    }
 };
 
 // Set Bit On: SBO src
 // Sets a bit in the CRU
 void f18agpu_sbo(void)
 {
+    F18AGPUFormatII;
 /*
-        return null;
+not implemented
+
+    FormatII;
+    add=(ROMWORD(WP+24)>>1)&0xfff;      // read R12
+    if (D&0x80) {
+        add-=128-(D&0x7f);
+    } else {
+        add+=D;
+    }
+    wcru(add,1);
 */
+    F18AGPUADDCYCLE(12);
 };
 
 // Set Bit Zero: SBZ src
 // Zeros a bit in the CRU
 void f18agpu_sbz(void)
 {
-/*
-        return null;
+    F18AGPUFormatII;
+
+    /*
+not implemented
+    FormatII;
+    add=(ROMWORD(WP+24)>>1)&0xfff;      // read R12
+    if (D&0x80) {
+        add-=128-(D&0x7f);
+    } else {
+        add+=D;
+    }
+    wcru(add,0);
 */
+    F18AGPUADDCYCLE(12);
 };
 
 // Test Bit: TB src
 // Tests a CRU bit
 void f18agpu_tb(void)
 {
-/*
-        return null;
+    F18AGPUFormatII;
+
+    /*
+// not implemented
+    FormatII;
+    add=(ROMWORD(WP+24)>>1)&0xfff;  // read R12
+    if (D&0x80) {
+        add-=128-(D&0x7f);
+    } else {
+        add+=D;
+    }
+
+    if (rcru(add)) set_EQ; else reset_EQ;
+
 */
+    F18AGPUADDCYCLE(12);
 };
 
 // Compare Ones Corresponding: COC src, dst
@@ -1627,19 +1675,21 @@ void f18agpu_tb(void)
 // set bits in the dest (mask), the equal bit is set
 void f18agpu_coc(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
+    F18AGPUFormatIII;
 
-        var x3 = x1 & x2;
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        if (x3 === x1) this.setEQ(); else this.resetEQ();
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
+    x3 = x1 & x2;
+    if (x3 == x1)
+        F18AGPUSET_EQ
+    else
+        F18AGPURESETEQ
 
-        return 14;
-*/
     F18AGPUADDCYCLE(14);
 };
 
@@ -1648,40 +1698,44 @@ void f18agpu_coc(void)
 // match up with a zero bit in the src to set the equals flag
 void f18agpu_czc(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
+    F18AGPUFormatIII;
 
-        var x3 = x1 & x2;
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        if (x3 === 0) this.setEQ(); else this.resetEQ();
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
 
-        return 14;
-*/
+    x3 = x1 & x2;
+    if (x3 == 0)
+        F18AGPUSET_EQ
+    else
+        F18AGPURESETEQ
+
     F18AGPUADDCYCLE(14);
 };
 
 // eXclusive OR: XOR src, dst
 void f18agpu_xor(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
+    F18AGPUFormatIII;
 
-        var x3 = (x1 ^ x2) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
 
-        return 14;
-*/
+    x3 = (x1 ^ x2) & 0xFFFF;
+    f18agpu_writeword(f18agpu.D, x3);
+
+    F18AGPURESETLGT_AGT_EQ;
+    f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
+
     F18AGPUADDCYCLE(14);
 };
 
@@ -1709,82 +1763,86 @@ void f18agpu_xor(void)
 // PP - new pixel to write, and previous pixel when reading
 void f18agpu_xop(void)
 {
-/*
-        this.D = this.WP + (this.D << 1);
-        var x1 = this.readMemoryWord(this.S);
-        var x2 = this.readMemoryWord(this.D);
-        var pixOffset;
-        var addr = 0;
-        if ((x2 & 0x8000) !== 0) {
-            // calculate BM2 address:
-            // 00PYYYYY00000YYY +
-            //     0000XXXXX000
-            // ------------------
-            // 00PY YYYY XXXX XYYY
-            //
-            // Note: Bitmap GM2 address /includes/ the offset from VR4 (pattern table), so to use
-            // it for both pattern and color tables, put the pattern table at >0000
-            addr =
-                (((this.f18a.registers[4] & 0x04) !== 0) ? 0x2000 : 0) |	// P
+    int addr,pixOffset,bitShift;
+    unsigned short x1,x2,newPix;
+    BYTE write,pixByte,mask,invMask,pix,comp;
+
+    F18AGPUFORMATIX;
+
+    f18agpu.D = f18agpu.WP + (f18agpu.D << 1);
+    x1 = f18agpu_readword(f18agpu.S);
+    x2 = f18agpu_readword(f18agpu.D);
+    addr = 0;
+    if ((x2 & 0x8000) != 0) {
+        // calculate BM2 address:
+        // 00PYYYYY00000YYY +
+        //     0000XXXXX000
+        // ------------------
+        // 00PY YYYY XXXX XYYY
+        //
+        // Note: Bitmap GM2 address /includes/ the offset from VR4 (pattern table), so to use
+        // it for both pattern and color tables, put the pattern table at >0000
+        addr = (((f18a.VDPR[4] & 0x04) != 0) ? 0x2000 : 0) |	// P
                 ((x1 & 0x00F8) << 5) |						            // YYYYY
                 ((x1 & 0xF800) >> 8) |						            // XXXXX
                 (x1 & 0x0007);  							            // YYY
-        } else {
-            // Calculate bitmap layer address
-            // this.log.info("Plot(" + ((x1 & 0xFF00) >> 8) + ", " + (x1 & 0x00FF) + ")");
-            pixOffset = ((x1 & 0xFF00) >> 8) + (x1 & 0x00FF) * this.f18a.bitmapWidth;
-            addr = this.f18a.bitmapBaseAddr + (pixOffset >> 2);
-        }
+    }
+    else {
+        // Calculate bitmap layer address
+        // f18agpu.log.info("Plot(" + ((x1 & 0xFF00) >> 8) + ", " + (x1 & 0x00FF) + ")");
+        pixOffset = ((x1 & 0xFF00) >> 8) + (x1 & 0x00FF) * f18a.bitmapWidth;
+        addr = f18a.bitmapBaseAddr + (pixOffset >> 2);
+    }
 
-        // Only parse the other bits if M and A are zero
-        if ((x2 & 0xc000) === 0) {
-            var pixByte = this.readMemoryByte(addr);	    // Get the byte
-            var bitShift = (pixOffset & 0x0003) << 1;
-            var mask = 0xC0 >> bitShift;
-            var pix = (pixByte & mask) >> (6 - bitShift);
-            var write = (x2 & 0x0400) === 0;		            // Whether to write
-            // TODO: are C and E dependent on W being set? I am assuming yes.
-            if (write && (x2 & 0x0200) !== 0) {		        // C - compare active (only important if we are writing anyway?)
-                var comp = (pix === ((x2 & 0x0030) >> 4));	    // Compare the pixels
-                if ((x2 & 0x0100) !== 0) {
-                    // E is set, comparison must be true
-                    if (!comp) {
-                        write = false;
-                    }
-                } else {
-                    // E is clear, comparison must be false
-                    if (comp) {
-                        write = false;
-                    }
+    // Only parse the other bits if M and A are zero
+    if ((x2 & 0xc000) == 0) {
+        pixByte = f18agpu_readbyte(addr);	    // Get the byte
+        bitShift = (pixOffset & 0x0003) << 1;
+        mask = 0xC0 >> bitShift;
+        pix = (pixByte & mask) >> (6 - bitShift);
+        write = (x2 & 0x0400) == 0;		            // Whether to write
+        // TODO: are C and E dependent on W being set? I am assuming yes.
+        if (write && (x2 & 0x0200) != 0) {		        // C - compare active (only important if we are writing anyway?)
+            comp = (pix == ((x2 & 0x0030) >> 4));	    // Compare the pixels
+            if ((x2 & 0x0100) != 0) {
+                // E is set, comparison must be true
+                if (!comp) {
+                    write = false;
                 }
             }
-            if (write) {
-                var newPix = (x2 & 0x0003) << (6 - bitShift);	// New pixel
-                var invMask = (~mask) & 0xFF;
-                this.writeMemoryByte(addr, (pixByte & invMask) | newPix);
+            else {
+                // E is clear, comparison must be false
+                if (comp) {
+                    write = false;
+                }
             }
-            if ((x2 & 0x0800) !== 0) {
-                // Read is set, so save the original read pixel color in PP
-                x2 = (x2 & 0xFFFC) | pix;
-                this.writeMemoryWord(this.D, x2);		    // Write it back
-            }
-        } else {
-            // User only wants the address
-            this.writeMemoryWord(this.D, addr);
         }
+        if (write) {
+            newPix = (x2 & 0x0003) << (6 - bitShift);	// New pixel
+            invMask = (~mask) & 0xFF;
+            f18agpu_writebyte(addr, (pixByte & invMask) | newPix);
+        }
+        if ((x2 & 0x0800) != 0) {
+            // Read is set, so save the original read pixel color in PP
+            x2 = (x2 & 0xFFFC) | pix;
+            f18agpu_writeword(f18agpu.D, x2);		    // Write it back
+        }
+    }
+    else {
+        // User only wants the address
+        f18agpu_writeword(f18agpu.D, addr);
+    }
 
-        // Only the source address can be post-inc
-        f18agpu_postIncrement(F18AGPU_SRC);
+    // Only the source address can be post-inc
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 10;
-*/
     F18AGPUADDCYCLE(10);
 };
 
 // This is the SPI_OUT instruction of the F18A GPU
 void f18agpu_ldcr(void)
 {
-//this.flash.writeByte(this.readMemoryByte(this.S));
+//f18agpu.flash.writeByte(f18agpu_readbyte(f18agpu.S));
     f18agpu_postIncrement(F18AGPU_SRC);
     F18AGPUADDCYCLE(10);
 };
@@ -1792,7 +1850,7 @@ void f18agpu_ldcr(void)
 // This is the SPI_IN instruction of the F18A GPU
 void f18agpu_stcr(void)
 {
-    //this.writeMemoryByte(this.S, this.flash.readByte());
+    //f18agpu_writebyte(f18agpu.S, f18agpu.flash.readByte());
     f18agpu_postIncrement(F18AGPU_SRC);
     F18AGPUADDCYCLE(10);
 };
@@ -1802,18 +1860,19 @@ void f18agpu_stcr(void)
 // Note: src and dest are unsigned.
 void f18agpu_mpy(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x3;
 
-        this.D = this.WP + (this.D << 1);
-        var x3 = this.readMemoryWord(this.D);
-        x3 = x3 * x1;
-        this.writeMemoryWord(this.D,(x3 >> 16) & 0xFFFF);
-        this.writeMemoryWord(this.D + 2,(x3 & 0xFFFF));
+    F18AGPUFORMATIX;
 
-        return 52;
-*/
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    f18agpu.D = f18agpu.WP + (f18agpu.D << 1);
+    x3 = f18agpu_readword(f18agpu.D);
+    x3 = x3 * x1;
+    f18agpu_writeword(f18agpu.D,(x3 >> 16) & 0xFFFF);
+    f18agpu_writeword(f18agpu.D + 2,(x3 & 0xFFFF));
+
     F18AGPUADDCYCLE(52);
 };
 
@@ -1822,220 +1881,232 @@ void f18agpu_mpy(void)
 // the first is the whole number result, the second is the remainder
 void f18agpu_div(void)
 {
-/*
-        var x2 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.D = this.WP + (this.D << 1);
-        var x3 = this.readMemoryWord(this.D);
+    F18AGPUFORMATIX;
 
-        if (x2 > x3) {		// x2 can not be zero because they're unsigned
-            x3 = (x3 << 16) | this.readMemoryWord(this.D + 2);
-            var x1 = x3 / x2;
-            this.writeMemoryWord(this.D, x1 & 0xFFFF);
-            x1 = x3 % x2;
-            this.writeMemoryWord(this.D + 2, x1 & 0xFFFF);
-            this.resetOV();
-            return 92;		// This is not accurate. (Up to 124 "depends on the partial quotient after each clock cycle during execution")
-        }
-        else {
-            this.setOV();	// division wasn't possible - change nothing
-            return 16;
-        }
-*/
+    x2 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    f18agpu.D = f18agpu.WP + (f18agpu.D << 1);
+    x3 = f18agpu_readword(f18agpu.D);
+
+    if (x2 > x3) {		// x2 can not be zero because they're unsigned
+        x3 = (x3 << 16) | f18agpu_readword(f18agpu.D + 2);
+        x1 = x3 / x2;
+        f18agpu_writeword(f18agpu.D, x1 & 0xFFFF);
+        x1 = x3 % x2;
+        f18agpu_writeword(f18agpu.D + 2, x1 & 0xFFFF);
+        F18AGPURESETOV;
+        F18AGPUADDCYCLE(92);		// This is not accurate. (Up to 124 "depends on the partial quotient after each clock cycle during execution")
+    }
+    else {
+        F18AGPUSET_OV;	// division wasn't possible - change nothing
+        F18AGPUADDCYCLE(16);
+    }
 };
 
 // Set Zeros Corresponding: SZC src, dst
 // Zero all bits in dest that are zeroed in src
 void f18agpu_szc(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
-        var x3 = (~x1) & x2;
-        this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 14;
-*/
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
+    x3 = (~x1) & x2;
+    f18agpu_writeword(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ;
+    f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
+
     F18AGPUADDCYCLE(14);
 };
 
 // Set Zeros Corresponding, Byte: SZCB src, dst
 void f18agpu_szcb(void)
 {
-/*
-        var x1 = this.readMemoryByte(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    BYTE x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryByte(this.D);
-        var x3 = (~x1) & x2;
-        this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ_OP();
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+    x1 = f18agpu_readbyte(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 14;
-*/
+    f18agpu_fixd();
+    x2 = f18agpu_readbyte(f18agpu.D);
+    x3 = (~x1) & x2;
+    f18agpu_writebyte(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ_OP;
+    f18agpu.ST |= bStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ_OP;
+
     F18AGPUADDCYCLE(14);
 };
 
 // Subtract: S src, dst
 void f18agpu_s(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
-        var x3 = (x2 - x1) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetEQ_LGT_AGT_C_OV();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        // any number minus 0 sets carry.. Tursi's theory is that converting 0 to the two's complement
-        // is causing the carry flag to be set.
-        if ((x3 < x2) || (x1 === 0)) this.setC();
-        if (((x1 & 0x8000) !== (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) this.setOV();
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
+    x3 = (x2 - x1) & 0xFFFF;
+    f18agpu_writeword(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
 
-        return 14;
-*/
+    F18AGPURESETEQ_LGT_AGT_C_OV;
+    f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
+
+    // any number minus 0 sets carry.. Tursi's theory is that converting 0 to the two's complement
+    // is causing the carry flag to be set.
+    if ((x3 < x2) || (x1 == 0)) F18AGPUSET_C;
+    if (((x1 & 0x8000) != (x2 & 0x8000)) && ((x3 & 0x8000) != (x2 & 0x8000))) F18AGPUSET_OV;
+
     F18AGPUADDCYCLE(14);
 };
 
 // Subtract Byte: SB src, dst
 void f18agpu_sb(void)
 {
-/*
-        var x1 = this.readMemoryByte(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    BYTE x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryByte(this.D);
-        var x3 = (x2 - x1) & 0xFF;
-        this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetEQ_LGT_AGT_C_OV_OP();
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+    x1 = f18agpu_readbyte(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        // any number minus 0 sets carry.. Tursi's theory is that converting 0 to the two's complement
-        // is causing the carry flag to be set.
-        if ((x3 < x2) || (x1 === 0)) this.setC();
-        if (((x1 & 0x80) !== (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) this.setOV();
+    f18agpu_fixd();
+    x2 = f18agpu_readbyte(f18agpu.D);
+    x3 = (x2 - x1) & 0xFF;
+    f18agpu_writebyte(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
 
-        return 14;
-*/
+    F18AGPURESETEQ_LGT_AGT_C_OV_OP;
+    f18agpu.ST |= bStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ_OP;
+
+    // any number minus 0 sets carry.. Tursi's theory is that converting 0 to the two's complement
+    // is causing the carry flag to be set.
+    if ((x3 < x2) || (x1 == 0)) F18AGPUSET_C;
+    if (((x1 & 0x80) != (x2 & 0x80)) && ((x3 & 0x80) != (x2 & 0x80))) F18AGPUSET_OV;
+
     F18AGPUADDCYCLE(14);
 };
 
 // Compare words: C src, dst
 void f18agpu_c(void)
 {
-/*
-        var x3 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x3,x4;
 
-        this.fixD();
-        var x4 = this.readMemoryWord(this.D);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ();
-        if (x3 > x4) this.setLGT();
-        if (x3 === x4) this.setEQ();
-        if ((x3 & 0x8000) === (x4 & 0x8000)) {
-            if (x3 > x4) this.setAGT();
-        }
-        else {
-            if ((x4 & 0x8000) !== 0) this.setAGT();
-        }
-        return 14;
-*/
+    x3 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    f18agpu_fixd();
+    x4 = f18agpu_readword(f18agpu.D);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ;
+    if (x3 > x4) F18AGPUSET_LGT;
+    if (x3 == x4) F18AGPUSET_EQ;
+    if ((x3 & 0x8000) == (x4 & 0x8000)) {
+        if (x3 > x4) F18AGPUSET_AGT;
+    }
+    else {
+        if ((x4 & 0x8000) != 0) F18AGPUSET_AGT;
+    }
+
     F18AGPUADDCYCLE(14);
 };
 
 // CompareBytes: CB src, dst
 void f18agpu_cb(void)
 {
-/*
-        var x3 = this.readMemoryByte(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x3,x4;
 
-        this.fixD();
-        var x4 = this.readMemoryByte(this.D);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ_OP();
-        if (x3 > x4) this.setLGT();
-        if (x3 === x4) this.setEQ();
-        if ((x3 & 0x80) === (x4 & 0x80)) {
-            if (x3 > x4) this.setAGT();
-        } else {
-            if ((x4 & 0x80) !== 0) this.setAGT();
-        }
-        this.ST |= this.bStatusLookup[x3] & this.BIT_OP;
+    x3 = f18agpu_readbyte(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 14;
-*/
+    f18agpu_fixd();
+    x4 = f18agpu_readbyte(f18agpu.D);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ_OP;
+    if (x3 > x4) F18AGPUSET_LGT;
+    if (x3 == x4) F18AGPUSET_EQ;
+    if ((x3 & 0x80) == (x4 & 0x80)) {
+        if (x3 > x4) F18AGPUSET_AGT;
+    }
+    else {
+        if ((x4 & 0x80) != 0) F18AGPUSET_AGT;
+    }
+    f18agpu.ST |= bStatusLookup[x3] & F18AGPU_BIT_OP;
+
     F18AGPUADDCYCLE(14);
 };
 
 // Add words: A src, dst
 void f18agpu_a(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
-        var x3 = (x2 + x1) & 0xFFFF;
-        this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetEQ_LGT_AGT_C_OV();	// We come out with either EQ or LGT, never both
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        if (x3 < x2) this.setC();	// if it wrapped around, set carry
-        if (((x1 & 0x8000) === (x2 & 0x8000)) && ((x3 & 0x8000) !== (x2 & 0x8000))) this.setOV(); // if it overflowed or underflowed (signed math), set overflow
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
+    x3 = (x2 + x1) & 0xFFFF;
+    f18agpu_writeword(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
 
-        return 14;
-*/
+    F18AGPURESETEQ_LGT_AGT_C_OV;	// We come out with either EQ or LGT, never both
+    f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
+
+    if (x3 < x2) F18AGPUSET_C;	// if it wrapped around, set carry
+    if (((x1 & 0x8000) == (x2 & 0x8000)) && ((x3 & 0x8000) != (x2 & 0x8000))) F18AGPUSET_OV; // if it overflowed or underflowed (signed math), set overflow
+
     F18AGPUADDCYCLE(14);
 };
 
 // Add bytes: A src, dst
 void f18agpu_ab(void)
 {
-/*
-        var x1 = this.readMemoryByte(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    BYTE x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryByte(this.D);
-        var x3 = (x2 + x1) & 0xFF;
-        this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetEQ_LGT_AGT_C_OV();	// We come out with either EQ or LGT, never both
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+    x1 = f18agpu_readbyte(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        if (x3 < x2) this.setC();	// if it wrapped around, set carry
-        if (((x1 & 0x80) === (x2 & 0x80)) && ((x3 & 0x80) !== (x2 & 0x80))) this.setOV();  // if it overflowed or underflowed (signed math), set overflow
+    f18agpu_fixd();
+    x2 = f18agpu_readbyte(f18agpu.D);
+    x3 = (x2 + x1) & 0xFF;
+    f18agpu_writebyte(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
 
-        return 14;
-*/
+    F18AGPURESETEQ_LGT_AGT_C_OV;	// We come out with either EQ or LGT, never both
+    f18agpu.ST |= bStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ_OP;
+
+    if (x3 < x2) F18AGPUSET_C;	// if it wrapped around, set carry
+    if (((x1 & 0x80) == (x2 & 0x80)) && ((x3 & 0x80) != (x2 & 0x80))) F18AGPUSET_OV;  // if it overflowed or underflowed (signed math), set overflow
+
     F18AGPUADDCYCLE(14);
 };
 
@@ -2055,25 +2126,27 @@ void f18agpu_mov(void)
 
     F18AGPURESETLGT_AGT_EQ;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
+
     F18AGPUADDCYCLE(14);
 };
 
 // MOVe Bytes: MOVB src, dst
 void f18agpu_movb(void)
 {
-/*
-        var x1 = this.readMemoryByte(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    BYTE x1;
 
-        this.fixD();
-        this.writeMemoryByte(this.D, x1);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ_OP();
-        this.ST |= this.bStatusLookup[x1] & this.maskLGT_AGT_EQ_OP;
+    x1 = f18agpu_readbyte(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
+    f18agpu_fixd();
 
-        return 14;
-*/
+    f18agpu_writebyte(f18agpu.D, x1);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ_OP;
+    f18agpu.ST |= bStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OP;
+
     F18AGPUADDCYCLE(14);
 };
 
@@ -2082,46 +2155,48 @@ void f18agpu_movb(void)
 // are set in src
 void f18agpu_soc(void)
 {
-/*
-        var x1 = this.readMemoryWord(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    unsigned short x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryWord(this.D);
-        var x3 = x1 | x2;
-        this.writeMemoryWord(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ();
-        this.ST |= this.wStatusLookup[x3] & this.maskLGT_AGT_EQ;
+    x1 = f18agpu_readword(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 14;
-*/
+    f18agpu_fixd();
+    x2 = f18agpu_readword(f18agpu.D);
+    x3 = x1 | x2;
+    f18agpu_writeword(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ;
+    f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
+
     F18AGPUADDCYCLE(14);
 };
 
 void f18agpu_socb(void)
 {
-/*
-        var x1 = this.readMemoryByte(this.S);
-        f18agpu_postIncrement(F18AGPU_SRC);
+    BYTE x1,x2,x3;
 
-        this.fixD();
-        var x2 = this.readMemoryByte(this.D);
-        var x3 = x1 | x2;
-        this.writeMemoryByte(this.D, x3);
-        this.postIncrement(this.DST);
+    F18AGPUFORMATI;
 
-        this.resetLGT_AGT_EQ_OP();
-        this.ST |= this.bStatusLookup[x3] & this.maskLGT_AGT_EQ_OP;
+    x1 = f18agpu_readbyte(f18agpu.S);
+    f18agpu_postIncrement(F18AGPU_SRC);
 
-        return 14;
-*/
+    f18agpu_fixd();
+    x2 = f18agpu_readbyte(f18agpu.D);
+    x3 = x1 | x2;
+    f18agpu_writebyte(f18agpu.D, x3);
+    f18agpu_postIncrement(F18AGPU_DST);
+
+    F18AGPURESETLGT_AGT_EQ_OP;
+    f18agpu.ST |= bStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ_OP;
+
     F18AGPUADDCYCLE(14);
 };
 
 // F18A specific opcodes
-void f18agpu_call(void)
+void f18agpu_callf18(void)
 {
     unsigned short x2;
 
@@ -2137,7 +2212,7 @@ void f18agpu_call(void)
     F18AGPUADDCYCLE(8);
 };
 
-void f18agpu_ret(void)
+void f18agpu_retf18(void)
 {
     unsigned short x1;
 
@@ -2147,10 +2222,11 @@ void f18agpu_ret(void)
     x1+=2;
     f18agpu.PC=f18agpu_readword(x1);          // get PC
     f18agpu_writeword(f18agpu.WP + 30,x1); // update R15
+
     F18AGPUADDCYCLE(8);
 };
 
-void f18agpu_push(void)
+void f18agpu_pushf18(void)
 {
     unsigned short x1,x2;
 
@@ -2166,53 +2242,54 @@ void f18agpu_push(void)
     F18AGPUADDCYCLE(8);
 };
 
-void f18agpu_slc(void)
+void f18agpu_slcf18(void)
 {
+    BYTE cycles;
+    unsigned short x1,x2,x4;
+
     F18AGPUFormatVI;
 
-/*
-        var cycles = 0;
-        if (this.D === 0)
-        {
-            this.D = this.readMemoryWord(this.WP) & 0xf;
-            if (this.D === 0) this.D=16;
-            cycles += 8;
+    cycles = 0;
+    if (f18agpu.D == 0) {
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        if (f18agpu.D == 0) f18agpu.D=16;
+        cycles += 8;
+    }
+    x1 = f18agpu_readword(f18agpu.S);
+    for (x2 = 0; x2 < f18agpu.D; x2++) {
+        x4 = x1 & 0x8000;
+        x1 = x1 << 1;
+        if (x4 != 0) {
+            x1 = x1 | 1;
         }
-        var x1 = this.readMemoryWord(this.S);
-        for (var x2 = 0; x2 < this.D; x2++) {
-            var x4 = x1 & 0x8000;
-            x1 = x1 << 1;
-            if (x4 !== 0) {
-                x1 = x1 | 1;
-            }
-        }
-        this.writeMemoryWord(this.S, x1);
+    }
+    f18agpu_writeword(f18agpu.S, x1);
 
-        this.resetEQ_LGT_AGT_C();
-        this.ST |= this.wStatusLookup[x1] & this.maskLGT_AGT_EQ;
+    F18AGPURESETEQ_LGT_AGT_C;
+    f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
-        if (x4 !== 0) this.setC();
+    if (x4 != 0) F18AGPUSET_C;
 
-        return cycles + 12 + 2 * this.D;
-*/
+    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
 };
 
-void f18agpu_pop(void)
+void f18agpu_popf18(void)
 {
-//    FormatVI;               // S is really D in this one...
+    unsigned short x1,x2;
 
-/*
-        var x2 = this.readMemoryWord(this.WP + 30);	// get R15
-        // POP the word from the stack
-        // the stack pointer post-decrements (per Matthew)
-        x2 += 2;                                    // so here we pre-increment!
-        var x1 = this.readMemoryWord(x2);
-        this.writeMemoryWord(this.S, x1);
-        this.writeMemoryWord(this.WP + 30, x2);		// update R15
-        f18agpu_postIncrement(F18AGPU_SRC);
-        return 8;
-*/
-    F18AGPUADDCYCLE(8);    
+    F18AGPUFormatVI;               // S is really D in this one...
+
+    x2 = f18agpu_readword(f18agpu.WP + 30);	// get R15
+
+    // POP the word from the stack
+    // the stack pointer post-decrements (per Matthew)
+    x2 += 2;                                    // so here we pre-increment!
+    x1 = f18agpu_readword(x2);
+    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.WP + 30, x2);		// update R15
+    f18agpu_postIncrement(F18AGPU_SRC);
+
+    F18AGPUADDCYCLE(8);
 };
 
 void f18agpu_bad(void)

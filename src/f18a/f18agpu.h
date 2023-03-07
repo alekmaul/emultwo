@@ -58,28 +58,39 @@
 
 #define F18AGPUADDCYCLE(n)                  f18agpu.cycles+=n
 /*
-#define FormatIII { Td=0; Ts=(in&0x0030)>>4; D=(in&0x03c0)>>6; S=(in&0x000f); B=0; fixS(); }
 #define FormatIV { D=(in&0x03c0)>>6; Ts=(in&0x0030)>>4; S=(in&0x000f); B=(D<9); fixS(); }           // No destination (CRU ops)
-#define FormatV { D=(in&0x00f0)>>4; S=(in&0x000f); S=WP+(S<<1); }
 
-#define FormatVIII_0 { D=(in&0x000f); D=WP+(D<<1); }
-
-#define FormatIX  { D=(in&0x03c0)>>6; Ts=(in&0x0030)>>4; S=(in&0x000f); B=0; fixS(); }              // No destination here (dest calc'd after call) (DIV, MUL, XOP)
 */
+#define F18AGPUFORMATI                  { f18agpu.Td=(f18agpu.in&0x0c00)>>10; f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.D=(f18agpu.in&0x03c0)>>6; f18agpu.S=(f18agpu.in&0x000f); f18agpu.B=(f18agpu.in&0x1000)>>12; f18agpu_fixs(); }
 #define F18AGPUFormatII                 { f18agpu.D=(f18agpu.in&0x00ff); }
+#define F18AGPUFormatIII                { f18agpu.Td=0; f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.D=(f18agpu.in&0x03c0)>>6; f18agpu.S=(f18agpu.in&0x000f); f18agpu.B=0; f18agpu_fixs(); }
+#define F18AGPUFormatV                  { f18agpu.D=(f18agpu.in&0x00f0)>>4; f18agpu.S=(f18agpu.in&0x000f); f18agpu.S=f18agpu.WP+(f18agpu.S<<1); }
 #define F18AGPUFormatVI                 { f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.S=f18agpu.in&0x000f; f18agpu.B=0; f18agpu_fixs(); } // No destination (single argument instructions)
 #define F18AGPUFormatVII                {}  // no argument
-#define F18AGPUFORMATI                  { f18agpu.Td=(f18agpu.in&0x0c00)>>10; f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.D=(f18agpu.in&0x03c0)>>6; f18agpu.S=(f18agpu.in&0x000f); f18agpu.B=(f18agpu.in&0x1000)>>12; f18agpu_fixs(); }
+#define F18AGPUFORMATVIII_0             { f18agpu.D=(f18agpu.in&0x000f); f18agpu.D=f18agpu.WP+(f18agpu.D<<1); }
 #define F18AGPUFORMATVIII_1             { f18agpu.D=(f18agpu.in&0x000f); f18agpu.D=f18agpu.WP+(f18agpu.D<<1); f18agpu.S=f18agpu_readword(f18agpu.PC); ADDPC(2); }
+#define F18AGPUFORMATIX                 { f18agpu.D=(f18agpu.in&0x03c0)>>6; f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.S=(f18agpu.in&0x000f); f18agpu.B=0; f18agpu_fixs(); }              // No destination here (dest calc'd after call) (DIV, MUL, XOP)
+
+// Group sets
+#define F18AGPUSET_LGT                  { f18agpu.ST |= 0x8000; }  // Logical Greater than: >0x0000
+#define F18AGPUSET_AGT                  { f18agpu.ST |= 0x4000; }   // Arithmetic Greater than: >0x0000 and <0x8000
+#define F18AGPUSET_EQ                   { f18agpu.ST |= 0x2000; }   // Equal: ==0x0000
+#define F18AGPUSET_C                    { f18agpu.ST |= 0x1000; }   // Carry: carry occurred during operation
+#define F18AGPUSET_OV                   { f18agpu.ST |= 0x0800; }   // Overflow: overflow occurred during operation
+#define F18AGPUSET_OP                   { f18agpu.ST |= 0x0400; }   // Odd parity: word has odd number of '1' bits
+#define F18AGPUSET_X                    { f18agpu.ST |= 0x0200; }   // Executing 'X' statement
 
 // Group clears
+#define F18AGPURESETEQ                  { f18agpu.ST &= 0xdfff; }
+#define F18AGPURESETOV                  { f18agpu.ST &= 0xf7ff; }
+
 #define F18AGPURESETEQ_LGT              { f18agpu.ST &= 0x5fff; }
 #define F18AGPURESETLGT_AGT_EQ          { f18agpu.ST &= 0x1fff; }
 #define F18AGPURESETLGT_AGT_EQ_OP       { f18agpu.ST &= 0x1bff; }
 #define F18AGPURESETEQ_LGT_AGT_OV       { f18agpu.ST &= 0x17ff; }
 #define F18AGPURESETEQ_LGT_AGT_C        { f18agpu.ST &= 0x0fff; }
-#define F18AGPURESETEQ_LGT_AGT_C_OV     { f18agpu.ST &= 0x7ff; }
-#define F18AGPURESETEQ_LGT_AGT_C_OV_OP  { f18agpu.ST &= 0x3ff; }
+#define F18AGPURESETEQ_LGT_AGT_C_OV     { f18agpu.ST &= 0x07ff; }
+#define F18AGPURESETEQ_LGT_AGT_C_OV_OP  { f18agpu.ST &= 0x03ff; }
 
 //---------------------------------------------------------------------------
 
@@ -170,11 +181,11 @@ extern void f18agpu_soc(void);
 extern void f18agpu_socb(void);
 
 // F18A specific opcodes
-extern void f18agpu_call(void);
-extern void f18agpu_ret(void);
-extern void f18agpu_push(void);
-extern void f18agpu_slc(void);
-extern void f18agpu_pop(void);
+extern void f18agpu_callf18(void);
+extern void f18agpu_retf18(void);
+extern void f18agpu_pushf18(void);
+extern void f18agpu_slcf18(void);
+extern void f18agpu_popf18(void);
 extern void f18agpu_bad(void);
 
 extern void f18agpu_initopcode0(unsigned short in);
@@ -195,10 +206,11 @@ extern void f18agpu_postIncrement(BYTE nWhich);
 extern void f18agpu_intreset(void);
 extern void f18agpu_setpc(unsigned short value);
 
+extern BYTE f18agpu_readbyte(unsigned short addr);
 extern void f18agpu_writebyte(unsigned short addr, BYTE value);
+
 extern void f18agpu_writeword(unsigned short addr, unsigned short value);
 extern unsigned short f18agpu_readword(unsigned short addr);
-extern BYTE f18agpu_readbyte(unsigned short addr);
 
 extern void f18agpu_init(void);
 

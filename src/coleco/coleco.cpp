@@ -57,6 +57,7 @@ BYTE ROM_Memory[MAX_CART_SIZE * 1024];          // ROM Carts up to 512K
 BYTE RAM_Memory[MAX_RAM_SIZE * 1024];           // RAM up to 128K (for the ADAM... )
 BYTE BIOS_Memory[MAX_BIOS_SIZE * 1024];         // 64K To hold our BIOS and related OS memory
 BYTE SRAM_Memory[MAX_EEPROM_SIZE*1024];         // SRAM up to 32K for the few carts which use it
+BYTE VDP_Memory[0x10000];                       // VDP video memory (64K for F18A support)
 
 BYTE *MemoryMap[8];                             // 8x8kB pages
 
@@ -132,10 +133,10 @@ unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
     switch (whichaddr)
     {
     case CHRMAP:
-        result = tms.ChrTab-tms.ram;
+        result = emul2.F18A ? f18a.ChrTab : tms.ChrTab-VDP_Memory;
         break;
     case CHRGEN:
-        result = tms.ChrGen-tms.ram;
+        result = emul2.F18A ? f18a.ChrGen : tms.ChrGen-VDP_Memory;
             if ((mode == 2) && (y>= 0x80) )
             {
                 switch (tms.VR[4]&3) {
@@ -151,7 +152,7 @@ unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
             }
         break;
     case CHRCOL:
-        result = tms.ColTab-tms.ram;
+        result = emul2.F18A ? f18a.ColTab : tms.ColTab-VDP_Memory;
             if ((mode == 2) && (y>= 0x80) )
             {
                 switch (tms.VR[3]&0x60) {
@@ -167,13 +168,19 @@ unsigned short coleco_gettmsaddr(BYTE whichaddr, BYTE mode, BYTE y)
             }
         break;
     case SPRATTR:
-        result = tms.SprTab-tms.ram;
+        result = emul2.F18A ? f18a.SprTab : tms.SprTab-VDP_Memory;
         break;
     case SPRGEN:
-        result = tms.SprGen-tms.ram;
+        result = emul2.F18A ? f18a.SprGen : tms.SprGen-VDP_Memory;
         break;
     case VRAM:
         result = 0;
+        break;
+    case CHRMAP2:
+        result = f18a.ChrTab2;
+        break;
+    case CHRCOL2:
+        result = f18a.ColTab2;
         break;
     }
 
@@ -189,7 +196,7 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
     switch (whichaddr)
     {
     case CHRMAP:
-        result = tms.ChrTab[addr];
+        result = emul2.F18A ? VDP_Memory[f18a.ChrTab+addr] : tms.ChrTab[addr];
         break;
     case CHRGEN:
             switch(mode) {
@@ -212,7 +219,7 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
                     }
                     break;
             }
-        result = tms.ChrGen[addr];
+        result = emul2.F18A ? VDP_Memory[f18a.ChrGen+addr] : tms.ChrGen[addr];
         break;
     case CHRCOL:
             switch(mode) {
@@ -236,16 +243,16 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
                     }
                     break;
             }
-        result = tms.ColTab[addr];
+        result = emul2.F18A ? VDP_Memory[f18a.ColTab+addr] : tms.ColTab[addr];
         break;
     case SPRATTR:
-        result = tms.SprTab[addr];
+        result = emul2.F18A ? VDP_Memory[f18a.SprTab+addr] : tms.SprTab[addr];
         break;
     case SPRGEN:
-        result = tms.SprGen[addr];
+        result = emul2.F18A ? VDP_Memory[f18a.SprGen+addr] : tms.SprGen[addr];
         break;
     case VRAM:
-        result = tms.ram[addr];
+        result = VDP_Memory[addr];
         break;
     case SGMRAM:
         result = RAM_Memory[addr];
@@ -271,7 +278,7 @@ void coleco_setval(BYTE whichaddr, unsigned short addr, BYTE y)
     switch (whichaddr)
     {
     case VRAM:
-        tms.ram[addr] = y;
+        VDP_Memory[addr] = y;
         break;
     case SGMRAM:
         RAM_Memory[addr] = y;
@@ -401,16 +408,19 @@ BYTE coleco_loadcart(char *filename)
 //---------------------------------------------------------------------------
 // update the 16 colors Coleco
 void coleco_setpalette(int palette) {
-        int index, idxpal;
+    int index, idxpal;
 
+    // do nothing in F18A mode
+    if (emul2.F18A==0) {
         // init palette
         idxpal=palette*3*16;
         for (index=0;index<16*3;index+=3) {
-                cv_palette[index] = TMS9918A_palette[idxpal+index];
-                cv_palette[index+1] = TMS9918A_palette[idxpal+index+1];
-                cv_palette[index+2] = TMS9918A_palette[idxpal+index+2];
+            cv_palette[index] = TMS9918A_palette[idxpal+index];
+            cv_palette[index+1] = TMS9918A_palette[idxpal+index+1];
+            cv_palette[index+2] = TMS9918A_palette[idxpal+index+2];
         }
         RenderCalcPalette(cv_palette,16);
+    }
 }
 //---------------------------------------------------------------------------
 
@@ -701,7 +711,7 @@ int loadBios(char *filename, BYTE *memory, int sizerm)
 
 void coleco_initialise(void)
 {
-    int i, romlen;
+    int i;
 
     // Init the CPUs
     z80_init();
@@ -840,8 +850,6 @@ void coleco_WriteByte(int Address, int Data)
             RAM_Memory[0x6800+Address]=RAM_Memory[0x6C00+Address]=
             RAM_Memory[0x7000+Address]=RAM_Memory[0x7400+Address]=
             RAM_Memory[0x7800+Address]=RAM_Memory[0x7C00+Address]=Data;
-
-            if (Address==0x227) MessageBox(NULL, "Error","i=0",2);
             return;
         }
         // Allow SRAM if cart doesn't extend this high...
@@ -1102,6 +1110,12 @@ int coleco_do_scanline(void)
                 // do current opcode
                 ts = z80_do_opcode();
                 CurScanLine_len -= ts;
+
+                // do F18A opcode if needed
+                // and execute GPU opcodes if needed
+                if (emul2.F18A)
+                    f18agpu_execute(40);
+
 
                 frametstates += ts;
                 tStatesCount += ts;
@@ -1381,6 +1395,4 @@ BYTE coleco_loadstate(char *filename)
 
     return(1);
 }
-
-
 

@@ -37,7 +37,7 @@
 
 enum
 {
-    CHRMAP=0,CHRGEN,SPRATTR,SPRGEN,CHRCOL,VRAM, SGMRAM, RAM, ROM, EEPROM, SRAM,
+    CHRMAP=0,CHRGEN,SPRATTR,SPRGEN,CHRCOL,VRAM, SGMRAM, RAM, ROM, EEPROM, SRAM,CHRMAP2,CHRCOL2,
 };
 
 //---------------------------------------------------------------------------
@@ -51,6 +51,7 @@ extern BYTE ROM_Memory[MAX_CART_SIZE * 1024];          // ROM Carts up to 512K
 extern BYTE RAM_Memory[MAX_RAM_SIZE * 1024];           // RAM up to 128K (for the ADAM... )
 extern BYTE BIOS_Memory[MAX_BIOS_SIZE * 1024];         // 64K To hold our BIOS and related OS memory
 extern BYTE SRAM_Memory[MAX_EEPROM_SIZE*1024];         // SRAM up to 32K for the few carts which use it
+extern BYTE VDP_Memory[0x10000];                       // VDP video memory (64K for F18A support)
 
 extern int tstates,frametstates;
 

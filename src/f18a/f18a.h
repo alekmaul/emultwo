@@ -61,8 +61,10 @@
 #define F18A_SpriteSize                     ((f18a.VDPR[1]&F18A_REG1_SPR16)>>1)
 #define F18A_SpriteMag                      (f18a.VDPR[1]&F18A_REG1_BIGSPR)
 #define F18A_SPColorMode                    (f18a.VDPR[0x31] & 0x03)
+#define F18A_TLColorMode                    ((f18a.VDPR[0x31] & 0x30) >> 4)
 
 #define F18A_TL1Enabled                     ((f18a.VDPR[0x32] & 0x10) == 0) // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
+#define F18A_TL2Enabled                     ((f18a.VDPR[0x31] & 0x80) != 0) // ECM = enhanced color mode, (T)ile and (S)prite
 #define F18A_BMLEnabled                     ((f18a.VDPR[0x1F] & 0x80) != 0) // BML: Enable, Priority over sprites, Transparent, Fat pixels, Palette select
 #define F18A_BMFat                          ((f18a.VDPR[0x1F] & 0x10) != 0)
 #define F18A_SPLinkEnabled                  ((f18a.VDPR[0x31] & 0x04) != 0)
@@ -77,19 +79,6 @@ typedef struct {
 
 
 typedef struct {
-    //BYTE FGColor,BGColor;                              // Colors ForeGround and BackGround
-    //unsigned short ColTabM,ChrGenM;                    // VDP tables mask
-    //unsigned short VAddr;                              // Storage for VIDRAM addresses
-    //unsigned short DLatch;                             // Data register latch
-    //BYTE VKey;                                         // VDP address latch key
-    //
-    //unsigned short ChrGen,ChrTab,ColTab;               // VDP tables (screens)
-    //unsigned short SprGen,SprTab;                      // VDP tables (sprites)
-    //unsigned short CurLine;                             // Current scanline
-    //unsigned short ScanLines;                           // Scanlines per frame
-    //BYTE UCount;                                        // Screen update counter
-    //BYTE IdxPal[16];                                   // Palette color index
-
     BYTE Version;                                      // Current code version
     BYTE VDPR[64];                                     // VDP registers (only 58 used)
     BYTE SRSel;                                        // Status register number 0..15
@@ -101,10 +90,11 @@ typedef struct {
     BYTE PalRegNo;                                     // Palette register number 0..63
     BYTE PalRegVal;                                    // Palette register value
     BYTE PalRecalc;                                    // 1 if we need to recalc palette
-    unsigned char *ChrTab2;                            // VDP Name Table 2 Base Address, 1K boundaries. 768-bytes per table for 24 rows, 960-bytes per table for 30 rows
-    unsigned char *ColTab2;                            // VDP Color Table 2 Base Address, 64-byte boundaries. Works the same as VR3 in Enhanced Color Modes / Position-Attribute Mode
+    unsigned short ChrGen,ChrTab,ColTab;               // VDP tables (screens)
+    unsigned short SprGen,SprTab;                      // VDP tables (sprites)
+    unsigned short ChrTab2;                            // VDP Name Table 2 Base Address, 1K boundaries. 768-bytes per table for 24 rows, 960-bytes per table for 30 rows
+    unsigned short ColTab2;                            // VDP Color Table 2 Base Address, 64-byte boundaries. Works the same as VR3 in Enhanced Color Modes / Position-Attribute Mode
     signed char VAddrInc;                              // SIGNED two's-complement increment amount for VRAM address, defaults to 1
-    BYTE TilColMode;                                   // Tile color mode
     BYTE TL1HOfs,TL1VOfs;                              // Tile-1 horizontal & vertical scroll offset
     BYTE TL2HOfs,TL2VOfs;                              // Tile-2 horizontal & vertical scroll offset
     unsigned short HPSize1,VPSize1;                    // HPSIZE = horizontal page size, 0 = 1 page, 1 = 2 pages
@@ -115,33 +105,23 @@ typedef struct {
     unsigned short SPGSOfs;                            // SPGS = sprite pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
     unsigned short TPGSOfs;                            // TPGS = tile pattern generator offset size, 11=256, 10=512, 01=1K, 00=2K
     BYTE WinHeight;                                    // WIn height for screen rendering
-
-    unsigned int counterElapsed,counterStart,counterSnap;       // Counter management
-
+    unsigned int CntElapsed,CntStart,CntSnap;           // Counter management
 
     unsigned char interruptScanline;                            // Horizontal Interrupt scan line, 0 to disable, VR0 IE1-bit must = 1
-
     unsigned char bitmapPriority;
     unsigned char bitmapTransparent;
     unsigned char bitmapPaletteSelect;
-
     unsigned short bitmapBaseAddr;                              // Bitmap Layer Base Address, 64-byte boundaries
     unsigned short bitmapX,bitmapY;                             // Bitmap x,y
     unsigned short bitmapWidth,bitmapHeight;                    // Bitmap width & height
-
-
-    unsigned char tileLayer2Enabled;                            // ECM = enhanced color mode, (T)ile and (S)prite
     unsigned char realSpriteYCoord;
     unsigned char spriteColorMode;
-
     unsigned char gpuHsyncTrigger;
     unsigned char gpuVsyncTrigger;
     unsigned char reportMax;
     unsigned char ecmPositionAttributes;
     unsigned char tileMap2AlwaysOnTop;
-
     unsigned char gpuAddressLatch;
-
 } tF18A;
 
 extern tF18A f18a;

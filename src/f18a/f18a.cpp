@@ -35,6 +35,8 @@
 #include "accdraw_.h"
 #include "accsound_.h"
 
+#include "Utils.h"
+
 // Screen handlers and masks for tms.VR table address registers
 // ----------------------------------------------------------------------------------------
 #define F18A_MODE_GRAPHICS                  0
@@ -143,10 +145,8 @@ void f18a_reset(void) {
         cv_palette[j+2]=F18A_palette[j+2]*17;
     }
 
-	for (i=0;i<16;i++) tms.IdxPal[i] = i;
-
     memset(tms.VR,0x00,sizeof(tms.VR));                     // Init tms.VR Registers
-	memset(tms.ram,0x00, 0x10000);                          // Init tms.VR VRAM
+	memset(VDP_Memory,0x00, 0x10000);                          // Init tms.VR VRAM
 
     memset(f18a.VDPR,0x00,sizeof(f18a.VDPR));               // Init f18a.VR Registers
 
@@ -166,9 +166,13 @@ void f18a_reset(void) {
     f18a.TL2HOfs = 0;
     f18a.TL2VOfs = 0;
     f18a.Row30 = 0;
-    f18a.TilColMode = 0;
-    f18a.ColTab2 = tms.ram;
-    f18a.ChrTab2 = tms.ram;
+    f18a.ColTab = 0;
+    f18a.ChrTab = 0;
+    f18a.ChrGen = 0;
+    f18a.SprTab = 0;
+    f18a.SprGen = 0;
+    f18a.ColTab2 = 0;
+    f18a.ChrTab2 = 0;
     f18a.HPSize1 = 0;
     f18a.VPSize1 = 0;
     f18a.HPSize2 = 0;
@@ -180,15 +184,13 @@ void f18a_reset(void) {
     f18a.SPMaxScanLine = F18A_MAX_SCANLINE_SPRITES_JUMPER ? 32 : 4;
     f18a.SPGSOfs = 0x800;
     f18a.TPGSOfs = 0x800;
+    f18a.CntElapsed=0;
+    f18a.CntStart=time(0);
+    f18a.CntSnap=0;
 
     // Shared TMS9918 registers & variables
     tms.VKey=1;                                             // tms.VR address latch key
     tms.SR=0x00;                                            // tms.VR status register
-    tms.ColTab = tms.ram;
-    tms.ChrTab = tms.ram;
-    tms.ChrGen = tms.ram;
-    tms.SprTab = tms.ram;
-    tms.SprGen = tms.ram;
     tms.ColTabM = 0x3FFF;
     tms.ChrGenM = 0x3FFF;
     tms.FGColor = 0;
@@ -290,17 +292,19 @@ void f18a_updatemode(BYTE reg0,BYTE reg1)
         }
     }
     if (f18a.Mode == F18A_MODE_BITMAP) {
-        tms.ColTab =tms.ram+((f18a.VDPR[3] & 0x80) << 6);
-        tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x4) << 11);
+        f18a.ColTab =((f18a.VDPR[3] & 0x80) << 6);
+        f18a.ChrGen =((f18a.VDPR[4] & 0x4) << 11);
         f18a_updatemasks();
     }
     else {
-        tms.ColTab =tms.ram+(f18a.VDPR[3] << 6);
-        tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x7) << 11);
+        f18a.ColTab =(f18a.VDPR[3] << 6);
+        f18a.ChrGen =((f18a.VDPR[4] & 0x7) << 11);
     }
-    tms.ChrTab =tms.ram+((f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
-    tms.SprTab =tms.ram+((f18a.VDPR[5] & 0x7f) << 7);
-    tms.SprGen =tms.ram+((f18a.VDPR[6] & 0x7) << 11);
+    //BUG ?tms.ChrTab =VDP_Memory+( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
+    //tms.ChrTab=VDP_Memory+(((int)(tms.VR[2]&SCR[J].R2)<<10)&VRAMMask);
+    f18a.ChrTab =( (f18a.VDPR[2] & 0x0F) << 10);
+    f18a.SprTab =((f18a.VDPR[5] & 0x7f) << 7);
+    f18a.SprGen =((f18a.VDPR[6] & 0x7) << 11);
     if (oldmode != f18a.Mode)
     {
         f18a_setwindowsize();
@@ -331,45 +335,45 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
         break;
     case 0x02: // // Name table
-        tms.ChrTab =tms.ram+( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
+        //BUG ?tms.ChrTab =VDP_Memory+( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
+        //tms.ChrTab=VDP_Memory+(((int)(tms.VR[2]&SCR[J].R2)<<10)&VRAMMask);
+        f18a.ChrTab =( (f18a.VDPR[2] & 0x0F) << 10);
         break;
     case 0x03: // Color table
         if (f18a.Mode == F18A_MODE_BITMAP) {
-            tms.ColTab =tms.ram+((f18a.VDPR[3] & 0x80) << 6);
+            f18a.ColTab =((f18a.VDPR[3] & 0x80) << 6);
         }
         else {
-            tms.ColTab =tms.ram+(f18a.VDPR[3] << 6);
+            f18a.ColTab =(f18a.VDPR[3] << 6);
         }
         f18a_updatemasks();
         break;
     case 0x04: // Pattern table
         if (f18a.Mode == F18A_MODE_BITMAP) {
-            tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x4) << 11);
+            f18a.ChrGen =((f18a.VDPR[4] & 0x4) << 11);
         }
         else {
-            tms.ChrGen =tms.ram+((f18a.VDPR[4] & 0x7) << 11);
+            f18a.ChrGen =((f18a.VDPR[4] & 0x7) << 11);
         }
         f18a_updatemasks();
         break;
     case 0x05: // Sprite attribute table
-        tms.SprTab = tms.ram+((f18a.VDPR[5] & 0x7f) << 7);
+        f18a.SprTab = ((f18a.VDPR[5] & 0x7f) << 7);
         break;
     case 0x06: // Sprite pattern table
-        tms.SprGen = tms.ram+((f18a.VDPR[6] & 0x7) << 11);
+        f18a.SprGen = ((f18a.VDPR[6] & 0x7) << 11);
         break;
     case 0x07:
-	    tms.FGColor=tms.IdxPal[value>>4];
-		value &= 0x0F;
-		tms.IdxPal[0] = tms.IdxPal[ value ? value : 1];
-		tms.BGColor=tms.IdxPal[value];
+	    tms.FGColor=(f18a.VDPR[7]&0xF0)>>4;
+		tms.BGColor=f18a.VDPR[7] & 0x0F;
         break;
 
     // Specific F18 a registers
     case 0x0A: // Name table 2 base address
-        f18a.ChrTab2 = tms.ram+((f18a.VDPR[0x0A] & 0x0f) << 10);
+        f18a.ChrTab2 = ((f18a.VDPR[0x0A] & 0x0f) << 10);
         break;
     case 0x0B: // Color Table 2 Base Address, 64-byte boundaries
-        f18a.ColTab2 = tms.ram+(f18a.VDPR[0x0B] << 6);
+        f18a.ColTab2 = (f18a.VDPR[0x0B] << 6);
         break;
     case 0x0F: // Status register select / counter control
         f18a.SRSel = f18a.VDPR[0x0F] & 0x0f;
@@ -377,30 +381,29 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         runsr = (f18a.VDPR[0x0F] & 0x10) != 0;
         if (oldrunsr && !runsr) {
             // Stop
-            f18a.counterElapsed += (0xDEAF/*this.getTime()*/ - f18a.counterStart);
+            f18a.CntElapsed += (time(0) - f18a.CntStart);
         }
         else if (!oldrunsr && runsr) {
             // Start
-            f18a.counterStart = 0xDEAF/*this.getTime()*/;
+            f18a.CntStart = time(0);
         }
-        if ((f18a.VDPR[0x0F] & 0x20) != 0)
-        {
+        if ((f18a.VDPR[0x0F] & 0x20) != 0) {
             // Snapshot
             if (runsr) {
                 // Started
-                f18a.counterSnap = (0xDEAF/*this.getTime()*/ - f18a.counterStart); // + this.counterElapsed;
+                f18a.CntSnap = (time(0) - f18a.CntStart); // + this.CntElapsed;
             }
             else {
                 // Stopped
-                f18a.counterSnap = f18a.counterElapsed;
+                f18a.CntSnap = f18a.CntElapsed;
             }
             f18a.VDPR[0x0F] &= 0xdf; // Clear trigger bit
         }
         if ((f18a.VDPR[0x0F] & 0x40) != 0) {
             // Reset
-            f18a.counterElapsed = 0;
-            f18a.counterStart = 0xDEAF/*this.getTime()*/;
-            f18a.counterSnap = 0;
+            f18a.CntElapsed = 0;
+            f18a.CntStart = time(0);
+            f18a.CntSnap = 0;
             f18a.VDPR[0x0F] &= 0xbf; // Clear trigger bit
         }
         break;
@@ -480,16 +483,12 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a.VAddrInc = f18a.VDPR[0x30] < 128 ? f18a.VDPR[0x30] : f18a.VDPR[0x30] - 256;
         break;
     case 0x31: // Enhanced color mode
-        f18a.tileLayer2Enabled = (f18a.VDPR[0x31] & 0x80) != 0;
+        //f18a.tileLayer2Enabled = (f18a.VDPR[0x31] & 0x80) != 0;
         oldvalue = f18a.Row30;
         f18a.Row30 = (f18a.VDPR[0x31] & 0x40) != 0;
         if (oldvalue != f18a.Row30) {
             f18a_setwindowsize();
         }
-        f18a.TilColMode = (f18a.VDPR[0x31] & 0x30) >> 4;
-        //f18a.realSpriteYCoord = (f18a.VDPR[0x31] & 0x08) != 0;
-        //f18a.spriteLinkingEnabled = (f18a.VDPR[0x31] & 0x04) != 0;
-        //f18a.spriteColorMode = f18a.VDPR[0x31] & 0x03;
         break;
     case 0x32: // Position vs name attributes, TL2 always on top
         // Write 1 to reset all VDP registers
@@ -554,13 +553,17 @@ void f18a_writedata(unsigned char value)
 {
     // tms9918 mode or not ?
     if (!f18a.DPM) {
-        tms9918_writedata(value);
+        VDP_Memory[tms.VAddr] = value;
+        if (tms.VAddr==0) {
+            tms.VAddr &= 0x3FFF;
+        }
+        tms.VAddr += f18a.VAddrInc;
+        tms.VAddr &= 0x3FFF;
     }
     else
     {
         // Write data to F18A palette registers | ----rrrr | ggggbbbb |
-        if (f18a.PalRegVal == 255)
-        {
+        if (f18a.PalRegVal == 255) {
             // Read first byte
             f18a.PalRegVal = value & 0x0F;
         }
@@ -570,14 +573,12 @@ void f18a_writedata(unsigned char value)
             cv_palette[f18a.PalRegNo*3+0] = f18a.PalRegVal * 17;
             cv_palette[f18a.PalRegNo*3+1] = ((value & 0xf0) >> 4) * 17;
             cv_palette[f18a.PalRegNo*3+2] = (value & 0x0f) * 17;
-            if (f18a.PalAutoInc)
-            {
+            if (f18a.PalAutoInc) {
                 f18a.PalRegNo++;
             }
             // The F18A turns off DPM after each register is written if auto increment is off
             // or after writing to last register if auto increment in on
-            if (!f18a.PalAutoInc || f18a.PalRegNo == 64)
-            {
+            if ((!f18a.PalAutoInc) || (f18a.PalRegNo == 64)) {
                 f18a.DPM = 0;
                 f18a.PalRegNo = 0;
             }
@@ -588,32 +589,25 @@ void f18a_writedata(unsigned char value)
 };
 // ----------------------------------------------------------------------------------------
 
-unsigned char f18a_readdata(void)
-{
-    // same as tms9918a
-    return tms9918_readdata();
-};
-// ----------------------------------------------------------------------------------------
-
 unsigned char f18a_writectrl(unsigned char value)
 {
     BYTE cmd,msb,reg;
 
-    if (tms.VKey)
-    {
-	    tms.VKey=0;
+    if (tms.VKey) {
+        tms.VKey=0;
         tms.VAddr=((tms.VAddr&0xFF00)|value)&0x3FFF;
+        //tms.VAddr=((tms.VAddr&0xFF00)|value);
 	}
 	else
     {
-		tms.VKey=1;
+        tms.VKey=1;
         cmd = (value & 0xc0) >> 6;
         msb = value & 0x3f;
         switch (cmd)
         {
         case 0: // Set read address
             tms.VAddr = (msb << 8) | (tms.VAddr & 0x00FF);
-            tms.DLatch = tms.ram[tms.VAddr];
+            tms.DLatch = VDP_Memory[tms.VAddr];
             tms.VAddr += f18a.VAddrInc;
             tms.VAddr &= 0x3FFF;
             f18a.VDPR[15] = f18a.VDPR[msb];
@@ -624,14 +618,11 @@ unsigned char f18a_writectrl(unsigned char value)
         case 2: // Write register
         case 3:
             reg = msb;
-            if (f18a.unlocked || (reg < 8) || (reg == 57))
-            {
+            if (f18a.unlocked || (reg < 8) || (reg == 57)) {
                 return (WriteF18A(reg, tms.VAddr & 0x00FF));
             }
-            else
-            {
-                if ((f18a.VDPR[0] & 0x04) == 0) // 1.8 firmware: writes to registers > 7 are masked if 80 columns mode is not enabled
-                {
+            else {
+                if ((f18a.VDPR[0] & 0x04) == 0) { // 1.8 firmware: writes to registers > 7 are masked if 80 columns mode is not enabled
                     return (WriteF18A(reg & 0x07, tms.VAddr & 0x00FF));
                 }
             }
@@ -644,13 +635,25 @@ unsigned char f18a_writectrl(unsigned char value)
 };
 // ----------------------------------------------------------------------------------------
 
+unsigned char f18a_readdata(void)
+{
+    BYTE retval;
+
+    retval = tms.DLatch;
+    tms.DLatch = VDP_Memory[tms.VAddr];
+	tms.VAddr = (tms.VAddr+1)&0x3FFF;
+
+	return(retval);
+};
+
+// ----------------------------------------------------------------------------------------
+
 unsigned char f18a_readctrl(void)
 {
     unsigned char retval=0xFF;
 
     // check which Status register is active
-    if (f18a.SRSel==0)
-    {
+    if (f18a.SRSel==0) {
         // default TMS register
         retval = tms.SR;
         tms.SR &= TMS9918_STAT_5THNUM|TMS9918_STAT_5THSPR;
@@ -664,26 +667,25 @@ unsigned char f18a_readctrl(void)
         case 1: // ID
             return 0xe0;
         case 2: // GPU status
-            return ( (f18agpu.cpuIdle ? 0 : 0x80) | (tms.ram[0xb000] & 0x7f) );
+            return ( (f18agpu.cpuIdle ? 0 : 0x80) | (VDP_Memory[0xb000] & 0x7f) );
         case 3: // Current scanline
-            return 0; // todo f18a.getCurrentScanline();
+            return tms.CurLine;
         case 4: // Counter nanos LSB
-            return 0; //(floor((f18a.counterSnap * 1000000) / 10) * 10 % 1000) & 0x00ff;
-        case 5:
-            // Counter nanos MSB
-            return 0; //((floor((f18a.counterSnap * 1000000) / 10) * 10 % 1000) & 0x0300) >> 8;
+            return (((f18a.CntSnap * 1000000) / 10) * 10 % 1000) & 0x00ff;
+        case 5: // Counter nanos MSB
+            return ((((f18a.CntSnap * 1000000) / 10) * 10 % 1000) & 0x0300) >> 8;
         case 6: // Counter micros LSB
-            return ((f18a.counterSnap * 1000) % 1000) & 0x00ff;
+            return ((f18a.CntSnap * 1000) % 1000) & 0x00ff;
         case 7: // Counter micros MSB
-            return (((f18a.counterSnap * 1000) % 1000) & 0x0300) >> 8;
+            return (((f18a.CntSnap * 1000) % 1000) & 0x0300) >> 8;
         case 8: // Counter millis LSB
-            return (f18a.counterSnap % 1000) & 0x00ff;
+            return (f18a.CntSnap % 1000) & 0x00ff;
         case 9: // Counter millis MSB
-            return ((f18a.counterSnap % 1000) & 0x0300) >> 8;
+            return ((f18a.CntSnap % 1000) & 0x0300) >> 8;
         case 10: // Counter seconds LSB
-            return (f18a.counterSnap / 1000) & 0x00ff;
+            return (f18a.CntSnap / 1000) & 0x00ff;
         case 11: // Counter seconds MSB
-            return ((f18a.counterSnap / 1000) & 0xff00) >> 8;
+            return ((f18a.CntSnap / 1000) & 0xff00) >> 8;
         case 14: // Major/Minor version, 00011000 = v1.8
             return F18A_VERSION;
         case 15: // VDP read register value (see VR15).  Updated any time a VRAM address is set
@@ -733,19 +735,17 @@ unsigned char f18a_loop(void) {
         if(tms.UCount>=100) {
 	        (F18ASCR[f18a.Mode].Refresh)(tms.CurLine-TMS9918_START_LINE);
 		}
-        else
-            ScanSprites(tms.CurLine-TMS9918_START_LINE,0);
+        //else
+        //    ScanSprites(tms.CurLine-TMS9918_START_LINE,0);
 
     	// and execute GPU opcodes if needed
-        f18agpu_execute(F18AGPU_CYCLES_PER_SCANLINE);
+        //f18agpu_execute(F18AGPU_CYCLES_PER_SCANLINE);
 	}
 
 	// Check if VBlank
 	if(tms.CurLine==(TMS9918_START_LINE+f18a.WinHeight)) {
 		// Check if we are currently drawing screen
 		if(tms.UCount>=100) {
-			// Refresh all screen
-			//coleco_paint();
 			// Reset update counter
 			tms.UCount-=100;
 		}
@@ -807,13 +807,15 @@ void _F18A_refreshborder(unsigned char uY)
 // ----------------------------------------------------------------------------------------
 void _F18A_modegm1(unsigned char uY)
 {
-    int i,x,bmpX, index,dx,dy,x1,y1,x2;
-    BYTE *P,ColPix,PalBaseIdx,tilePalBaseIdx;
+    int i,x,bmpX, index,dx,dy,x1,y1,x2,x12,y12;
+    BYTE *P,ColPix,PalBaseIdx,tilePalBaseIdx,tilePalBaseIdx2;
     unsigned short ChrTabCanonicalBase,ChrTabBaseAddr,ChrTabAddr,GenTabAddr;
-    unsigned short rowOfs,lineOfs,lineOfs1;
+    unsigned short ChrTabCanonicalBase2,ChrTabBaseAddr2,ChrTabAddr2,GenTabAddr2;
+    unsigned short rowOfs,rowOfs2,lineOfs,lineOfs1,lineOfs12,lineOfs2;
     unsigned short BMX1, BMX2,BMY1,BMY2,BMYOfs,BMPixOfs;
-    byte BMByte ;
+    BYTE BMByte ;
     BYTE charNo,bit,bitShift,TilAttrByte,TilPrio,TilCol,TransCol0, ColSet,GenByte;
+    BYTE charNo2,bit2,bitShift2,TilAttrByte2,TilPrio2,TilCol2,TransCol02, ColSet2,GenByte2;
     BYTE BMBitShift, BMColor;
     BYTE SPColor;
     BYTE SPColBuf[256],SPPalBasIdxBuf[256];
@@ -822,6 +824,8 @@ void _F18A_modegm1(unsigned char uY)
     BYTE SPAttr,SPSize,SPMag,SPWidth,SPHeight,SPDimX,SPDimY;
     BYTE patternNo,SPFlipX,SPFlipY, baseColor,SPPalBaseIdx,pixelOn,sprColor;
     BYTE SPGenByte0,SPGenByte1,SPGenByte2,SPBit,SPBitShift1,SPBitShift2;
+
+    static unsigned char uYPrev=255;
 
     // GO to current line
     P  = cv_display + TVW*(uY+(TVH-f18a.WinHeight)/2) + TVW/2-128;
@@ -833,18 +837,18 @@ void _F18A_modegm1(unsigned char uY)
         SPOnline = 0;
         SCRYOut = f18a.Row30 ? 0xF0 : 0xC0;
         SCRYNeg = f18a.Row30 ? 0xF0 : 0xD0;
-        SPMaxAttrAddr = tms.SprTab -tms.ram + (f18a.SPMax << 2);
-        for (SPAttrAddr = tms.SprTab-tms.ram, index = 0; (f18a.Row30 || tms.ram[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
+        SPMaxAttrAddr = f18a.SprTab + (f18a.SPMax << 2);
+        for (SPAttrAddr = f18a.SprTab, index = 0; (f18a.Row30 || VDP_Memory[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
             SPParentAttrAddr = 0;
             if (F18A_SPLinkEnabled) {
-                SPLinkAttr = tms.ram[(tms.SprTab -tms.ram) + 0x80 + ((SPAttrAddr - (tms.SprTab - tms.ram) ) >> 2)];
+                SPLinkAttr = VDP_Memory[f18a.SprTab + 0x80 + ((SPAttrAddr - f18a.SprTab ) >> 2)];
                 if ((SPLinkAttr & 0x20) != 0)  {
-                    SPParentAttrAddr = (tms.SprTab-tms.ram) + ((SPLinkAttr & 0x1F) << 2);
+                    SPParentAttrAddr = f18a.SprTab + ((SPLinkAttr & 0x1F) << 2);
                 }
             }
-            SPY = tms.ram[SPAttrAddr];
+            SPY = VDP_Memory[SPAttrAddr];
             if (SPParentAttrAddr != 0) {
-                SPY = (SPY + tms.ram[SPParentAttrAddr]) & 0xFF;
+                SPY = (SPY + VDP_Memory[SPParentAttrAddr]) & 0xFF;
             }
             if (!F18A_SPRealYCoord) {
                 SPY++;
@@ -853,7 +857,7 @@ void _F18A_modegm1(unsigned char uY)
                 if (SPY > SCRYNeg)  {
                     SPY -= 256;
                 }
-                SPAttr = tms.ram[SPAttrAddr + 3];
+                SPAttr = VDP_Memory[SPAttrAddr + 3];
                 SPSize = !f18a.unlocked || (SPAttr & 0x10) == 0 ? F18A_SpriteSize : 1;
                 SPMag = F18A_SpriteMag;
                 SPHeight = 8 << SPSize; // 8 or 16
@@ -862,7 +866,7 @@ void _F18A_modegm1(unsigned char uY)
                     if (SPOnline < f18a.SPMaxScanLine) {
                         SPWidth = SPHeight;
                         SPDimX = SPDimY;
-                        SPX = tms.ram[SPAttrAddr + 1];
+                        SPX = VDP_Memory[SPAttrAddr + 1];
                         if (SPParentAttrAddr == 0)  {
                             if ((SPAttr & 0x80) != 0)  {
                                 SPX -= 32; // Early clock
@@ -870,12 +874,12 @@ void _F18A_modegm1(unsigned char uY)
                         }
                         else {
                             // Linked
-                            SPX = (SPX + tms.ram[SPParentAttrAddr + 1]) & 0xFF;
-                            if ((tms.ram[SPParentAttrAddr + 3] & 0x80) != 0) {
+                            SPX = (SPX + VDP_Memory[SPParentAttrAddr + 1]) & 0xFF;
+                            if ((VDP_Memory[SPParentAttrAddr + 3] & 0x80) != 0) {
                                 SPX -= 32; // Early clock of parent
                             }
                         }
-                        patternNo = (tms.ram[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
+                        patternNo = (VDP_Memory[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
                         SPFlipY = f18a.unlocked && (SPAttr & 0x20) != 0;
                         SPFlipX = f18a.unlocked && (SPAttr & 0x40) != 0;
                         baseColor = SPAttr & 0x0F;
@@ -895,16 +899,16 @@ void _F18A_modegm1(unsigned char uY)
                             SPPalBaseIdx = ((baseColor & 0x0e) << 2);
                             break;
                         }
-                        SPGenBaseAddr = (tms.SprGen-tms.ram) + (patternNo << 3);
+                        SPGenBaseAddr = f18a.SprGen + (patternNo << 3);
                         dy = (uY - SPY) >> SPMag;
                         if (SPFlipY) {
                             dy = SPHeight - dy - 1;
                         }
                         for (dx = 0; dx < SPWidth; dx += 8) {
                             SPGenAddr = SPGenBaseAddr + dy + (dx << 1);
-                            SPGenByte0 = tms.ram[SPGenAddr];
-                            SPGenByte1 = tms.ram[SPGenAddr + f18a.SPGSOfs];
-                            SPGenByte2 = tms.ram[SPGenAddr + (f18a.SPGSOfs << 1)];
+                            SPGenByte0 = VDP_Memory[SPGenAddr];
+                            SPGenByte1 = VDP_Memory[SPGenAddr + f18a.SPGSOfs];
+                            SPGenByte2 = VDP_Memory[SPGenAddr + (f18a.SPGSOfs << 1)];
                             SPBit = 0x80;
                             SPBitShift2 = 7;
                             for (SPBitShift1 = 0; SPBitShift1 < 8; SPBitShift1++) {
@@ -967,8 +971,8 @@ void _F18A_modegm1(unsigned char uY)
         }
 
         // Prepare values for Tile layer 1
-        ChrTabCanonicalBase = f18a.VPSize1 ? (tms.ChrTab-tms.ram) & 0x3000 : (f18a.HPSize1 ? (tms.ChrTab-tms.ram) & 0x3800 : (tms.ChrTab-tms.ram));
-        ChrTabBaseAddr = (tms.ChrTab-tms.ram);
+        ChrTabCanonicalBase = f18a.VPSize1 ? f18a.ChrTab & 0x3000 : (f18a.HPSize1 ? f18a.ChrTab & 0x3800 : f18a.ChrTab);
+        ChrTabBaseAddr = f18a.ChrTab;
         y1 = uY + f18a.TL1VOfs;
         if (y1 >= f18a.WinHeight) {
             y1 -= f18a.WinHeight;
@@ -976,6 +980,19 @@ void _F18A_modegm1(unsigned char uY)
         }
         rowOfs=(y1 >> 3) << 5;
         lineOfs = y1 & 7;
+
+        // Prepare values for Tile layer 2
+        if (F18A_TL2Enabled) {
+            ChrTabCanonicalBase2 = f18a.VPSize2 ? f18a.ChrTab2 & 0x3000 : (f18a.HPSize2 ? f18a.ChrTab2 & 0x3800 : f18a.ChrTab2);
+            ChrTabBaseAddr2 = f18a.ChrTab2;
+            y12 = uY + f18a.TL2VOfs;
+            if (y12 >= f18a.WinHeight) {
+                y12 -= f18a.WinHeight;
+                ChrTabBaseAddr2 ^= f18a.VPSize2;
+            }
+            rowOfs2 = (y12 >> 3) << 5;
+            lineOfs2 = y12 & 7;
+        }
 
         // Prepare values for Bitmap layer
         if (F18A_BMLEnabled) {
@@ -994,17 +1011,17 @@ void _F18A_modegm1(unsigned char uY)
             if (F18A_TL1Enabled) {
                 // Graphic mode 1 specific code
                 ChrTabAddr = ChrTabBaseAddr;
-                x1 = x - (f18a.TL1HOfs << 0);
+                x1 = x - f18a.TL1HOfs;
                 if (x1 >= 256) {
                     x1 -= 256;
                     ChrTabAddr ^= f18a.HPSize1;
                 }
                 ChrTabAddr += (x1 >> 3) + rowOfs;
-                charNo = tms.ram[ChrTabAddr];
+                charNo = VDP_Memory[ChrTabAddr];
                 bitShift = x1 & 7;
                 lineOfs1 = lineOfs;
-                if (f18a.TilColMode != F18A_COLOR_MODE_NORMAL) {
-                    TilAttrByte = tms.ram[tms.ColTab-tms.ram + (f18a.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
+                if (F18A_TLColorMode != F18A_COLOR_MODE_NORMAL) {
+                    TilAttrByte = VDP_Memory[f18a.ColTab + (f18a.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
                     TilPrio = (TilAttrByte & 0x80) != 0;
                     if ((TilAttrByte & 0x40) != 0) {
                         // Flip X
@@ -1017,16 +1034,17 @@ void _F18A_modegm1(unsigned char uY)
                     TransCol0 = (TilAttrByte & 0x10) != 0;
                 }
                 bit = 0x80 >> bitShift;
-                GenTabAddr = tms.ChrGen -tms.ram + (charNo << 3) + lineOfs1;
-                GenByte = tms.ram[GenTabAddr];
-                switch (f18a.TilColMode)
+                GenTabAddr = f18a.ChrGen + (charNo << 3) + lineOfs1;
+                GenByte = VDP_Memory[GenTabAddr];
+                TilCol=0;
+                switch (F18A_TLColorMode)
                 {
                 case F18A_COLOR_MODE_NORMAL:
-                    ColSet = tms.ram[tms.ColTab-tms.ram + (charNo >> 3)];
+                    ColSet = VDP_Memory[f18a.ColTab + (charNo >> 3)];
                     TilCol = (GenByte & bit) != 0 ? (ColSet & 0xF0) >> 4 : ColSet & 0x0F;
                     tilePalBaseIdx = f18a.TL1PalSel;
-                    TransCol0 = true;
-                    TilPrio = false;
+                    TransCol0 = 1;
+                    TilPrio = 0;
                     break;
                 case F18A_COLOR_MODE_ECM_1:
                     TilCol = ((GenByte & bit) >> (7 - bitShift));
@@ -1034,17 +1052,17 @@ void _F18A_modegm1(unsigned char uY)
                     break;
                 case F18A_COLOR_MODE_ECM_2:
                     TilCol = ((GenByte & bit) >> (7 - bitShift)) |
-                            (((tms.ram[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
+                            (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
                     tilePalBaseIdx = ((TilAttrByte & 0x0f) << 2);
                     break;
                 case F18A_COLOR_MODE_ECM_3:
                     TilCol =((GenByte & bit) >> (7 - bitShift)) |
-                        (((tms.ram[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
-                        (((tms.ram[GenTabAddr + (f18a.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
+                        (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
+                        (((VDP_Memory[GenTabAddr + (f18a.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
                     tilePalBaseIdx = ((TilAttrByte & 0x0e) << 2);
                     break;
                 }
-                if (TilCol > 0 || !TransCol0) {
+                if ( (TilCol > 0) || !TransCol0) {
                     ColPix = TilCol;
                     PalBaseIdx = tilePalBaseIdx;
                 }
@@ -1053,12 +1071,11 @@ void _F18A_modegm1(unsigned char uY)
 
             // Bitmap layer
             if (F18A_BMLEnabled) {
-#if 1
                 bmpX = x;
                 if ( (bmpX >= f18a.bitmapX) && (bmpX < BMX2) && (uY >= f18a.bitmapY) && (uY < BMY2)) {
                     BMX1 = x - f18a.bitmapX;
                     BMPixOfs = BMX1 + BMYOfs;
-                    BMByte = tms.ram[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
+                    BMByte = VDP_Memory[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
                     if (F18A_BMFat) {
                         // 16 color bitmap with fat pixels
                         BMBitShift = (2 - (BMPixOfs & 2)) << 1;
@@ -1074,12 +1091,11 @@ void _F18A_modegm1(unsigned char uY)
                         PalBaseIdx = f18a.bitmapPaletteSelect;
                     }
                 }
-#endif
             }
 
             // Sprite layer
             SPColor = 0;
-            if ((!TilPrio || (TransCol0)) /*&& (ColPix == tms.BGColor)*/ && SPColBuf[x]) {
+            if ( (!TilPrio || (TransCol0)) /*&& (ColPix == 0)*/ && SPColBuf[x]) {
                 SPColor = SPColBuf[x] - 1;
                 if (SPColor > 0) {
                     ColPix = SPColor;
@@ -1087,6 +1103,66 @@ void _F18A_modegm1(unsigned char uY)
                 }
                 else {
                     SPColor = 0;
+                }
+            }
+
+            // Tile layer 2
+            // The following is almost just a copy of the code from TL1, so this could be coded more elegantly
+            if (F18A_TL2Enabled) {
+                ChrTabAddr2 = ChrTabBaseAddr2;
+                x12 = x - (f18a.TL2HOfs << 0);
+                if (x12 >= 256) {
+                    x12 -= 256;
+                    ChrTabAddr2 ^= f18a.HPSize2;
+                }
+                ChrTabAddr2 += (x12 >> 3) + rowOfs2;
+                charNo2 = VDP_Memory[ChrTabAddr2];
+                bitShift2 = x12 & 7;
+                lineOfs12 = lineOfs2;
+                if (F18A_TLColorMode != F18A_COLOR_MODE_NORMAL) {
+                    TilAttrByte2 = VDP_Memory[f18a.ColTab2 + (f18a.ecmPositionAttributes ? ChrTabAddr2 - ChrTabCanonicalBase2 : charNo2)];
+                    TilPrio2 = (TilAttrByte2 & 0x80) != 0;
+                    if ((TilAttrByte2 & 0x40) != 0) {
+                        // Flip X
+                        bitShift2 = 7 - bitShift2;
+                    }
+                    if ((TilAttrByte2 & 0x20) != 0) {
+                        // Flip y
+                        lineOfs12 = 7 - lineOfs12;
+                    }
+                    TransCol02 = (TilAttrByte2 & 0x10) != 0;
+                }
+                bit2 = 0x80 >> bitShift2;
+                GenTabAddr2 = f18a.ChrGen + (charNo2 << 3) + lineOfs12;
+                GenByte2 = VDP_Memory[GenTabAddr2];
+                switch (F18A_TLColorMode)
+                {
+                case F18A_COLOR_MODE_NORMAL:
+                    ColSet2 = VDP_Memory[f18a.ColTab2 + (charNo2 >> 3)];
+                    TilCol2 = (GenByte2 & bit) != 0 ? (ColSet2 & 0xF0) >> 4 : ColSet2 & 0x0F;
+                    tilePalBaseIdx2 = f18a.TL2PalSel;
+                    TransCol02 = 1;
+                    TilPrio2 = 0;
+                    break;
+                case F18A_COLOR_MODE_ECM_1:
+                    TilCol2 = ((GenByte2 & bit2) >> (7 - bitShift2));
+                    tilePalBaseIdx2 = (f18a.TL2PalSel & 0x20) | ((TilAttrByte2 & 0x0f) << 1);
+                    break;
+                case F18A_COLOR_MODE_ECM_2:
+                    TilCol2 = ((GenByte & bit2) >> (7 - bitShift2)) |
+                            (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1);
+                    tilePalBaseIdx2 = ((TilAttrByte2 & 0x0f) << 2);
+                    break;
+                case F18A_COLOR_MODE_ECM_3:
+                    TilCol2 =((GenByte2 & bit2) >> (7 - bitShift2)) |
+                        (((VDP_Memory[GenTabAddr2 + f18a.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1) |
+                        (((VDP_Memory[GenTabAddr2 + (f18a.TPGSOfs << 1)] & bit2) >> (7 - bitShift2)) << 2);
+                    tilePalBaseIdx2 = ((TilAttrByte2 & 0x0e) << 2);
+                    break;
+                }
+                if ((TilCol2 > 0 || !TransCol02) && (f18a.tileMap2AlwaysOnTop || TilPrio2 || SPColor == 0)) {
+                    ColPix = TilCol2;
+                    PalBaseIdx = tilePalBaseIdx2;
                 }
             }
 
@@ -1235,18 +1311,18 @@ void _F18A_modetgm2(unsigned char uY)
         SPOnline = 0;
         SCRYOut = f18a.Row30 ? 0xF0 : 0xC0;
         SCRYNeg = f18a.Row30 ? 0xF0 : 0xD0;
-        SPMaxAttrAddr = tms.SprTab -tms.ram + (f18a.SPMax << 2);
-        for (SPAttrAddr = tms.SprTab-tms.ram, index = 0; (f18a.Row30 || tms.ram[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
+        SPMaxAttrAddr = f18a.SprTab + (f18a.SPMax << 2);
+        for (SPAttrAddr = f18a.SprTab, index = 0; (f18a.Row30 || VDP_Memory[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
             SPParentAttrAddr = 0;
             if (F18A_SPLinkEnabled) {
-                SPLinkAttr = tms.ram[(tms.SprTab -tms.ram) + 0x80 + ((SPAttrAddr - (tms.SprTab - tms.ram) ) >> 2)];
+                SPLinkAttr = VDP_Memory[f18a.SprTab + 0x80 + ((SPAttrAddr - f18a.SprTab ) >> 2)];
                 if ((SPLinkAttr & 0x20) != 0)  {
-                    SPParentAttrAddr = (tms.SprTab-tms.ram) + ((SPLinkAttr & 0x1F) << 2);
+                    SPParentAttrAddr = f18a.SprTab + ((SPLinkAttr & 0x1F) << 2);
                 }
             }
-            SPY = tms.ram[SPAttrAddr];
+            SPY = VDP_Memory[SPAttrAddr];
             if (SPParentAttrAddr != 0) {
-                SPY = (SPY + tms.ram[SPParentAttrAddr]) & 0xFF;
+                SPY = (SPY + VDP_Memory[SPParentAttrAddr]) & 0xFF;
             }
             if (!F18A_SPRealYCoord) {
                 SPY++;
@@ -1255,7 +1331,7 @@ void _F18A_modetgm2(unsigned char uY)
                 if (SPY > SCRYNeg)  {
                     SPY -= 256;
                 }
-                SPAttr = tms.ram[SPAttrAddr + 3];
+                SPAttr = VDP_Memory[SPAttrAddr + 3];
                 SPSize = !f18a.unlocked || (SPAttr & 0x10) == 0 ? F18A_SpriteSize : 1;
                 SPMag = F18A_SpriteMag;
                 SPHeight = 8 << SPSize; // 8 or 16
@@ -1264,7 +1340,7 @@ void _F18A_modetgm2(unsigned char uY)
                     if (SPOnline < f18a.SPMaxScanLine) {
                         SPWidth = SPHeight;
                         SPDimX = SPDimY;
-                        SPX = tms.ram[SPAttrAddr + 1];
+                        SPX = VDP_Memory[SPAttrAddr + 1];
                         if (SPParentAttrAddr == 0)  {
                             if ((SPAttr & 0x80) != 0)  {
                                 SPX -= 32; // Early clock
@@ -1272,12 +1348,12 @@ void _F18A_modetgm2(unsigned char uY)
                         }
                         else {
                             // Linked
-                            SPX = (SPX + tms.ram[SPParentAttrAddr + 1]) & 0xFF;
-                            if ((tms.ram[SPParentAttrAddr + 3] & 0x80) != 0) {
+                            SPX = (SPX + VDP_Memory[SPParentAttrAddr + 1]) & 0xFF;
+                            if ((VDP_Memory[SPParentAttrAddr + 3] & 0x80) != 0) {
                                 SPX -= 32; // Early clock of parent
                             }
                         }
-                        patternNo = (tms.ram[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
+                        patternNo = (VDP_Memory[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
                         SPFlipY = f18a.unlocked && (SPAttr & 0x20) != 0;
                         SPFlipX = f18a.unlocked && (SPAttr & 0x40) != 0;
                         baseColor = SPAttr & 0x0F;
@@ -1297,16 +1373,16 @@ void _F18A_modetgm2(unsigned char uY)
                             SPPalBaseIdx = ((baseColor & 0x0e) << 2);
                             break;
                         }
-                        SPGenBaseAddr = (tms.SprGen-tms.ram) + (patternNo << 3);
+                        SPGenBaseAddr = f18a.SprGen + (patternNo << 3);
                         dy = (uY - SPY) >> SPMag;
                         if (SPFlipY) {
                             dy = SPHeight - dy - 1;
                         }
                         for (dx = 0; dx < SPWidth; dx += 8) {
                             SPGenAddr = SPGenBaseAddr + dy + (dx << 1);
-                            SPGenByte0 = tms.ram[SPGenAddr];
-                            SPGenByte1 = tms.ram[SPGenAddr + f18a.SPGSOfs];
-                            SPGenByte2 = tms.ram[SPGenAddr + (f18a.SPGSOfs << 1)];
+                            SPGenByte0 = VDP_Memory[SPGenAddr];
+                            SPGenByte1 = VDP_Memory[SPGenAddr + f18a.SPGSOfs];
+                            SPGenByte2 = VDP_Memory[SPGenAddr + (f18a.SPGSOfs << 1)];
                             SPBit = 0x80;
                             SPBitShift2 = 7;
                             for (SPBitShift1 = 0; SPBitShift1 < 8; SPBitShift1++) {
@@ -1369,7 +1445,7 @@ void _F18A_modetgm2(unsigned char uY)
         }
 
         // Prepare values for Tile layer 1
-        ChrTabBaseAddr = (tms.ChrTab-tms.ram);
+        ChrTabBaseAddr = f18a.ChrTab;
         y1 = uY + f18a.TL1VOfs;
         if (y1 >= f18a.WinHeight) {
             y1 -= f18a.WinHeight;
@@ -1400,12 +1476,12 @@ void _F18A_modetgm2(unsigned char uY)
                     x1 -= 256;
                     ChrTabAddr ^= f18a.HPSize1;
                 }
-                charNo = tms.ram[ChrTabAddr + (x1 >> 3) + rowOfs];
+                charNo = VDP_Memory[ChrTabAddr + (x1 >> 3) + rowOfs];
                 bitShift = x1 & 7;
                 bit = 0x80 >> bitShift;
                 charSetOfs = (uY & 0xC0) << 5;
-                GenByte = tms.ram[(tms.ChrGen -tms.ram) + (((charNo << 3) + charSetOfs) & tms.ChrGenM) + lineOfs];
-                ColByte = tms.ram[(tms.ColTab -tms.ram) + (((charNo << 3) + charSetOfs) & tms.ColTabM) + lineOfs];
+                GenByte = VDP_Memory[f18a.ChrGen + (((charNo << 3) + charSetOfs) & tms.ChrGenM) + lineOfs];
+                ColByte = VDP_Memory[f18a.ColTab + (((charNo << 3) + charSetOfs) & tms.ColTabM) + lineOfs];
                 TilCol = (GenByte & bit) != 0 ? (ColByte & 0xF0) >> 4 : (ColByte & 0x0F);
                 if (TilCol > 0) {
                     ColPix = TilCol;
@@ -1420,7 +1496,7 @@ void _F18A_modetgm2(unsigned char uY)
                 if ( (bmpX >= f18a.bitmapX) && (bmpX < BMX2) && (uY >= f18a.bitmapY) && (uY < BMY2)) {
                     BMX1 = x - f18a.bitmapX;
                     BMPixOfs = BMX1 + BMYOfs;
-                    BMByte = tms.ram[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
+                    BMByte = VDP_Memory[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
                     if (F18A_BMFat) {
                         // 16 color bitmap with fat pixels
                         BMBitShift = (2 - (BMPixOfs & 2)) << 1;
@@ -1494,18 +1570,18 @@ void _F18A_modem(unsigned char uY)
         SPOnline = 0;
         SCRYOut = f18a.Row30 ? 0xF0 : 0xC0;
         SCRYNeg = f18a.Row30 ? 0xF0 : 0xD0;
-        SPMaxAttrAddr = tms.SprTab -tms.ram + (f18a.SPMax << 2);
-        for (SPAttrAddr = tms.SprTab-tms.ram, index = 0; (f18a.Row30 || tms.ram[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
+        SPMaxAttrAddr = f18a.SprTab + (f18a.SPMax << 2);
+        for (SPAttrAddr = f18a.SprTab, index = 0; (f18a.Row30 || VDP_Memory[SPAttrAddr] != 0xd0) && (SPAttrAddr < SPMaxAttrAddr) && (SPOnline <= f18a.SPMaxScanLine); SPAttrAddr += 4, index++) {
             SPParentAttrAddr = 0;
             if (F18A_SPLinkEnabled) {
-                SPLinkAttr = tms.ram[(tms.SprTab -tms.ram) + 0x80 + ((SPAttrAddr - (tms.SprTab - tms.ram) ) >> 2)];
+                SPLinkAttr = VDP_Memory[f18a.SprTab + 0x80 + ((SPAttrAddr - f18a.SprTab ) >> 2)];
                 if ((SPLinkAttr & 0x20) != 0)  {
-                    SPParentAttrAddr = (tms.SprTab-tms.ram) + ((SPLinkAttr & 0x1F) << 2);
+                    SPParentAttrAddr = f18a.SprTab + ((SPLinkAttr & 0x1F) << 2);
                 }
             }
-            SPY = tms.ram[SPAttrAddr];
+            SPY = VDP_Memory[SPAttrAddr];
             if (SPParentAttrAddr != 0) {
-                SPY = (SPY + tms.ram[SPParentAttrAddr]) & 0xFF;
+                SPY = (SPY + VDP_Memory[SPParentAttrAddr]) & 0xFF;
             }
             if (!F18A_SPRealYCoord) {
                 SPY++;
@@ -1514,7 +1590,7 @@ void _F18A_modem(unsigned char uY)
                 if (SPY > SCRYNeg)  {
                     SPY -= 256;
                 }
-                SPAttr = tms.ram[SPAttrAddr + 3];
+                SPAttr = VDP_Memory[SPAttrAddr + 3];
                 SPSize = !f18a.unlocked || (SPAttr & 0x10) == 0 ? F18A_SpriteSize : 1;
                 SPMag = F18A_SpriteMag;
                 SPHeight = 8 << SPSize; // 8 or 16
@@ -1523,7 +1599,7 @@ void _F18A_modem(unsigned char uY)
                     if (SPOnline < f18a.SPMaxScanLine) {
                         SPWidth = SPHeight;
                         SPDimX = SPDimY;
-                        SPX = tms.ram[SPAttrAddr + 1];
+                        SPX = VDP_Memory[SPAttrAddr + 1];
                         if (SPParentAttrAddr == 0)  {
                             if ((SPAttr & 0x80) != 0)  {
                                 SPX -= 32; // Early clock
@@ -1531,12 +1607,12 @@ void _F18A_modem(unsigned char uY)
                         }
                         else {
                             // Linked
-                            SPX = (SPX + tms.ram[SPParentAttrAddr + 1]) & 0xFF;
-                            if ((tms.ram[SPParentAttrAddr + 3] & 0x80) != 0) {
+                            SPX = (SPX + VDP_Memory[SPParentAttrAddr + 1]) & 0xFF;
+                            if ((VDP_Memory[SPParentAttrAddr + 3] & 0x80) != 0) {
                                 SPX -= 32; // Early clock of parent
                             }
                         }
-                        patternNo = (tms.ram[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
+                        patternNo = (VDP_Memory[SPAttrAddr + 2] & (SPSize != 0 ? 0xFC : 0xFF));
                         SPFlipY = f18a.unlocked && (SPAttr & 0x20) != 0;
                         SPFlipX = f18a.unlocked && (SPAttr & 0x40) != 0;
                         baseColor = SPAttr & 0x0F;
@@ -1556,16 +1632,16 @@ void _F18A_modem(unsigned char uY)
                             SPPalBaseIdx = ((baseColor & 0x0e) << 2);
                             break;
                         }
-                        SPGenBaseAddr = (tms.SprGen-tms.ram) + (patternNo << 3);
+                        SPGenBaseAddr = f18a.SprGen + (patternNo << 3);
                         dy = (uY - SPY) >> SPMag;
                         if (SPFlipY) {
                             dy = SPHeight - dy - 1;
                         }
                         for (dx = 0; dx < SPWidth; dx += 8) {
                             SPGenAddr = SPGenBaseAddr + dy + (dx << 1);
-                            SPGenByte0 = tms.ram[SPGenAddr];
-                            SPGenByte1 = tms.ram[SPGenAddr + f18a.SPGSOfs];
-                            SPGenByte2 = tms.ram[SPGenAddr + (f18a.SPGSOfs << 1)];
+                            SPGenByte0 = VDP_Memory[SPGenAddr];
+                            SPGenByte1 = VDP_Memory[SPGenAddr + f18a.SPGSOfs];
+                            SPGenByte2 = VDP_Memory[SPGenAddr + (f18a.SPGSOfs << 1)];
                             SPBit = 0x80;
                             SPBitShift2 = 7;
                             for (SPBitShift1 = 0; SPBitShift1 < 8; SPBitShift1++) {
@@ -1628,7 +1704,7 @@ void _F18A_modem(unsigned char uY)
         }
 
         // Prepare values for Tile layer 1
-        ChrTabBaseAddr = (tms.ChrTab-tms.ram);
+        ChrTabBaseAddr = f18a.ChrTab;
         y1 = uY + f18a.TL1VOfs;
         if (y1 >= f18a.WinHeight) {
             y1 -= f18a.WinHeight;
@@ -1658,8 +1734,8 @@ void _F18A_modem(unsigned char uY)
                     x1 -= 256;
                     ChrTabAddr ^= f18a.HPSize1;
                 }
-                charNo = tms.ram[ChrTabAddr + (x1 >> 3) + rowOfs];
-                ColByte = tms.ram[(tms.ChrGen -tms.ram) + (charNo << 3) + ((y1 & 0x1c) >> 2)];
+                charNo = VDP_Memory[ChrTabAddr + (x1 >> 3) + rowOfs];
+                ColByte = VDP_Memory[f18a.ChrGen + (charNo << 3) + ((y1 & 0x1c) >> 2)];
                 TilCol = (x1 & 4) == 0 ? (ColByte & 0xf0) >> 4 : (ColByte & 0x0f);
                 if (TilCol > 0) {
                     ColPix = TilCol;
@@ -1675,7 +1751,7 @@ void _F18A_modem(unsigned char uY)
                 if ( (bmpX >= f18a.bitmapX) && (bmpX < BMX2) && (uY >= f18a.bitmapY) && (uY < BMY2)) {
                     BMX1 = x - f18a.bitmapX;
                     BMPixOfs = BMX1 + BMYOfs;
-                    BMByte = tms.ram[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
+                    BMByte = VDP_Memory[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
                     if (F18A_BMFat) {
                         // 16 color bitmap with fat pixels
                         BMBitShift = (2 - (BMPixOfs & 2)) << 1;

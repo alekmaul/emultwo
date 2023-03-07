@@ -612,8 +612,7 @@ void f18agpu_postIncrement(BYTE nWhich)
     unsigned short t2, nTmpVal;
     int tmpCycles;
 
-    if (f18agpu.nPostInc[nWhich])
-    {
+    if (f18agpu.nPostInc[nWhich]) {
         i = f18agpu.nPostInc[nWhich] & 0xf;
         t2 = f18agpu.WP + (i << 1);
 
@@ -1250,7 +1249,8 @@ void f18agpu_srl(void)
 void f18agpu_sla(void)
 {
     BYTE cycles;
-    unsigned short x1,x2,x3,x4;
+    unsigned short x1,x3,x4;
+    int x2;
 
     F18AGPUFormatV;
 

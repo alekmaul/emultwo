@@ -239,13 +239,13 @@ void Tpatternviewer::CreateTile(void)
 
                 // if B&W mode choosen, just change colors
                 if (rBW->Checked==true) {
-                    fgcol=cv_pal32[15];
+                    fgcol=(DWORD)(0x00FFFFFF);
                     bgcol=cv_pal32[0];
                 }
             }
             // not bg, vram or sprite
             else {
-                fgcol=cv_pal32[15];
+                fgcol=(DWORD)(0x00FFFFFF);
                 bgcol=cv_pal32[0];
                 value = coleco_gettmsval(VRAM,mVramTile+(iy&7),0x00,0x00);
             }
@@ -346,14 +346,14 @@ void Tpatternviewer::CreateBitmap(TCanvas *Acanvas, int w, int h)
                 // if B&W mode choosen, just change colors
                 if (rBW->Checked==true)
                 {
-                    fgcol=cv_pal32[15];
+                    fgcol=(DWORD)(0x00FFFFFF);
                     bgcol=cv_pal32[0];
                 }
             }
             // not bg, vram or sprite
             else
             {
-                fgcol=cv_pal32[15];
+                fgcol=(DWORD)(0x00FFFFFF);
                 bgcol=cv_pal32[0];
                 value = coleco_gettmsval(VRAM,it+(iy&7),0x00,0x00);
             }

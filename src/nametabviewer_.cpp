@@ -28,6 +28,7 @@
 #include "main_.h"
 #include "coleco.h"
 #include "colecoconfig.h"
+#include "f18a.h"
 #include "tms9928a.h"
 
 #include "editvalue_.h"
@@ -83,6 +84,9 @@ void __fastcall Tnametabviewer::SaveasBMP1Click(TObject *Sender)
     bmp->PixelFormat = pf24bit;
 
     // Check save dialog to save effectively to disk
+    dlgSVPic->DefaultExt="png";
+    dlgSVPic->FileName="*.png";
+    dlgSVPic->Filter="Portable Network Graphic (.png)|*.png|Windows Bitmap (.bmp)|*.bmp";
     if(dlgSVPic->Execute())
     {
         CreateMap(bmp->Canvas,bmp->Width,bmp->Height);
@@ -118,7 +122,7 @@ void Tnametabviewer::CreateTile(void)
 
         if ( (mVramTile >=coleco_gettmsaddr(CHRGEN,0,0)) && (mVramTile<coleco_gettmsaddr(CHRGEN,0,0)+0x1800) ) {
             ofsvram=mVramTile-coleco_gettmsaddr(CHRGEN,0,0); // get offset in VRAM
-            if (tms.Mode==1) {
+            if ( (tms.Mode==1) || (f18a.Mode==F18A_MODE_GRAPHICS)) {
                 vcol =coleco_gettmsval(CHRCOL,mVramTile,tms.Mode,iy>>3);
             }
             else {
@@ -130,8 +134,14 @@ void Tnametabviewer::CreateTile(void)
                     vcol =coleco_gettmsval(CHRCOL,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x00);
             }
             // Get fg and bg color
-            fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
-            bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
+            if (chkBW->Checked==true) {
+                fgcol=(DWORD)(0x00FFFFFF);
+                bgcol=cv_pal32[0];
+            }
+            else {
+                fgcol=cv_pal32[tms.IdxPal[vcol>>4]];
+                bgcol=cv_pal32[tms.IdxPal[vcol & 0xf]];
+            }
             if (ofsvram >=0x1000)
                 value =coleco_gettmsval(CHRGEN,(mVramTile &0x7ff)+(iy&7),tms.Mode,0x80);
             else if (ofsvram >=0x800)
@@ -141,8 +151,14 @@ void Tnametabviewer::CreateTile(void)
         }
         // not bg, vram or sprite
         else {
-            fgcol=cv_pal32[15];
-            bgcol=cv_pal32[0];
+            if (chkBW->Checked==true) {
+                fgcol=(DWORD)(0x00FFFFFF);
+                bgcol=cv_pal32[0];
+            }
+            else {
+                fgcol=cv_pal32[15];
+                bgcol=cv_pal32[0];
+            }
             value = coleco_gettmsval(VRAM,mVramTile+(iy&7),0x00,0x00);
         }
 
@@ -226,8 +242,14 @@ void Tnametabviewer::CreateMap(TCanvas *Acanvas, int w, int h)
             }
 
             // Get fg and bg color
-            fgcol=cv_pal32[(ic>>4) & 0x0f];
-            bgcol=cv_pal32[(ic & 0x0f)];
+            if (chkBW->Checked==true) {
+                fgcol=(DWORD)(0x00FFFFFF);
+                bgcol=cv_pal32[0];
+            }
+            else {
+                fgcol=cv_pal32[(ic>>4) & 0x0f];
+                bgcol=cv_pal32[(ic & 0x0f)];
+            }
 
             // Draw bitmap
             value=coleco_gettmsval(CHRGEN,it,tms.Mode,iy);

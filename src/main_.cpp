@@ -1203,3 +1203,4 @@ void __fastcall TForm1::AdamKeyboard1Click(TObject *Sender)
 }
 //---------------------------------------------------------------------------
 
+

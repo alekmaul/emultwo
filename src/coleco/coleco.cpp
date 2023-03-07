@@ -222,27 +222,27 @@ BYTE coleco_gettmsval(BYTE whichaddr, unsigned short addr, BYTE mode, BYTE y)
         result = emul2.F18A ? VDP_Memory[f18a.ChrGen+addr] : tms.ChrGen[addr];
         break;
     case CHRCOL:
+        if (!emul2.F18A) {
             switch(mode) {
-                case 0:
-                case 1:
-                    addr>>=6;
-                    break;
-                case 2:
-                    if (y>= 0x80)
-                    {
-                        switch (tms.VR[3]&0x60) {
-                            case 0: break;
-                            case 0x20: addr+=0x1000; break;
-                            case 0x40: break;
-                            case 0x60: addr+=0x1000; break;
-                        }
+            case 0:
+            case 1:
+                addr>>=6;
+                break;
+            case 2:
+                if (y>= 0x80){
+                    switch (tms.VR[3]&0x60) {
+                    case 0: break;
+                    case 0x20: addr+=0x1000; break;
+                    case 0x40: break;
+                    case 0x60: addr+=0x1000; break;
                     }
-                    else if ((tms.VR[3]&0x40) && (y>= 0x40))
-                    {
-                        addr+=0x800;
-                    }
-                    break;
+                }
+                else if ((tms.VR[3]&0x40) && (y>= 0x40)){
+                    addr+=0x800;
+                }
+                break;
             }
+        }
         result = emul2.F18A ? VDP_Memory[f18a.ColTab+addr] : tms.ColTab[addr];
         break;
     case SPRATTR:

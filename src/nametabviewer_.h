@@ -65,6 +65,8 @@ __published:	// Composants gérés par l'EDI
         TPaintBox *VRam;
     TStaticText *eGVVCloc;
     TButton *bRestCHMap;
+    TLabel *Label1;
+    TCheckBox *chkBW;
     void __fastcall SaveasBMP1Click(TObject *Sender);
     void __fastcall FormClose(TObject *Sender, TCloseAction &Action);
     void __fastcall FormShow(TObject *Sender);

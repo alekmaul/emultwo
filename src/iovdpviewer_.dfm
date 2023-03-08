@@ -1,10 +1,10 @@
 object iovdpviewer: Tiovdpviewer
-  Left = 1161
-  Top = 160
+  Left = 949
+  Top = 189
   BorderStyle = bsToolWindow
   Caption = 'I/O VDP Viewer'
   ClientHeight = 416
-  ClientWidth = 614
+  ClientWidth = 613
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -226,9 +226,9 @@ object iovdpviewer: Tiovdpviewer
     end
   end
   object gF18A: TGroupBox
-    Left = 144
+    Left = 140
     Top = 2
-    Width = 465
+    Width = 469
     Height = 247
     Caption = 'F18A VDP Registers'
     Enabled = False
@@ -313,7 +313,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object Label14: TLabel
       Left = 392
-      Top = 28
+      Top = 30
       Width = 65
       Height = 13
       Caption = '$1B/$1C TL1'
@@ -364,11 +364,11 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label18: TLabel
-      Left = 224
+      Left = 218
       Top = 18
-      Width = 18
+      Width = 42
       Height = 13
-      Caption = '$20'
+      Caption = '$20 Bmp'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -377,11 +377,11 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label19: TLabel
-      Left = 224
+      Left = 218
       Top = 40
-      Width = 18
+      Width = 52
       Height = 13
-      Caption = '$21'
+      Caption = '$21 Bmp X'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -390,11 +390,11 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label20: TLabel
-      Left = 224
+      Left = 218
       Top = 62
-      Width = 18
+      Width = 52
       Height = 13
-      Caption = '$22'
+      Caption = '$22 Bmp Y'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -403,11 +403,11 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label21: TLabel
-      Left = 224
+      Left = 218
       Top = 84
-      Width = 18
+      Width = 56
       Height = 13
-      Caption = '$23'
+      Caption = '$23 Bmp W'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -416,11 +416,11 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label22: TLabel
-      Left = 224
+      Left = 218
       Top = 106
-      Width = 18
+      Width = 53
       Height = 13
-      Caption = '$24'
+      Caption = '$24 Bmp H'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -429,7 +429,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label23: TLabel
-      Left = 224
+      Left = 218
       Top = 128
       Width = 18
       Height = 13
@@ -442,7 +442,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label24: TLabel
-      Left = 288
+      Left = 304
       Top = 18
       Width = 18
       Height = 13
@@ -455,7 +455,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label25: TLabel
-      Left = 288
+      Left = 304
       Top = 40
       Width = 18
       Height = 13
@@ -468,7 +468,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label26: TLabel
-      Left = 288
+      Left = 304
       Top = 62
       Width = 18
       Height = 13
@@ -481,7 +481,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label27: TLabel
-      Left = 288
+      Left = 304
       Top = 84
       Width = 18
       Height = 13
@@ -494,7 +494,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label28: TLabel
-      Left = 288
+      Left = 304
       Top = 106
       Width = 18
       Height = 13
@@ -507,7 +507,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label29: TLabel
-      Left = 288
+      Left = 304
       Top = 128
       Width = 18
       Height = 13
@@ -520,7 +520,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label30: TLabel
-      Left = 288
+      Left = 304
       Top = 150
       Width = 18
       Height = 13
@@ -533,7 +533,7 @@ object iovdpviewer: Tiovdpviewer
       ParentFont = False
     end
     object Label31: TLabel
-      Left = 288
+      Left = 304
       Top = 172
       Width = 19
       Height = 13
@@ -628,22 +628,15 @@ object iovdpviewer: Tiovdpviewer
       Height = 13
       Caption = 'Latch'
     end
-    object Label50: TLabel
-      Left = 296
-      Top = 202
-      Width = 68
-      Height = 13
-      Caption = 'Status RegSel'
-    end
     object Label51: TLabel
-      Left = 186
+      Left = 160
       Top = 202
       Width = 65
       Height = 13
       Caption = 'ColTab Addr2'
     end
     object Label53: TLabel
-      Left = 186
+      Left = 160
       Top = 224
       Width = 72
       Height = 13
@@ -655,39 +648,6 @@ object iovdpviewer: Tiovdpviewer
       Width = 433
       Height = 9
       Shape = bsTopLine
-    end
-    object Label54: TLabel
-      Left = 328
-      Top = 72
-      Width = 54
-      Height = 13
-      Caption = 'Color Mode'
-    end
-    object Label55: TLabel
-      Left = 392
-      Top = 112
-      Width = 32
-      Height = 13
-      Caption = 'Sprites'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      ParentFont = False
-    end
-    object Label56: TLabel
-      Left = 392
-      Top = 90
-      Width = 22
-      Height = 13
-      Caption = 'Tiles'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -11
-      Font.Name = 'MS Sans Serif'
-      Font.Style = []
-      ParentFont = False
     end
     object StaticText1: TStaticText
       Tag = 10
@@ -847,7 +807,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText13: TStaticText
       Tag = 32
-      Left = 192
+      Left = 188
       Top = 16
       Width = 28
       Height = 18
@@ -860,7 +820,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText14: TStaticText
       Tag = 33
-      Left = 192
+      Left = 188
       Top = 38
       Width = 28
       Height = 18
@@ -873,7 +833,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText15: TStaticText
       Tag = 34
-      Left = 192
+      Left = 188
       Top = 60
       Width = 28
       Height = 18
@@ -886,7 +846,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText16: TStaticText
       Tag = 35
-      Left = 192
+      Left = 188
       Top = 82
       Width = 28
       Height = 18
@@ -899,7 +859,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText17: TStaticText
       Tag = 36
-      Left = 192
+      Left = 188
       Top = 104
       Width = 28
       Height = 18
@@ -912,7 +872,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText18: TStaticText
       Tag = 47
-      Left = 192
+      Left = 188
       Top = 126
       Width = 28
       Height = 18
@@ -925,7 +885,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText19: TStaticText
       Tag = 49
-      Left = 256
+      Left = 274
       Top = 16
       Width = 28
       Height = 18
@@ -938,7 +898,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText20: TStaticText
       Tag = 50
-      Left = 256
+      Left = 274
       Top = 38
       Width = 28
       Height = 18
@@ -951,7 +911,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText21: TStaticText
       Tag = 51
-      Left = 256
+      Left = 274
       Top = 60
       Width = 28
       Height = 18
@@ -964,7 +924,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText22: TStaticText
       Tag = 54
-      Left = 256
+      Left = 274
       Top = 82
       Width = 28
       Height = 18
@@ -977,7 +937,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText23: TStaticText
       Tag = 55
-      Left = 256
+      Left = 274
       Top = 104
       Width = 28
       Height = 18
@@ -990,7 +950,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText24: TStaticText
       Tag = 56
-      Left = 256
+      Left = 274
       Top = 126
       Width = 28
       Height = 18
@@ -1003,7 +963,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText25: TStaticText
       Tag = 57
-      Left = 256
+      Left = 274
       Top = 148
       Width = 28
       Height = 18
@@ -1016,7 +976,7 @@ object iovdpviewer: Tiovdpviewer
     end
     object StaticText26: TStaticText
       Tag = 58
-      Left = 256
+      Left = 274
       Top = 170
       Width = 28
       Height = 18
@@ -1144,10 +1104,10 @@ object iovdpviewer: Tiovdpviewer
       ParentColor = False
       TabOrder = 35
     end
-    object eF18ALock: TStaticText
-      Left = 392
-      Top = 132
-      Width = 57
+    object eF18ABGCol2: TStaticText
+      Left = 88
+      Top = 200
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1155,10 +1115,10 @@ object iovdpviewer: Tiovdpviewer
       ParentColor = False
       TabOrder = 36
     end
-    object eF18ASelNo: TStaticText
-      Left = 264
-      Top = 200
-      Width = 28
+    object eVDPBGmap2: TStaticText
+      Left = 88
+      Top = 222
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1166,79 +1126,11 @@ object iovdpviewer: Tiovdpviewer
       ParentColor = False
       TabOrder = 37
     end
-    object eF18ABGCol2: TStaticText
-      Left = 88
-      Top = 200
-      Width = 94
-      Height = 18
-      AutoSize = False
-      BorderStyle = sbsSunken
-      Color = clWhite
-      ParentColor = False
-      TabOrder = 38
-    end
-    object eVDPBGmap2: TStaticText
-      Left = 88
-      Top = 222
-      Width = 94
-      Height = 18
-      AutoSize = False
-      BorderStyle = sbsSunken
-      Color = clWhite
-      ParentColor = False
-      TabOrder = 39
-    end
-    object eF18ATCMo: TStaticText
-      Left = 328
-      Top = 88
-      Width = 60
-      Height = 18
-      AutoSize = False
-      BorderStyle = sbsSunken
-      Color = clWhite
-      ParentColor = False
-      TabOrder = 40
-    end
-    object eF18ASCMo: TStaticText
-      Left = 328
-      Top = 108
-      Width = 60
-      Height = 18
-      AutoSize = False
-      BorderStyle = sbsSunken
-      Color = clWhite
-      ParentColor = False
-      TabOrder = 41
-    end
-    object chkT1On: TCheckBox
-      Left = 328
-      Top = 132
-      Width = 57
-      Height = 17
-      Caption = 'TL1 on'
-      TabOrder = 42
-    end
-    object chkT2On: TCheckBox
-      Left = 328
-      Top = 146
-      Width = 57
-      Height = 17
-      Caption = 'TL2 on'
-      TabOrder = 43
-    end
-    object chkBMOn: TCheckBox
-      Left = 328
-      Top = 160
-      Width = 97
-      Height = 17
-      Caption = 'BMP on'
-      TabOrder = 44
-    end
   end
   object GroupBox2: TGroupBox
     Left = 2
     Top = 250
-    Width = 607
+    Width = 327
     Height = 159
     Caption = 'Global Information'
     TabOrder = 2
@@ -1264,56 +1156,56 @@ object iovdpviewer: Tiovdpviewer
       Caption = 'BG Color'
     end
     object Label34: TLabel
-      Left = 124
+      Left = 112
       Top = 18
       Width = 51
       Height = 13
       Caption = 'Disp Mode'
     end
     object Label35: TLabel
-      Left = 330
+      Left = 254
       Top = 62
       Width = 66
       Height = 13
       Caption = 'NamTab Addr'
     end
     object Label36: TLabel
-      Left = 124
+      Left = 112
       Top = 40
       Width = 52
       Height = 13
       Caption = 'Sprites Opt'
     end
     object Label37: TLabel
-      Left = 330
+      Left = 254
       Top = 18
       Width = 59
       Height = 13
       Caption = 'ColTab Addr'
     end
     object Label38: TLabel
-      Left = 330
+      Left = 254
       Top = 40
       Width = 61
       Height = 13
       Caption = 'PatGen Addr'
     end
     object Label39: TLabel
-      Left = 330
+      Left = 254
       Top = 84
       Width = 57
       Height = 13
       Caption = 'SprAttr Addr'
     end
     object Label40: TLabel
-      Left = 330
+      Left = 254
       Top = 106
       Width = 61
       Height = 13
       Caption = 'SprGen Addr'
     end
     object Label41: TLabel
-      Left = 124
+      Left = 112
       Top = 62
       Width = 65
       Height = 13
@@ -1322,7 +1214,7 @@ object iovdpviewer: Tiovdpviewer
     object eVDPMode: TStaticText
       Left = 8
       Top = 16
-      Width = 112
+      Width = 100
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1333,7 +1225,7 @@ object iovdpviewer: Tiovdpviewer
     object eVDPOption: TStaticText
       Left = 8
       Top = 38
-      Width = 112
+      Width = 100
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1342,9 +1234,9 @@ object iovdpviewer: Tiovdpviewer
       TabOrder = 1
     end
     object eVDPBGmap: TStaticText
-      Left = 232
+      Left = 184
       Top = 60
-      Width = 94
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1353,9 +1245,9 @@ object iovdpviewer: Tiovdpviewer
       TabOrder = 2
     end
     object eVDPBGcolor: TStaticText
-      Left = 232
+      Left = 184
       Top = 16
-      Width = 94
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1364,9 +1256,9 @@ object iovdpviewer: Tiovdpviewer
       TabOrder = 3
     end
     object eVDPBGtile: TStaticText
-      Left = 232
+      Left = 184
       Top = 38
-      Width = 94
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1375,9 +1267,9 @@ object iovdpviewer: Tiovdpviewer
       TabOrder = 4
     end
     object eVDPSPRdata: TStaticText
-      Left = 232
+      Left = 184
       Top = 82
-      Width = 94
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1386,9 +1278,9 @@ object iovdpviewer: Tiovdpviewer
       TabOrder = 5
     end
     object eVDPSPRtile: TStaticText
-      Left = 232
+      Left = 184
       Top = 104
-      Width = 94
+      Width = 68
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
@@ -1436,13 +1328,259 @@ object iovdpviewer: Tiovdpviewer
     object eVDPStatus: TStaticText
       Left = 8
       Top = 60
-      Width = 112
+      Width = 100
       Height = 18
       AutoSize = False
       BorderStyle = sbsSunken
       Color = clWhite
       ParentColor = False
       TabOrder = 10
+    end
+  end
+  object GroupBox1: TGroupBox
+    Left = 332
+    Top = 250
+    Width = 277
+    Height = 159
+    Caption = 'F18A Gloabl Information'
+    TabOrder = 3
+    object Label57: TLabel
+      Left = 8
+      Top = 14
+      Width = 42
+      Height = 13
+      Caption = 'Counters'
+    end
+    object Start: TLabel
+      Left = 76
+      Top = 30
+      Width = 22
+      Height = 13
+      Caption = 'Start'
+    end
+    object Snap: TLabel
+      Left = 76
+      Top = 50
+      Width = 25
+      Height = 13
+      Caption = 'Snap'
+    end
+    object Elapsed: TLabel
+      Left = 76
+      Top = 70
+      Width = 38
+      Height = 13
+      Caption = 'Elapsed'
+    end
+    object Label58: TLabel
+      Left = 124
+      Top = 14
+      Width = 33
+      Height = 13
+      Caption = 'Palette'
+    end
+    object Label59: TLabel
+      Left = 158
+      Top = 32
+      Width = 19
+      Height = 13
+      Caption = 'TL1'
+    end
+    object Label60: TLabel
+      Left = 158
+      Top = 52
+      Width = 19
+      Height = 13
+      Caption = 'TL2'
+    end
+    object Label61: TLabel
+      Left = 158
+      Top = 72
+      Width = 14
+      Height = 13
+      Caption = 'SP'
+    end
+    object Label54: TLabel
+      Left = 8
+      Top = 96
+      Width = 54
+      Height = 13
+      Caption = 'Color Mode'
+    end
+    object Label56: TLabel
+      Left = 68
+      Top = 114
+      Width = 22
+      Height = 13
+      Caption = 'Tiles'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label55: TLabel
+      Left = 68
+      Top = 136
+      Width = 32
+      Height = 13
+      Caption = 'Sprites'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      ParentFont = False
+    end
+    object Label50: TLabel
+      Left = 158
+      Top = 114
+      Width = 68
+      Height = 13
+      Caption = 'Status RegSel'
+    end
+    object eF18ACntSt: TStaticText
+      Left = 8
+      Top = 30
+      Width = 66
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 0
+    end
+    object eF18ACntSn: TStaticText
+      Left = 8
+      Top = 50
+      Width = 66
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 1
+    end
+    object eF18ACntEl: TStaticText
+      Left = 8
+      Top = 70
+      Width = 66
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 2
+    end
+    object ePaSeTL1: TStaticText
+      Left = 124
+      Top = 30
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 3
+    end
+    object ePaSeTL2: TStaticText
+      Left = 124
+      Top = 50
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 4
+    end
+    object ePaSeSP: TStaticText
+      Left = 124
+      Top = 70
+      Width = 32
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 5
+    end
+    object eF18ATCMo: TStaticText
+      Left = 8
+      Top = 112
+      Width = 60
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 6
+    end
+    object eF18ASCMo: TStaticText
+      Left = 8
+      Top = 132
+      Width = 60
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 7
+    end
+    object chkT1On: TCheckBox
+      Left = 188
+      Top = 28
+      Width = 57
+      Height = 17
+      Caption = 'TL1 on'
+      TabOrder = 8
+    end
+    object chkT2On: TCheckBox
+      Left = 188
+      Top = 46
+      Width = 57
+      Height = 17
+      Caption = 'TL2 on'
+      TabOrder = 9
+    end
+    object chkBMOn: TCheckBox
+      Left = 188
+      Top = 62
+      Width = 60
+      Height = 17
+      Caption = 'BMP on'
+      TabOrder = 10
+    end
+    object eF18ASelNo: TStaticText
+      Left = 124
+      Top = 112
+      Width = 28
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 11
+    end
+    object eF18ALock: TStaticText
+      Left = 124
+      Top = 132
+      Width = 57
+      Height = 18
+      AutoSize = False
+      BorderStyle = sbsSunken
+      Color = clWhite
+      ParentColor = False
+      TabOrder = 12
+    end
+    object chkRow30: TCheckBox
+      Left = 188
+      Top = 78
+      Width = 60
+      Height = 17
+      Caption = 'Row30'
+      TabOrder = 13
     end
   end
   object MainMenu1: TMainMenu

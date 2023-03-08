@@ -151,10 +151,18 @@ void __fastcall Tiovdpviewer::UpdateChanges()
         chkT1On->Checked=F18A_TL1Enabled ? true :false;
         chkT2On->Checked=F18A_TL2Enabled ? true :false;
         chkBMOn->Checked=F18A_BMLEnabled ? true :false;
+        chkRow30->Checked=(f18a.VDPR[0x31] & 0x40) != 0 ? true :false;
 
         // specific address
         eVDPBGmap2->Caption="$"+IntToHex(coleco_gettmsaddr(CHRMAP2,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRMAP2,0,0)+32*24-1,4);
         eF18ABGCol2->Caption="$"+IntToHex(coleco_gettmsaddr(CHRCOL2,0,0),4)+"-$"+IntToHex(coleco_gettmsaddr(CHRCOL2,0,0)+32*24-1,4);
+        // other values
+        eF18ACntSt->Caption=f18a.CntStart;
+        eF18ACntSn->Caption=f18a.CntSnap;
+        eF18ACntEl->Caption=f18a.CntElapsed;
+        ePaSeTL1->Caption="$"+IntToHex(f18a.VDPR[0x18] & 0x30,2);
+        ePaSeTL2->Caption="$"+IntToHex((f18a.VDPR[0x18] & 0x03) << 4,2);
+        ePaSeSP->Caption="$"+IntToHex((f18a.VDPR[0x18] & 0x0C) << 2,2);
     }
     else {
         gF18A->Enabled=false;

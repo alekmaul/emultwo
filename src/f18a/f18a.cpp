@@ -300,9 +300,7 @@ void f18a_updatemode(BYTE reg0,BYTE reg1)
         f18a.ColTab =(f18a.VDPR[3] << 6);
         f18a.ChrGen =((f18a.VDPR[4] & 0x7) << 11);
     }
-    //BUG ?tms.ChrTab =VDP_Memory+( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
-    //tms.ChrTab=VDP_Memory+(((int)(tms.VR[2]&SCR[J].R2)<<10)&VRAMMask);
-    f18a.ChrTab =( (f18a.VDPR[2] & 0x0F) << 10);
+    f18a.ChrTab =( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10); //BUG ?
     f18a.SprTab =((f18a.VDPR[5] & 0x7f) << 7);
     f18a.SprGen =((f18a.VDPR[6] & 0x7) << 11);
     if (oldmode != f18a.Mode)
@@ -335,9 +333,7 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a_updatemode(f18a.VDPR[0], f18a.VDPR[1]);
         break;
     case 0x02: // // Name table
-        //BUG ?tms.ChrTab =VDP_Memory+( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10);
-        //tms.ChrTab=VDP_Memory+(((int)(tms.VR[2]&SCR[J].R2)<<10)&VRAMMask);
-        f18a.ChrTab =( (f18a.VDPR[2] & 0x0F) << 10);
+        f18a.ChrTab =( (f18a.VDPR[2] & (f18a.Mode != F18A_MODE_TEXT_80 || f18a.unlocked ? 0xf : 0xc)) << 10); //BUG ?
         break;
     case 0x03: // Color table
         if (f18a.Mode == F18A_MODE_BITMAP) {
@@ -449,10 +445,8 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         }
         break;
     case 0x1F: // Bitmap control
-        //f18a.bitmapEnable = (f18a.VDPR[0x1F] & 0x80) != 0;
         f18a.bitmapPriority = (f18a.VDPR[0x1F] & 0x40) != 0;
         f18a.bitmapTransparent = (f18a.VDPR[0x1F] & 0x20) != 0;
-        //f18a.bitmapFat = (f18a.VDPR[0x1F] & 0x10) != 0;
         f18a.bitmapPaletteSelect = (f18a.VDPR[0x1F] & (F18A_BMFat ? 0x0C : 0x0F)) << 2; // Shift into position
         break;
     case 0x20: // Bitmap base address
@@ -483,7 +477,6 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a.VAddrInc = f18a.VDPR[0x30] < 128 ? f18a.VDPR[0x30] : f18a.VDPR[0x30] - 256;
         break;
     case 0x31: // Enhanced color mode
-        //f18a.tileLayer2Enabled = (f18a.VDPR[0x31] & 0x80) != 0;
         oldvalue = f18a.Row30;
         f18a.Row30 = (f18a.VDPR[0x31] & 0x40) != 0;
         if (oldvalue != f18a.Row30) {
@@ -500,7 +493,6 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         }
         f18a.gpuHsyncTrigger = (f18a.VDPR[0x32] & 0x40) != 0;
         f18a.gpuVsyncTrigger = (f18a.VDPR[0x32] & 0x20) != 0;
-        //f18a.tileLayer1Enabled = (f18a.VDPR[0x32] & 0x10) == 0; // 0 = normal, 1 = disable GM1, GM2, MCM, T40, T80
         f18a.reportMax = (f18a.VDPR[0x32] & 0x08) != 0; // Report sprite max vs 5th sprite
         tms.CurLine = (f18a.VDPR[0x32] & 0x04) != 0; // Draw scan lines
         f18a.ecmPositionAttributes = (f18a.VDPR[0x32] & 0x02) != 0; // 0 = per name attributes in ECMs, 1 = per position attributes

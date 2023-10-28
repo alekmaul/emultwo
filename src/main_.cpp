@@ -49,6 +49,9 @@
 #include "palviewer_.h"
 #include "printviewer_.h"
 
+#include "symbolstore.h"
+#include "symbbrows_.h"
+
 //---------------------------------------------------------------------------
 #pragma package(smart_init)
 #pragma resource "*.dfm"
@@ -284,6 +287,11 @@ void __fastcall TForm1::AppMessage(TMsg &Msg, bool &Handled)
                 {
                     LoadDiskTape(0, 0,Filename);
                 }
+                else if (Ext==".SYM" || Ext==".MAP") {
+                    symbolstore::loadFileSymbols(Filename.c_str());
+                    symbbrows->RefreshContent();
+                    return;
+                }
             }
 
             DragFinish((void *)Msg.wParam);
@@ -312,7 +320,7 @@ void TForm1::UpdateMruMenu(void)
 
 void TForm1::LoadSettings(TIniFile *ini)
 {
-    RenderMode=ini->ReadInteger("MAIN","RenderMode", RENDERGDI); // DDraw bugs with W11
+    RenderMode=RENDERGDI; //ini->ReadInteger("MAIN","RenderMode", RENDERGDI); // DDraw bugs with W11
     if (!RenderInit()) {
         RenderEnd();
         exit(0);
@@ -447,9 +455,9 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
         OldhWnd=Form1->Handle;
         Sound.ReInitialise(OldhWnd, 0,0,0,0);
 
-        //RenderEnd();
-        //RenderInit();
-        //AccurateInit(true);
+/*        RenderEnd();
+        RenderInit();
+        AccurateInit(true);*/
         UpdateStatusBar();
     }
 
@@ -473,6 +481,12 @@ void __fastcall TForm1::Timer2Timer(TObject *Sender)
             if (Ext==".COL" || Ext==".BIN" || Ext==".ROM") {
                 LoadProgram(Filename);
                 break;
+            }
+            else if (Ext==".DDP"){
+                LoadDiskTape(1, 0,Filename);
+            }
+            else if (Ext==".DSK") {
+                LoadDiskTape(0, 0,Filename);
             }
             i++;
         }
@@ -717,6 +731,7 @@ void __fastcall TForm1::FormKeyUp(TObject *Sender, WORD &Key,
 void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 {
         int stopped=emul2.stop;
+        String filename;
 
         Sound.SoundSuspend();
         try
@@ -725,7 +740,11 @@ void __fastcall TForm1::Screenshot1Click(TObject *Sender)
 
             // Check save dialog to save effectively to disk
             SaveDialog->DefaultExt="png";
-            SaveDialog->FileName="*.png";
+            filename=emul2.currentrom;
+            if (filename.Length())
+                SaveDialog->FileName=NameAndDateTimePng(filename);//"*.png";
+            else
+                SaveDialog->FileName=NameAndDateTimePng("path\\noname.ext");//"*.png";
             SaveDialog->Filter="Portable Network Graphic (.png)|*.png|Windows Bitmap (.bmp)|*.bmp";
             if(SaveDialog->Execute())
             {

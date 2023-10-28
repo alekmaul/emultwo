@@ -30,6 +30,7 @@
 #include <vcl.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <time.h>
 #pragma hdrstop
 
 #include "utils.h"
@@ -155,6 +156,37 @@ AnsiString GetExt(AnsiString Fname)
         for(pos=1; pos<=Ext.Length(); pos++) Ext[pos]=toupper(Ext[pos]);
         return(Ext);
 }
+
+AnsiString GetFileName(AnsiString Fpath)
+{
+    int len = Fpath.Length();
+    int pos=0;
+    AnsiString Filename;
+
+    // retrieve filename
+    for(int i=len-1; i>0; i--)
+    {
+        if(Fpath[i]=='\\' || Fpath[i]=='/' )
+        {
+            pos = i+1;
+            break;
+        }
+    }
+
+    // remove ext
+    Filename = Fpath.SubString(pos, 1+len-pos);
+    len=Filename.Length();
+    pos=len;
+    while(pos)
+    {
+        if (Filename[pos]=='.') break;
+        pos--;
+    }
+    if (pos)
+        Filename = Filename.SubString(1, pos-1);
+    return(Filename);
+}
+
 // ----------------------------------------------------------------------------------------
 // cal crc32 of a file
 
@@ -171,6 +203,21 @@ unsigned int CRC32Block (const unsigned char *buf, unsigned int len) {
   } while (--len);
   return crc ^ 0xffffffffL;
 }
+// ----------------------------------------------------------------------------------------
+
+String NameAndDateTimePng( String name ){
+    //time_t now = time(0);
+    time_t now;
+    struct tm  *tstruct;
+    char  buf[80];
+
+    //tstruct = *localtime(&now);
+    time(&now);
+    tstruct = localtime(&now);
+    strftime(buf, 80, "%y%m%d_%H%M%S", tstruct);
+    return String(GetFileName(name)+"_"+buf+".png");
+};
+
 // ----------------------------------------------------------------------------------------
 
 bool ImageToPNG(AnsiString name,Graphics::TBitmap *bitmap)

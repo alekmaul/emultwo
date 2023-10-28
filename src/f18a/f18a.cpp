@@ -494,7 +494,7 @@ unsigned char WriteF18A(int iReg,unsigned char value)
         f18a.gpuHsyncTrigger = (f18a.VDPR[0x32] & 0x40) != 0;
         f18a.gpuVsyncTrigger = (f18a.VDPR[0x32] & 0x20) != 0;
         f18a.reportMax = (f18a.VDPR[0x32] & 0x08) != 0; // Report sprite max vs 5th sprite
-        tms.CurLine = (f18a.VDPR[0x32] & 0x04) != 0; // Draw scan lines
+        //tms.CurLine = (f18a.VDPR[0x32] & 0x04) != 0; // Draw scan lines
         f18a.ecmPositionAttributes = (f18a.VDPR[0x32] & 0x02) != 0; // 0 = per name attributes in ECMs, 1 = per position attributes
         f18a.tileMap2AlwaysOnTop = (f18a.VDPR[0x32] & 0x01) == 0; // 0 = TL2 always on top, 1 = TL2 vs sprite priority is considered
         break;
@@ -693,11 +693,16 @@ unsigned char f18a_readctrl(void)
 
 void f18a_setwindowsize(void)
 {
+    // Refresh width & height to display
     TVW = (f18a.Mode == F18A_MODE_TEXT_80 ? TVW_F18A*2 : TVW_F18A);
     TVH = (f18a.Row30 ? TVH_F18A : TVH_TMS);
     f18a.WinHeight=(f18a.Row30 ? TVH_ROW30 : TVH_DEF);
     tms.ScanLines=emul2.NTSC ? TMS9918_LINES : TMS9929_LINES;
     tms.ScanLines+=(f18a.Row30 ? 27 : 0);
+
+    // Get borders
+    TVBL = 16; // Math.floor((this.canvasWidth - TVW) >> 1);
+    TVBT = 16; // Math.floor(((this.canvasHeight >> (this.screenMode === F18A.MODE_TEXT_80 ? 1 : 0)) - TVH) >> 1);
 
     // Reinit soud and graphics
     Sound.SoundPrepSmpTab(tms.ScanLines);
@@ -775,7 +780,7 @@ void _F18A_refreshborder(unsigned char uY)
 
     // Screen buffer
     P=cv_display;
-    J=TVW*(uY+(TVH-192)/2);
+    J=TVW*(uY+(TVH-f18a.WinHeight)/2);
 
     // For the first line, refresh top border
     if (uY) P+=J;
@@ -799,7 +804,7 @@ void _F18A_refreshborder(unsigned char uY)
 // ----------------------------------------------------------------------------------------
 void _F18A_modegm1(unsigned char uY)
 {
-    int i,x,bmpX, index,dx,dy,x1,y1,x2,x12,y12;
+    int i,x,xc,bmpX, index,dx,dy,x1,y1,x2,x12,y12;
     BYTE *P,ColPix,PalBaseIdx,tilePalBaseIdx,tilePalBaseIdx2;
     unsigned short ChrTabCanonicalBase,ChrTabBaseAddr,ChrTabAddr,GenTabAddr;
     unsigned short ChrTabCanonicalBase2,ChrTabBaseAddr2,ChrTabAddr2,GenTabAddr2;
@@ -812,7 +817,8 @@ void _F18A_modegm1(unsigned char uY)
     BYTE SPColor;
     BYTE SPColBuf[256],SPPalBasIdxBuf[256];
     unsigned short SPMaxAttrAddr,SPParentAttrAddr,SPAttrAddr,SPGenBaseAddr,SPGenAddr;
-    BYTE SCRYOut,SCRYNeg,SPOnline,SPLinkAttr,SPX,SPY;
+    BYTE SCRYOut,SCRYNeg,SPOnline,SPLinkAttr;
+    unsigned short SPX,SPY;
     BYTE SPAttr,SPSize,SPMag,SPWidth,SPHeight,SPDimX,SPDimY;
     BYTE patternNo,SPFlipX,SPFlipY, baseColor,SPPalBaseIdx,pixelOn,sprColor;
     BYTE SPGenByte0,SPGenByte1,SPGenByte2,SPBit,SPBitShift1,SPBitShift2;
@@ -822,6 +828,11 @@ void _F18A_modegm1(unsigned char uY)
     // GO to current line
     P  = cv_display + TVW*(uY+(TVH-f18a.WinHeight)/2) + TVW/2-128;
 
+    // Refresh border
+    _F18A_refreshborder(uY);
+
+//todoif (this.displayOn && y >= this.topBorder && y < this.topBorder + this.drawHeight) {
+//todoy -= this.topBorder;
     if (F18A_DisplayON) {
         // Prepare sprite colors
         memset(SPColBuf,0x00,sizeof(SPColBuf));
@@ -995,182 +1006,184 @@ void _F18A_modegm1(unsigned char uY)
         }
 
         // Draw line
+//        for (xc = 0; xc < TVW; xc++) {
         for (x = 0; x < 256; x++) {
             // Init default color / palette
             ColPix = tms.BGColor;
             PalBaseIdx=0;
-            // Tile layer 1
-            if (F18A_TL1Enabled) {
-                // Graphic mode 1 specific code
-                ChrTabAddr = ChrTabBaseAddr;
-                x1 = x - f18a.TL1HOfs;
-                if (x1 >= 256) {
-                    x1 -= 256;
-                    ChrTabAddr ^= f18a.HPSize1;
-                }
-                ChrTabAddr += (x1 >> 3) + rowOfs;
-                charNo = VDP_Memory[ChrTabAddr];
-                bitShift = x1 & 7;
-                lineOfs1 = lineOfs;
-                if (F18A_TLColorMode != F18A_COLOR_MODE_NORMAL) {
-                    TilAttrByte = VDP_Memory[f18a.ColTab + (f18a.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
-                    TilPrio = (TilAttrByte & 0x80) != 0;
-                    if ((TilAttrByte & 0x40) != 0) {
-                        // Flip X
-                        bitShift = 7 - bitShift;
+            //if ( (xc >= TVBL) && (xc < TVW-TVBL) )
+            {
+              //  x = xc - TVBL;
+                // Tile layer 1
+                if (F18A_TL1Enabled) {
+                    // Graphic mode 1 specific code
+                    ChrTabAddr = ChrTabBaseAddr;
+                    x1 = x - f18a.TL1HOfs;
+                    if (x1 >= 256) {
+                        x1 -= 256;
+                        ChrTabAddr ^= f18a.HPSize1;
                     }
-                    if ((TilAttrByte & 0x20) != 0) {
-                        // Flip y
-                        lineOfs1 = 7 - lineOfs1;
+                    ChrTabAddr += (x1 >> 3) + rowOfs;
+                    charNo = VDP_Memory[ChrTabAddr];
+                    bitShift = x1 & 7;
+                    lineOfs1 = lineOfs;
+                    if (F18A_TLColorMode != F18A_COLOR_MODE_NORMAL) {
+                        TilAttrByte = VDP_Memory[f18a.ColTab + (f18a.ecmPositionAttributes ? ChrTabAddr - ChrTabCanonicalBase : charNo)];
+                        TilPrio = (TilAttrByte & 0x80) != 0;
+                        if ((TilAttrByte & 0x40) != 0) {
+                            // Flip X
+                            bitShift = 7 - bitShift;
+                        }
+                        if ((TilAttrByte & 0x20) != 0) {
+                            // Flip y
+                            lineOfs1 = 7 - lineOfs1;
+                        }
+                        TransCol0 = (TilAttrByte & 0x10) != 0;
                     }
-                    TransCol0 = (TilAttrByte & 0x10) != 0;
-                }
-                bit = 0x80 >> bitShift;
-                GenTabAddr = f18a.ChrGen + (charNo << 3) + lineOfs1;
-                GenByte = VDP_Memory[GenTabAddr];
-                TilCol=0;
-                switch (F18A_TLColorMode)
-                {
-                case F18A_COLOR_MODE_NORMAL:
-                    ColSet = VDP_Memory[f18a.ColTab + (charNo >> 3)];
-                    TilCol = (GenByte & bit) != 0 ? (ColSet & 0xF0) >> 4 : ColSet & 0x0F;
-                    tilePalBaseIdx = f18a.TL1PalSel;
-                    TransCol0 = 1;
-                    TilPrio = 0;
-                    break;
-                case F18A_COLOR_MODE_ECM_1:
-                    TilCol = ((GenByte & bit) >> (7 - bitShift));
-                    tilePalBaseIdx = (f18a.TL1PalSel & 0x20) | ((TilAttrByte & 0x0f) << 1);
-                    break;
-                case F18A_COLOR_MODE_ECM_2:
-                    TilCol = ((GenByte & bit) >> (7 - bitShift)) |
-                            (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
-                    tilePalBaseIdx = ((TilAttrByte & 0x0f) << 2);
-                    break;
-                case F18A_COLOR_MODE_ECM_3:
-                    TilCol =((GenByte & bit) >> (7 - bitShift)) |
-                        (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
-                        (((VDP_Memory[GenTabAddr + (f18a.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
-                    tilePalBaseIdx = ((TilAttrByte & 0x0e) << 2);
-                    break;
-                }
-                if ( (TilCol > 0) || !TransCol0) {
-                    ColPix = TilCol;
-                    PalBaseIdx = tilePalBaseIdx;
-                }
-                // End of Graphic mode 1 specific code
-            } // if (F18A_TL1Enabled) {
+                    bit = 0x80 >> bitShift;
+                    GenTabAddr = f18a.ChrGen + (charNo << 3) + lineOfs1;
+                    GenByte = VDP_Memory[GenTabAddr];
+                    TilCol=0;
+                    switch (F18A_TLColorMode)
+                    {
+                    case F18A_COLOR_MODE_NORMAL:
+                        ColSet = VDP_Memory[f18a.ColTab + (charNo >> 3)];
+                        TilCol = (GenByte & bit) != 0 ? (ColSet & 0xF0) >> 4 : ColSet & 0x0F;
+                        tilePalBaseIdx = f18a.TL1PalSel;
+                        TransCol0 = 1;
+                        TilPrio = 0;
+                        break;
+                    case F18A_COLOR_MODE_ECM_1:
+                        TilCol = ((GenByte & bit) >> (7 - bitShift));
+                        tilePalBaseIdx = (f18a.TL1PalSel & 0x20) | ((TilAttrByte & 0x0f) << 1);
+                        break;
+                    case F18A_COLOR_MODE_ECM_2:
+                        TilCol = ((GenByte & bit) >> (7 - bitShift)) |
+                                (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1);
+                        tilePalBaseIdx = ((TilAttrByte & 0x0f) << 2);
+                        break;
+                    case F18A_COLOR_MODE_ECM_3:
+                        TilCol =((GenByte & bit) >> (7 - bitShift)) |
+                            (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit) >> (7 - bitShift)) << 1) |
+                            (((VDP_Memory[GenTabAddr + (f18a.TPGSOfs << 1)] & bit) >> (7 - bitShift)) << 2);
+                        tilePalBaseIdx = ((TilAttrByte & 0x0e) << 2);
+                        break;
+                    }
+                    if ( (TilCol > 0) || !TransCol0) {
+                        ColPix = TilCol;
+                        PalBaseIdx = tilePalBaseIdx;
+                    }
+                    // End of Graphic mode 1 specific code
+                } // if (F18A_TL1Enabled) {
 
-            // Bitmap layer
-            if (F18A_BMLEnabled) {
-                bmpX = x;
-                if ( (bmpX >= f18a.bitmapX) && (bmpX < BMX2) && (uY >= f18a.bitmapY) && (uY < BMY2)) {
-                    BMX1 = x - f18a.bitmapX;
-                    BMPixOfs = BMX1 + BMYOfs;
-                    BMByte = VDP_Memory[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
-                    if (F18A_BMFat) {
-                        // 16 color bitmap with fat pixels
-                        BMBitShift = (2 - (BMPixOfs & 2)) << 1;
-                        BMColor = (BMByte >> BMBitShift) & 0x0F;
+                // Bitmap layer
+                if (F18A_BMLEnabled) {
+                    bmpX = x;
+                    if ( (bmpX >= f18a.bitmapX) && (bmpX < BMX2) && (uY >= f18a.bitmapY) && (uY < BMY2)) {
+                        BMX1 = x - f18a.bitmapX;
+                        BMPixOfs = BMX1 + BMYOfs;
+                        BMByte = VDP_Memory[f18a.bitmapBaseAddr + (BMPixOfs >> 2)];
+                        if (F18A_BMFat) {
+                            // 16 color bitmap with fat pixels
+                            BMBitShift = (2 - (BMPixOfs & 2)) << 1;
+                            BMColor = (BMByte >> BMBitShift) & 0x0F;
+                        }
+                        else {
+                            // 4 color bitmap
+                            BMBitShift = (3 - (BMPixOfs & 3)) << 1;
+                            BMColor = (BMByte >> BMBitShift) & 0x03;
+                        }
+                        if ((BMColor > 0 || !f18a.bitmapTransparent) && (ColPix == tms.BGColor || f18a.bitmapPriority)) {
+                            ColPix = BMColor;
+                            PalBaseIdx = f18a.bitmapPaletteSelect;
+                        }
+                    }
+                }
+
+                // Sprite layer
+                SPColor = 0;
+                if ( (!TilPrio || (TransCol0)) /*&& (ColPix == 0)*/ && SPColBuf[x]) {
+                    SPColor = SPColBuf[x] - 1;
+                    if (SPColor > 0) {
+                        ColPix = SPColor;
+                        PalBaseIdx = SPPalBasIdxBuf[x];
                     }
                     else {
-                        // 4 color bitmap
-                        BMBitShift = (3 - (BMPixOfs & 3)) << 1;
-                        BMColor = (BMByte >> BMBitShift) & 0x03;
+                        SPColor = 0;
                     }
-                    if ((BMColor > 0 || !f18a.bitmapTransparent) && (ColPix == tms.BGColor || f18a.bitmapPriority)) {
-                        ColPix = BMColor;
-                        PalBaseIdx = f18a.bitmapPaletteSelect;
+                }
+
+                // Tile layer 2
+                // The following is almost just a copy of the code from TL1, so this could be coded more elegantly
+                if (F18A_TL2Enabled) {
+                    ChrTabAddr2 = ChrTabBaseAddr2;
+                    x12 = x - (f18a.TL2HOfs << 0);
+                    if (x12 >= 256) {
+                        x12 -= 256;
+                        ChrTabAddr2 ^= f18a.HPSize2;
+                    }
+                    ChrTabAddr2 += (x12 >> 3) + rowOfs2;
+                    charNo2 = VDP_Memory[ChrTabAddr2];
+                    bitShift2 = x12 & 7;
+                    lineOfs12 = lineOfs2;
+                    if (F18A_TLColorMode != F18A_COLOR_MODE_NORMAL) {
+                        TilAttrByte2 = VDP_Memory[f18a.ColTab2 + (f18a.ecmPositionAttributes ? ChrTabAddr2 - ChrTabCanonicalBase2 : charNo2)];
+                        TilPrio2 = (TilAttrByte2 & 0x80) != 0;
+                        if ((TilAttrByte2 & 0x40) != 0) {
+                            // Flip X
+                            bitShift2 = 7 - bitShift2;
+                        }
+                        if ((TilAttrByte2 & 0x20) != 0) {
+                            // Flip y
+                            lineOfs12 = 7 - lineOfs12;
+                        }
+                        TransCol02 = (TilAttrByte2 & 0x10) != 0;
+                    }
+                    bit2 = 0x80 >> bitShift2;
+                    GenTabAddr2 = f18a.ChrGen + (charNo2 << 3) + lineOfs12;
+                    GenByte2 = VDP_Memory[GenTabAddr2];
+                    switch (F18A_TLColorMode)
+                    {
+                    case F18A_COLOR_MODE_NORMAL:
+                        ColSet2 = VDP_Memory[f18a.ColTab2 + (charNo2 >> 3)];
+                        TilCol2 = (GenByte2 & bit) != 0 ? (ColSet2 & 0xF0) >> 4 : ColSet2 & 0x0F;
+                        tilePalBaseIdx2 = f18a.TL2PalSel;
+                        TransCol02 = 1;
+                        TilPrio2 = 0;
+                        break;
+                    case F18A_COLOR_MODE_ECM_1:
+                        TilCol2 = ((GenByte2 & bit2) >> (7 - bitShift2));
+                        tilePalBaseIdx2 = (f18a.TL2PalSel & 0x20) | ((TilAttrByte2 & 0x0f) << 1);
+                        break;
+                    case F18A_COLOR_MODE_ECM_2:
+                        TilCol2 = ((GenByte & bit2) >> (7 - bitShift2)) |
+                                (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1);
+                        tilePalBaseIdx2 = ((TilAttrByte2 & 0x0f) << 2);
+                        break;
+                    case F18A_COLOR_MODE_ECM_3:
+                        TilCol2 =((GenByte2 & bit2) >> (7 - bitShift2)) |
+                            (((VDP_Memory[GenTabAddr2 + f18a.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1) |
+                            (((VDP_Memory[GenTabAddr2 + (f18a.TPGSOfs << 1)] & bit2) >> (7 - bitShift2)) << 2);
+                        tilePalBaseIdx2 = ((TilAttrByte2 & 0x0e) << 2);
+                        break;
+                    }
+                    if ((TilCol2 > 0 || !TransCol02) && (f18a.tileMap2AlwaysOnTop || TilPrio2 || SPColor == 0)) {
+                        ColPix = TilCol2;
+                        PalBaseIdx = tilePalBaseIdx2;
                     }
                 }
             }
-
-            // Sprite layer
-            SPColor = 0;
-            if ( (!TilPrio || (TransCol0)) /*&& (ColPix == 0)*/ && SPColBuf[x]) {
-                SPColor = SPColBuf[x] - 1;
-                if (SPColor > 0) {
-                    ColPix = SPColor;
-                    PalBaseIdx = SPPalBasIdxBuf[x];
-                }
-                else {
-                    SPColor = 0;
-                }
-            }
-
-            // Tile layer 2
-            // The following is almost just a copy of the code from TL1, so this could be coded more elegantly
-            if (F18A_TL2Enabled) {
-                ChrTabAddr2 = ChrTabBaseAddr2;
-                x12 = x - (f18a.TL2HOfs << 0);
-                if (x12 >= 256) {
-                    x12 -= 256;
-                    ChrTabAddr2 ^= f18a.HPSize2;
-                }
-                ChrTabAddr2 += (x12 >> 3) + rowOfs2;
-                charNo2 = VDP_Memory[ChrTabAddr2];
-                bitShift2 = x12 & 7;
-                lineOfs12 = lineOfs2;
-                if (F18A_TLColorMode != F18A_COLOR_MODE_NORMAL) {
-                    TilAttrByte2 = VDP_Memory[f18a.ColTab2 + (f18a.ecmPositionAttributes ? ChrTabAddr2 - ChrTabCanonicalBase2 : charNo2)];
-                    TilPrio2 = (TilAttrByte2 & 0x80) != 0;
-                    if ((TilAttrByte2 & 0x40) != 0) {
-                        // Flip X
-                        bitShift2 = 7 - bitShift2;
-                    }
-                    if ((TilAttrByte2 & 0x20) != 0) {
-                        // Flip y
-                        lineOfs12 = 7 - lineOfs12;
-                    }
-                    TransCol02 = (TilAttrByte2 & 0x10) != 0;
-                }
-                bit2 = 0x80 >> bitShift2;
-                GenTabAddr2 = f18a.ChrGen + (charNo2 << 3) + lineOfs12;
-                GenByte2 = VDP_Memory[GenTabAddr2];
-                switch (F18A_TLColorMode)
-                {
-                case F18A_COLOR_MODE_NORMAL:
-                    ColSet2 = VDP_Memory[f18a.ColTab2 + (charNo2 >> 3)];
-                    TilCol2 = (GenByte2 & bit) != 0 ? (ColSet2 & 0xF0) >> 4 : ColSet2 & 0x0F;
-                    tilePalBaseIdx2 = f18a.TL2PalSel;
-                    TransCol02 = 1;
-                    TilPrio2 = 0;
-                    break;
-                case F18A_COLOR_MODE_ECM_1:
-                    TilCol2 = ((GenByte2 & bit2) >> (7 - bitShift2));
-                    tilePalBaseIdx2 = (f18a.TL2PalSel & 0x20) | ((TilAttrByte2 & 0x0f) << 1);
-                    break;
-                case F18A_COLOR_MODE_ECM_2:
-                    TilCol2 = ((GenByte & bit2) >> (7 - bitShift2)) |
-                            (((VDP_Memory[GenTabAddr + f18a.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1);
-                    tilePalBaseIdx2 = ((TilAttrByte2 & 0x0f) << 2);
-                    break;
-                case F18A_COLOR_MODE_ECM_3:
-                    TilCol2 =((GenByte2 & bit2) >> (7 - bitShift2)) |
-                        (((VDP_Memory[GenTabAddr2 + f18a.TPGSOfs] & bit2) >> (7 - bitShift2)) << 1) |
-                        (((VDP_Memory[GenTabAddr2 + (f18a.TPGSOfs << 1)] & bit2) >> (7 - bitShift2)) << 2);
-                    tilePalBaseIdx2 = ((TilAttrByte2 & 0x0e) << 2);
-                    break;
-                }
-                if ((TilCol2 > 0 || !TransCol02) && (f18a.tileMap2AlwaysOnTop || TilPrio2 || SPColor == 0)) {
-                    ColPix = TilCol2;
-                    PalBaseIdx = tilePalBaseIdx2;
-                }
-            }
-
             // Draw pixel
             *P++=ColPix+PalBaseIdx;
         }
     }
-    else {
+    else
+    {
         // Empty scanline
         for (i = 0; i < 256; i++) {
             *P++=tms.BGColor;
         }
     }
-
-    // Refresh border
-    _F18A_refreshborder(uY);
 }
 
 
@@ -1288,13 +1301,17 @@ void _F18A_modetgm2(unsigned char uY)
     BYTE SPColor;
     BYTE SPColBuf[256],SPPalBasIdxBuf[256];
     unsigned short SPMaxAttrAddr,SPParentAttrAddr,SPAttrAddr,SPGenBaseAddr,SPGenAddr;
-    BYTE SCRYOut,SCRYNeg,SPOnline,SPLinkAttr,SPX,SPY;
+    BYTE SCRYOut,SCRYNeg,SPOnline,SPLinkAttr;
+    unsigned short SPX,SPY;
     BYTE SPAttr,SPSize,SPMag,SPWidth,SPHeight,SPDimX,SPDimY;
     BYTE patternNo,SPFlipX,SPFlipY, baseColor,SPPalBaseIdx,pixelOn,sprColor;
     BYTE SPGenByte0,SPGenByte1,SPGenByte2,SPBit,SPBitShift1,SPBitShift2;
 
     // GO to current line
     P  = cv_display + TVW*(uY+(TVH-f18a.WinHeight)/2) + TVW/2-128;
+
+    // Refresh border
+    _F18A_refreshborder(uY);
 
     if (F18A_DisplayON) {
         // Prepare sprite colors
@@ -1529,9 +1546,6 @@ void _F18A_modetgm2(unsigned char uY)
             *P++=tms.BGColor;
         }
     }
-
-    // Refresh border
-    _F18A_refreshborder(uY);
 }
 
 void _F18A_modem(unsigned char uY)

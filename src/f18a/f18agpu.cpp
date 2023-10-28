@@ -425,9 +425,10 @@ void f18agpu_setpc(unsigned short value)
 };
 
 // ----------------------------------------------------------------------------------------
+// force the PC to always be 15-bit, can't store a 16-bit PC
 void f18agpu_addpc(signed short value)
 {
-    f18agpu.PC = (f18agpu.PC + value) & 0xFFFF;
+    f18agpu.PC = (f18agpu.PC + value) & 0xFFFE;
 };
 
 // ----------------------------------------------------------------------------------------
@@ -492,9 +493,6 @@ void f18agpu_writebyte(unsigned short addr, BYTE value)
             dmadiff = dmadir * (dmastride - dmawidth);
             dmacopy = (VDP_Memory[0x8007] & 0x01) == 0 ? 1 : 0;
             dmasrcByte = VDP_Memory[dmasrc];
-            if (dmadst==0) {
-                dmadst=456;
-            }
             if (dmacopy) {
                 for (y = 0; y < dmaheight; y++) {
                     for (x = 0; x < dmawidth; x++) {
@@ -731,7 +729,7 @@ void f18agpu_li(void)
 // Add Immediate: AI src, imm
 void f18agpu_ai(void)
 {
-    unsigned short x1,x3;
+    unsigned int x1,x3; //unsigned short x1,x3;
 
     F18AGPUFORMATVIII_1;       // read immediate
 
@@ -752,7 +750,7 @@ void f18agpu_ai(void)
 // AND Immediate: ANDI src, imm
 void f18agpu_andi(void)
 {
-    unsigned short x1,x2;
+    unsigned int x1,x2; // unsigned short x1,x2;
 
     F18AGPUFORMATVIII_1;       // read immediate
 
@@ -769,7 +767,7 @@ void f18agpu_andi(void)
 // OR Immediate: ORI src, imm
 void f18agpu_ori(void)
 {
-    unsigned short x1,x2;
+    unsigned int x1,x2; //unsigned short x1,x2;
 
     F18AGPUFORMATVIII_1;       // read immediate
 
@@ -995,7 +993,7 @@ void f18agpu_clr(void)
 // NEGate: NEG src
 void f18agpu_neg(void)
 {
-    unsigned short x1;
+    unsigned int x1; //unsigned short x1;
 
     F18AGPUFormatVI;
 
@@ -1014,7 +1012,7 @@ void f18agpu_neg(void)
     // INVert: INV src
 void f18agpu_inv(void)
 {
-    unsigned short x1;
+    unsigned int x1; //unsigned short x1;
 
     F18AGPUFormatVI;
 
@@ -1032,7 +1030,7 @@ void f18agpu_inv(void)
 // INCrement: INC src
 void f18agpu_inc(void)
 {
-    unsigned short x1;
+    unsigned int x1; //unsigned short x1;
 
     F18AGPUFormatVI;
 
@@ -1051,7 +1049,7 @@ void f18agpu_inc(void)
 // INCrement by Two: INCT src
 void f18agpu_inct(void)
 {
-    unsigned short x1;
+    unsigned int x1; // unsigned short x1;
 
     F18AGPUFormatVI;
 
@@ -1072,7 +1070,7 @@ void f18agpu_inct(void)
 // DECrement: DEC src
 void f18agpu_dec(void)
 {
-    unsigned short x1;
+    unsigned int x1; //unsigned short x1;
 
     F18AGPUFormatVI;
 
@@ -1093,7 +1091,7 @@ void f18agpu_dec(void)
 // DECrement by Two: DECT src
 void f18agpu_dect(void)
 {
-    unsigned short x1;
+    unsigned int x1; //unsigned short x1;
 
     F18AGPUFormatVI;
 
@@ -1157,7 +1155,7 @@ void f18agpu_seto(void)
 void f18agpu_abs(void)
 {
     BYTE cycles;
-    unsigned short x1,x2;
+    unsigned int x1,x2; //unsigned short x1,x2;
 
     F18AGPUFormatVI;
 
@@ -1249,7 +1247,7 @@ void f18agpu_srl(void)
 void f18agpu_sla(void)
 {
     BYTE cycles;
-    unsigned short x1,x3,x4;
+    unsigned int x1,x3,x4; // unsigned short x1,x3,x4;
     int x2;
 
     F18AGPUFormatV;
@@ -1287,7 +1285,7 @@ void f18agpu_sla(void)
 void f18agpu_src(void)
 {
     BYTE cycles;
-    unsigned short x1,x2,x4;
+    unsigned int x1,x2,x4; //unsigned short x1,x2,x4;
 
     F18AGPUFormatV;
 
@@ -1675,7 +1673,7 @@ void f18agpu_tb(void)
 // set bits in the dest (mask), the equal bit is set
 void f18agpu_coc(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFormatIII;
 
@@ -1698,7 +1696,7 @@ void f18agpu_coc(void)
 // match up with a zero bit in the src to set the equals flag
 void f18agpu_czc(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFormatIII;
 
@@ -1720,7 +1718,7 @@ void f18agpu_czc(void)
 // eXclusive OR: XOR src, dst
 void f18agpu_xor(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFormatIII;
 
@@ -1860,7 +1858,7 @@ void f18agpu_stcr(void)
 // Note: src and dest are unsigned.
 void f18agpu_mpy(void)
 {
-    unsigned short x1,x3;
+    unsigned int x1,x3; //unsigned short x1,x3;
 
     F18AGPUFORMATIX;
 
@@ -1881,7 +1879,7 @@ void f18agpu_mpy(void)
 // the first is the whole number result, the second is the remainder
 void f18agpu_div(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFORMATIX;
 
@@ -1910,7 +1908,7 @@ void f18agpu_div(void)
 // Zero all bits in dest that are zeroed in src
 void f18agpu_szc(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -1954,7 +1952,7 @@ void f18agpu_szcb(void)
 // Subtract: S src, dst
 void f18agpu_s(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -2008,7 +2006,7 @@ void f18agpu_sb(void)
 // Compare words: C src, dst
 void f18agpu_c(void)
 {
-    unsigned short x3,x4;
+    unsigned int x3,x4; // unsigned short x3,x4;
 
     F18AGPUFORMATI;
 
@@ -2035,7 +2033,7 @@ void f18agpu_c(void)
 // CompareBytes: CB src, dst
 void f18agpu_cb(void)
 {
-    unsigned short x3,x4;
+    unsigned int x3,x4; // unsigned short x3,x4;
 
     F18AGPUFORMATI;
 
@@ -2063,7 +2061,7 @@ void f18agpu_cb(void)
 // Add words: A src, dst
 void f18agpu_a(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3;//unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -2155,7 +2153,7 @@ void f18agpu_movb(void)
 // are set in src
 void f18agpu_soc(void)
 {
-    unsigned short x1,x2,x3;
+    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -2198,7 +2196,7 @@ void f18agpu_socb(void)
 // F18A specific opcodes
 void f18agpu_callf18(void)
 {
-    unsigned short x2;
+    unsigned int x2; //unsigned short x2;
 
     F18AGPUFormatVI;
 
@@ -2214,7 +2212,7 @@ void f18agpu_callf18(void)
 
 void f18agpu_retf18(void)
 {
-    unsigned short x1;
+    unsigned int x1; //unsigned short x1;
 
     F18AGPUFormatVII;
 
@@ -2228,7 +2226,7 @@ void f18agpu_retf18(void)
 
 void f18agpu_pushf18(void)
 {
-    unsigned short x1,x2;
+    unsigned int x1,x2; //unsigned short x1,x2;
 
     F18AGPUFormatVI;
 
@@ -2245,7 +2243,7 @@ void f18agpu_pushf18(void)
 void f18agpu_slcf18(void)
 {
     BYTE cycles;
-    unsigned short x1,x2,x4;
+    unsigned int x1,x2,x4; // unsigned short x1,x2,x4;
 
     F18AGPUFormatVI;
 
@@ -2275,7 +2273,7 @@ void f18agpu_slcf18(void)
 
 void f18agpu_popf18(void)
 {
-    unsigned short x1,x2;
+    unsigned int x1,x2; //unsigned short x1,x2;
 
     F18AGPUFormatVI;               // S is really D in this one...
 

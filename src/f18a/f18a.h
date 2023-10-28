@@ -69,6 +69,7 @@
 #define F18A_BMFat                          ((f18a.VDPR[0x1F] & 0x10) != 0)
 #define F18A_SPLinkEnabled                  ((f18a.VDPR[0x31] & 0x04) != 0)
 #define F18A_SPRealYCoord                   ((f18a.VDPR[0x31] & 0x08) != 0)
+#define F18A_ScanLine                       ((f18a.VDPR[0x32] & 0x04) != 0)
 
 #include "tms9928a.h"
 

@@ -222,6 +222,9 @@ void __fastcall Thardware::OKClick(TObject *Sender)
     TVW=TVW_TMS;
     TVH=TVH_TMS;
 
+    TVBL=BDW>>1;
+    TVBT=BDH>>1;
+
     AccurateInit(true);
 
     if (ResetRequired) machine.initialise();

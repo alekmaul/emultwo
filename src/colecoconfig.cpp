@@ -32,7 +32,7 @@ int lastMemoryReadValueLo, lastMemoryWriteValueLo;
 int lastMemoryReadAddrHi, lastMemoryWriteAddrHi;
 int lastMemoryReadValueHi, lastMemoryWriteValueHi;
 
-int TVW, TVH;
+int TVW, TVH, TVBL, TVBT;        // Screen width & height & border left & border top
 
 extern bool GetVersionNumber(int& versionNumberMajor, int& versionNumberMinor, int& versionNumberPart3, int& versionNumberPart4);
 //---------------------------------------------------------------------------

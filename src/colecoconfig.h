@@ -141,7 +141,7 @@ typedef struct
 
 extern EMUL2 emul2;
 extern MACHINE machine;
-extern int TVW, TVH;
+extern int TVW, TVH, TVBL, TVBT;
 
 // ----------------------------------------------------------------------------------------
 

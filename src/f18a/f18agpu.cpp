@@ -331,6 +331,45 @@ void f18agpu_init(void)
         opcodef18agpu[idx]=&f18agpu_slcf18;
     }
 
+#if 0
+    // Modified opcodes
+    
+    // IDLE = IDLE     Forces the GPU state machine to the idle state, restart with a trigger from host
+    opcode[0x0340] = &CPU9900::op_idleF18;
+
+    //TODO: be smart about these later
+    for (int idx=0; idx<0xffff; idx++) {
+        // XOP  = PIX       The new dedicated pixel plotting instruction
+        if (opcode[idx] == &CPU9900::op_xop) opcode[idx]=&CPU9900::op_pixF18;
+
+        // CKON = SPI !CE Sets the chip enable line to the SPI Flash ROM low (enables the ROM)
+        if (opcode[idx] == &CPU9900::op_ckon) opcode[idx]=&CPU9900::op_csonF18;
+
+        // CKOF = SPI CE  Sets the chip enable line to the SPI Flash ROM high (disables the ROM)
+        if (opcode[idx] == &CPU9900::op_ckof) opcode[idx]=&CPU9900::op_csoffF18;
+
+        // LDCR = SPI OUT Writes a byte (always a byte operation) to the SPI Flash ROM
+        if (opcode[idx] == &CPU9900::op_ldcr) opcode[idx]=&CPU9900::op_spioutF18;
+
+        // STCR = SPI IN  Reads a byte (always a byte operation) from the SPI Flash ROM
+        if (opcode[idx] == &CPU9900::op_stcr) opcode[idx]=&CPU9900::op_spiinF18;
+
+        // RTWP = RTWP     Modified, does not use R13, only performs R14->PC, R15->status flags
+        if (opcode[idx] == &CPU9900::op_rtwp) opcode[idx]=&CPU9900::op_rtwpF18;
+
+        // Unimplemented
+        if (opcode[idx] == &CPU9900::op_sbo) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_sbz) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_tb) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_blwp) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_stwp) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_lwpi) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_limi) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_rset) opcode[idx]=&CPU9900::op_bad;
+        if (opcode[idx] == &CPU9900::op_lrex) opcode[idx]=&CPU9900::op_bad;
+    }
+#endif
+
     // Word status lookup table
     for (i = 0; i < 0x10000; i++)
     {
@@ -633,7 +672,8 @@ void f18agpu_postIncrement(BYTE nWhich)
 // '4' in order to skip unneeded processing of the Destination address
 void f18agpu_fixs(void)
 {
-    unsigned short cycles = 0, temp, t2;
+    unsigned short cycles = 0;
+    int temp, t2;
 
     // source type
     switch (f18agpu.Ts)
@@ -672,7 +712,8 @@ void f18agpu_fixs(void)
 // ----------------------------------------------------------------------------------------
 void f18agpu_fixd(void)
 {
-    unsigned short cycles = 0, temp, t2;
+    unsigned short cycles = 0;
+    int temp, t2;
 
     // destination type
     // same as the source types
@@ -717,68 +758,67 @@ void f18agpu_fixd(void)
 // Load Immediate: LI src, imm
 void f18agpu_li(void)
 {
-    F18AGPUFORMATVIII_1;       // read immediate
+    F18AGPUADDCYCLE(12);
 
-    f18agpu_writeword(f18agpu.D, f18agpu.S);
+    F18AGPUFORMATVIII_1;       // read immediate
+    f18agpu_writeword(f18agpu.D, f18agpu.S);     // write register
+
     F18AGPURESETLGT_AGT_EQ;
     f18agpu.ST |= wStatusLookup[f18agpu.S] & F18AGPU_MSKLGT_AGT_EQ;
-
-    F18AGPUADDCYCLE(12);
 };
 
 // Add Immediate: AI src, imm
 void f18agpu_ai(void)
 {
-    unsigned int x1,x3; //unsigned short x1,x3;
+    unsigned short x1,x3;
+
+    F18AGPUADDCYCLE(14);
 
     F18AGPUFORMATVIII_1;       // read immediate
+    x1 = f18agpu_readword(f18agpu.D);   // read dest
 
-    x1 = f18agpu_readword(f18agpu.D);
     x3 = (x1 + f18agpu.S) & 0xFFFF;
-
-    f18agpu_writeword(f18agpu.D, x3);
+    f18agpu_writeword(f18agpu.D, x3); // write dest
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
     f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
 
     if (x3 < x1) F18AGPUSET_C;
     if (((x1 & 0x8000) == (f18agpu.S & 0x8000)) && ((x3 & 0x8000) != (f18agpu.S & 0x8000))) F18AGPUSET_OV;
-
-    F18AGPUADDCYCLE(14);
 };
 
 // AND Immediate: ANDI src, imm
 void f18agpu_andi(void)
 {
-    unsigned int x1,x2; // unsigned short x1,x2;
+    unsigned short x1,x2;
+
+    F18AGPUADDCYCLE(14);
 
     F18AGPUFORMATVIII_1;       // read immediate
 
-    x1 = f18agpu_readword(f18agpu.D);
+    x1 = f18agpu_readword(f18agpu.D);       // read dest
     x2 = x1 & f18agpu.S;
-    f18agpu_writeword(f18agpu.D, x2);
+    f18agpu_writeword(f18agpu.D, x2);          // write dest
 
     F18AGPURESETLGT_AGT_EQ;
     f18agpu.ST |= wStatusLookup[x2] & F18AGPU_MSKLGT_AGT_EQ;
-
-    F18AGPUADDCYCLE(14);
 };
 
 // OR Immediate: ORI src, imm
 void f18agpu_ori(void)
 {
-    unsigned int x1,x2; //unsigned short x1,x2;
+    unsigned short x1,x2;
+
+    F18AGPUADDCYCLE(14);
 
     F18AGPUFORMATVIII_1;       // read immediate
 
-    x1 = f18agpu_readword(f18agpu.D);
+    x1 = f18agpu_readword(f18agpu.D);      // read dest
     x2 = x1 | f18agpu.S;
-    f18agpu_writeword(f18agpu.D, x2);
+    f18agpu_writeword(f18agpu.D, x2);        // write dest
 
     F18AGPURESETLGT_AGT_EQ;
     f18agpu.ST |= wStatusLookup[x2] & F18AGPU_MSKLGT_AGT_EQ;
-
-    F18AGPUADDCYCLE(14);
 };
 
 // Compare Immediate: CI src, imm
@@ -786,9 +826,10 @@ void f18agpu_ci(void)
 {
     unsigned short x3;
 
-    F18AGPUFORMATVIII_1;       // read source
+    F18AGPUADDCYCLE(14);
 
-    x3 = f18agpu_readword(f18agpu.D);
+    F18AGPUFORMATVIII_1;       // read source
+    x3 = f18agpu_readword(f18agpu.D);    // read dest
 
     F18AGPURESETLGT_AGT_EQ;
     if (x3 > f18agpu.S) F18AGPUSET_LGT;
@@ -799,8 +840,6 @@ void f18agpu_ci(void)
     else {
         if ((f18agpu.S & 0x8000) != 0) F18AGPUSET_AGT;
     }
-
-    F18AGPUADDCYCLE(14);
 };
 
 // STore Workspace Pointer: STWP src
@@ -811,11 +850,10 @@ void f18agpu_stwp(void)
     // 2 memory accesses:
     //  Read instruction (already done)
     //  Write dest
-    F18AGPUFORMATVIII_0;
-
-    f18agpu_writeword(f18agpu.D,f18agpu.WP);   // write dest
-
     F18AGPUADDCYCLE(8);
+
+    F18AGPUFORMATVIII_0;
+    f18agpu_writeword(f18agpu.D,f18agpu.WP);   // write dest
 };
 
 // STore STatus: STST src
@@ -826,11 +864,10 @@ void f18agpu_stst(void)
     // 2 memory accesses:
     //  Read instruction (already done)
     //  Write dest
-    F18AGPUFORMATVIII_0;
-
-    f18agpu_writeword(f18agpu.D, f18agpu.ST);   // write dest
-
     F18AGPUADDCYCLE(8);
+
+    F18AGPUFORMATVIII_0;
+    f18agpu_writeword(f18agpu.D, f18agpu.ST);   // write dest
 };
 
 // Load Workspace Pointer Immediate: LWPI imm
@@ -841,21 +878,20 @@ void f18agpu_lwpi(void)
     // 2 memory accesses:
     //  Read instruction (already done)
     //  Read immediate
+    F18AGPUADDCYCLE(10);
+
     F18AGPUFORMATVIII_1;   // read immediate
-
     f18agpu.WP=f18agpu.S&0xfffe;
-
-    F18AGPUADDCYCLE(8);
 };
 
 // Load Interrupt Mask Immediate: LIMI imm
 // Sets the CPU interrupt mask
 void f18agpu_limi(void)
 {
+    F18AGPUADDCYCLE(16);
+
     F18AGPUFORMATVIII_1;   // read immediate
     f18agpu.ST=(f18agpu.ST&0xfff0)|(f18agpu.S&0xf);
-
-    F18AGPUADDCYCLE(16);
 };
 
 // This sets A0-A2 to 010, and pulses CRUCLK until an interrupt is received.
@@ -871,10 +907,10 @@ void f18agpu_idle(void)
 // However, it does have an effect, it zeros the interrupt mask
 void f18agpu_rset(void)
 {
-    F18AGPUFormatVII;
-
-    f18agpu.ST&=0xfff0;
     F18AGPUADDCYCLE(12);
+
+    F18AGPUFormatVII;
+    f18agpu.ST&=0xfff0;
 };
 
 // ReTurn with Workspace Pointer: RTWP
@@ -882,39 +918,41 @@ void f18agpu_rset(void)
 // F18A Modified, does not use R13, only performs R14->PC, R15->status flags
 void f18agpu_rtwp(void)
 {
+    F18AGPUADDCYCLE(14);
+
     F18AGPUFormatVII;
 
     f18agpu.ST = f18agpu_readword(f18agpu.WP + 30); // R15
     f18agpu.PC = f18agpu_readword(f18agpu.WP + 28); // R14
-
-    F18AGPUADDCYCLE(14);
+    f18agpu.WP = f18agpu_readword(f18agpu.WP + 26); // WP<-R13 -- needs to be last!
 };
 
 // This is the SPI_EN instruction of the F18A GPU
 // This will set A0-A2 to 101 and pulse CRUCLK (so not emulated)
 void f18agpu_ckon(void)
 {
+    F18AGPUADDCYCLE(12);
+
     F18AGPUFormatVII;
     //f18agpu.flash.enable();
-    F18AGPUADDCYCLE(12);
 };
 
 // This is the SPI_DS instruction of the F18A GPU
 // This will set A0-A2 to 110 and pulse CRUCLK (so not emulated)
 void f18agpu_ckof(void)
 {
+    F18AGPUADDCYCLE(12);
+
     F18AGPUFormatVII;
     //f18agpu.flash.disable();
-    F18AGPUADDCYCLE(12);
 };
 
 // This will set A0-A2 to 111 and pulse CRUCLK
 void f18agpu_lrex(void)
 {
-    F18AGPUFormatVII;
-
     F18AGPUADDCYCLE(12);
 
+    F18AGPUFormatVII;
 };
 
 // Branch and Load Workspace Pointer: BLWP src
@@ -926,6 +964,8 @@ void f18agpu_lrex(void)
 // Return is performed with RTWP
 void f18agpu_blwp(void)
 {
+    F18AGPUADDCYCLE(26);
+
     F18AGPUFormatVI;
 /*
         // Not implemented
@@ -940,122 +980,118 @@ void f18agpu_blwp(void)
     SetPC(ROMWORD(S+2));    // read PC
 
 */
-    F18AGPUADDCYCLE(26);
 };
 
 // Branch: B src
 // Unconditional absolute branch
 void f18agpu_b(void)
 {
-    F18AGPUFormatVI;
+    F18AGPUADDCYCLE(8);
 
+    F18AGPUFormatVI;
     f18agpu.PC = f18agpu.S;
     f18agpu_postIncrement(F18AGPU_SRC);
 
-    F18AGPUADDCYCLE(8);
 };
 
 // eXecute: X src
 // The argument is interpreted as an instruction and executed
 void f18agpu_x(void)
 {
-    unsigned short xInstr,cycles;
-
-    F18AGPUFormatVI;
+    unsigned short xInstr;
 
     if (f18agpu.flagX != 0) {
             //f18agpu.log.info("Recursive X instruction!");
     }
+    F18AGPUADDCYCLE(8 - 4);	        // For X, add this time to the execution time of the instruction found at the source address, minus 4 clock cycles and 1 memory access.
 
+    F18AGPUFormatVI;
     xInstr = f18agpu_readword(f18agpu.S);
     f18agpu_postIncrement(F18AGPU_SRC);	// does this go before or after the eXecuted instruction??
         // skip_interrupt=1;	    // (ends up having no effect because we call the function inline, but technically still correct)
 
-    cycles = 8 - 4;	        // For X, add this time to the execution time of the instruction found at the source address, minus 4 clock cycles and 1 memory access.
     f18agpu.flagX = f18agpu.PC;	    // set flag and save true post-X address for the JMPs (AFTER X's operands but BEFORE the instruction's operands, if any)
     (*opcodef18agpu[xInstr])();
 
     f18agpu.flagX = 0;			    // clear flag
-
-    F18AGPUADDCYCLE(cycles);
 };
 
 // CLeaR: CLR src
 // sets word to 0
 void f18agpu_clr(void)
 {
-    F18AGPUFormatVI;
-
-    f18agpu_writeword(f18agpu.S, 0);
     F18AGPUADDCYCLE(10);
+
+    F18AGPUFormatVI;
+    f18agpu_writeword(f18agpu.S, 0);    // write source
 };
 
 // NEGate: NEG src
 void f18agpu_neg(void)
 {
-    unsigned int x1; //unsigned short x1;
+    unsigned short x1;
+
+    F18AGPUADDCYCLE(12);
 
     F18AGPUFormatVI;
-
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);          // read source
 
     x1 = ((~x1) + 1) & 0xFFFF;
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);      // write source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OV_C;
-
-    F18AGPUADDCYCLE(12);
 };
 
-    // INVert: INV src
+// INVert: INV src
 void f18agpu_inv(void)
 {
-    unsigned int x1; //unsigned short x1;
+    unsigned short x1;
+
+    F18AGPUADDCYCLE(10);
 
     F18AGPUFormatVI;
 
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);       // read source
     x1 = (~x1) & 0xFFFF;
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);       // write source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETLGT_AGT_EQ;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
-
-    F18AGPUADDCYCLE(10);
 };
 
 // INCrement: INC src
 void f18agpu_inc(void)
 {
-    unsigned int x1; //unsigned short x1;
+    unsigned short x1;
+
+    F18AGPUADDCYCLE(10);
 
     F18AGPUFormatVI;
-
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);           // read source
 
     x1 = (x1 + 1) & 0xFFFF;
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);           // write source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OV_C;
-
-    F18AGPUADDCYCLE(10);
 };
 
 // INCrement by Two: INCT src
 void f18agpu_inct(void)
 {
-    unsigned int x1; // unsigned short x1;
+    unsigned short x1;
+
+    F18AGPUADDCYCLE(10);
 
     F18AGPUFormatVI;
+    x1 = f18agpu_readword(f18agpu.S);       // read source
 
-    x1 = f18agpu_readword(f18agpu.S);
     x1 = (x1 + 2) & 0xFFFF;
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);          // write source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
@@ -1063,20 +1099,20 @@ void f18agpu_inct(void)
 
     if (x1 < 2) F18AGPUSET_C;
     if ((x1 == 0x8000) || (x1 == 0x8001)) F18AGPUSET_OV;
-
-    F18AGPUADDCYCLE(10);
 };
 
 // DECrement: DEC src
 void f18agpu_dec(void)
 {
-    unsigned int x1; //unsigned short x1;
+    unsigned short x1;
+
+    F18AGPUADDCYCLE(10);
 
     F18AGPUFormatVI;
+    x1 = f18agpu_readword(f18agpu.S);        // read source
 
-    x1 = f18agpu_readword(f18agpu.S);
     x1 = (x1 - 1) & 0xFFFF;
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);          // write source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
@@ -1084,20 +1120,20 @@ void f18agpu_dec(void)
 
     if (x1 != 0xffff) F18AGPUSET_C;
     if (x1 == 0x7fff) F18AGPUSET_OV;
-
-    F18AGPUADDCYCLE(10);
 };
 
 // DECrement by Two: DECT src
 void f18agpu_dect(void)
 {
-    unsigned int x1; //unsigned short x1;
+    unsigned short x1;
+
+    F18AGPUADDCYCLE(10);
 
     F18AGPUFormatVI;
+    x1 = f18agpu_readword(f18agpu.S);    // read source
 
-    x1 = f18agpu_readword(f18agpu.S);
     x1 = (x1 - 2) & 0xFFFF;
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);           // write source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
@@ -1105,8 +1141,6 @@ void f18agpu_dect(void)
 
     if (x1 < 0xfffe) F18AGPUSET_C;
     if ((x1 == 0x7fff) || (x1 == 0x7ffe)) F18AGPUSET_OV;
-
-    F18AGPUADDCYCLE(10);
 };
 
 // Branch and Link: BL src
@@ -1115,13 +1149,13 @@ void f18agpu_dect(void)
 // A return is simply B *R11. Some assemblers define RT as f18agpu.
 void f18agpu_bl(void)
 {
+    F18AGPUADDCYCLE(12);
+
     F18AGPUFormatVI;
 
-    f18agpu_writeword(f18agpu.WP + 22, f18agpu.PC);
+    f18agpu_writeword(f18agpu.WP + 22, f18agpu.PC);    // write return
     f18agpu.PC = f18agpu.S;
     f18agpu_postIncrement(F18AGPU_SRC);
-
-    F18AGPUADDCYCLE(12);
 };
 
 // SWaP Bytes: SWPB src
@@ -1130,49 +1164,46 @@ void f18agpu_swpb(void)
 {
     unsigned short x1,x2;
 
-    F18AGPUFormatVI;
-
-    x1 = f18agpu_readword(f18agpu.S);
-    x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
-    f18agpu_writeword(f18agpu.S, x2);
-    f18agpu_postIncrement(F18AGPU_SRC);
-
     F18AGPUADDCYCLE(10);
+
+    F18AGPUFormatVI;
+    x1 = f18agpu_readword(f18agpu.S);        // read source
+
+    x2 = ((x1 & 0xff) << 8) | (x1 >> 8);
+    f18agpu_writeword(f18agpu.S, x2);        // write source
+    f18agpu_postIncrement(F18AGPU_SRC);
 };
 
 // SET to One: SETO src
 // sets word to 0xffff
 void f18agpu_seto(void)
 {
-    F18AGPUFormatVI;
-
-    f18agpu_writeword(f18agpu.S, 0xffff);
-    f18agpu_postIncrement(F18AGPU_SRC);
     F18AGPUADDCYCLE(10);
+
+    F18AGPUFormatVI;
+    f18agpu_writeword(f18agpu.S, 0xffff);      // write source
+    f18agpu_postIncrement(F18AGPU_SRC);
 };
 
 // ABSolute value: ABS src
 void f18agpu_abs(void)
 {
-    BYTE cycles;
-    unsigned int x1,x2; //unsigned short x1,x2;
+    unsigned short x1,x2;
+
+    F18AGPUADDCYCLE(12);
 
     F18AGPUFormatVI;
+    x1 = f18agpu_readword(f18agpu.S);    // read source
 
-    cycles = 0;
-    x1 = f18agpu_readword(f18agpu.S);
-
-    if ((x1 & 0x8000) != 0) {
+    if (x1 & 0x8000) {
         x2 = ((~x1) + 1) & 0xFFFF;	// if negative, make positive
-        f18agpu_writeword(f18agpu.S, x2);
-        cycles += 2;
+        f18agpu_writeword(f18agpu.S, x2);   // write source
+        F18AGPUADDCYCLE(2);
     }
     f18agpu_postIncrement(F18AGPU_SRC);
 
     F18AGPURESETEQ_LGT_AGT_C_OV;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ_OV;
-
-    F18AGPUADDCYCLE(cycles+12);
 };
 
 // Shift Right Arithmetic: SRA src, dst
@@ -1181,18 +1212,18 @@ void f18agpu_abs(void)
 // The arithmetic operations preserve the sign bit
 void f18agpu_sra(void)
 {
-    BYTE cycles;
-    unsigned short x1,x2,x3,x4;
+    unsigned short x1,x3,x4;
+    int x2;
+
+    F18AGPUADDCYCLE(12);
 
     F18AGPUFormatV;
-
-    cycles = 0;
     if (f18agpu.D == 0) {
-        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;       // read R0
         if (f18agpu.D == 0) f18agpu.D = 16;
-            cycles += 8;
+        F18AGPUADDCYCLE(8);
     }
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);                // read source
     x4 = x1 & 0x8000;
     x3 = 0;
 
@@ -1201,36 +1232,36 @@ void f18agpu_sra(void)
         x1 = x1 >> 1;  // shift once
         x1 = x1 | x4;  // extend sign bit
     }
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);        // write source
 
     F18AGPURESETEQ_LGT_AGT_C;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
     if (x3 != 0) F18AGPUSET_C;
 
-    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
+    F18AGPUADDCYCLE(2 * f18agpu.D);
 };
 
 // Shift Right Logical: SRL src, dst
 // The logical shifts do not preserve the sign
 void f18agpu_srl(void)
 {
-    BYTE cycles;
-    unsigned short x1,x2,x3;
+    unsigned short x1,x3;
+    int x2;
+
+    F18AGPUADDCYCLE(12);
 
     F18AGPUFormatV;
-
-    cycles = 0;
     if (f18agpu.D == 0) {
-        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;       // read R0
         if (f18agpu.D == 0) f18agpu.D = 16;
-            cycles += 8;
+        F18AGPUADDCYCLE(8);
     }
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);             // read source
     x3 = 0;
 
     for (x2 = 0; x2 < f18agpu.D; x2++) {
-        x3 = x1 & 1;                                 
+        x3 = x1 & 1;
         x1= x1 >> 1;
     }
     f18agpu_writeword(f18agpu.S, x1);
@@ -1240,25 +1271,25 @@ void f18agpu_srl(void)
 
     if (x3 != 0) F18AGPUSET_C;
 
-    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
+    F18AGPUADDCYCLE(2 * f18agpu.D);
 };
 
 // Shift Left Arithmetic: SLA src, dst
 void f18agpu_sla(void)
 {
-    BYTE cycles;
-    unsigned int x1,x3,x4; // unsigned short x1,x3,x4;
+    unsigned short x1,x3,x4;
     int x2;
+
+    F18AGPUADDCYCLE(12);
 
     F18AGPUFormatV;
 
-    cycles = 0;
     if (f18agpu.D == 0) {
-        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;      // read R0
         if (f18agpu.D == 0) f18agpu.D = 16;
-        cycles += 8;
+        F18AGPUADDCYCLE(8);
     }
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);                // read source
     x4 = x1 & 0x8000;
     F18AGPURESETEQ_LGT_AGT_C_OV;
 
@@ -1269,13 +1300,13 @@ void f18agpu_sla(void)
         if ((x1 & 0x8000) != x4) F18AGPUSET_OV;
     }
     x1 = x1 & 0xFFFF;
-    f18agpu_writeword(f18agpu.S , x1);
+    f18agpu_writeword(f18agpu.S , x1);          // write source
 
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
     if (x3 != 0) F18AGPUSET_C;
 
-    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
+    F18AGPUADDCYCLE(2 * f18agpu.D);
 };
 
 // Shift Right Circular: SRC src, dst
@@ -1285,17 +1316,21 @@ void f18agpu_sla(void)
 void f18agpu_src(void)
 {
     BYTE cycles;
-    unsigned int x1,x2,x4; //unsigned short x1,x2,x4;
+    //unsigned short x1,x2,x4;
+    int x2;
+    unsigned short x1,x4;
+
+    F18AGPUADDCYCLE(12);
 
     F18AGPUFormatV;
 
     cycles = 0;
     if (f18agpu.D == 0) {
-        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;
+        f18agpu.D = f18agpu_readword(f18agpu.WP) & 0xf;         // read R0
         if (f18agpu.D == 0) f18agpu.D=16;
-        cycles += 8;
+        F18AGPUADDCYCLE(8);
     }
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);                      // read source
     for (x2 = 0; x2 < f18agpu.D; x2++) {
         x4 = x1 & 0x1;
         x1 = x1 >> 1;
@@ -1303,22 +1338,23 @@ void f18agpu_src(void)
             x1 = x1 | 0x8000;
         }
     }
-    f18agpu_writeword(f18agpu.S, x1);
+    f18agpu_writeword(f18agpu.S, x1);    // write source
 
     F18AGPURESETEQ_LGT_AGT_C;
     f18agpu.ST |= wStatusLookup[x1] & F18AGPU_MSKLGT_AGT_EQ;
 
     if (x4 != 0) F18AGPUSET_C;
 
-    F18AGPUADDCYCLE(cycles + 12 + 2 * f18agpu.D);
+    F18AGPUADDCYCLE(2 * f18agpu.D);
 };
 
 // JuMP: JMP dsp
 // (unconditional)
 void f18agpu_jmp(void)
 {
-    F18AGPUFormatII;
+    F18AGPUADDCYCLE(10);
 
+    F18AGPUFormatII;
     if (f18agpu.flagX != 0) {
         f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
     }
@@ -1330,15 +1366,16 @@ void f18agpu_jmp(void)
         f18agpu_addpc(f18agpu.D + f18agpu.D);
     }
 
-    F18AGPUADDCYCLE(10);
 };
 
 // Jump if Less Than: JLT dsp
 void f18agpu_jlt(void)
 {
+    F18AGPUADDCYCLE(8);
+
     F18AGPUFormatII;
 
-    if (((f18agpu.ST & F18AGPU_BIT_AGT) == 0) && ((f18agpu.ST & F18AGPU_BIT_EQ) == 0)) {
+    if ((F18AGPUGET_AGT == 0) && (F18AGPUGET_EQ == 0)) {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1349,19 +1386,18 @@ void f18agpu_jlt(void)
         else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
 // Jump if Low or Equal: JLE dsp
 void f18agpu_jle(void)
 {
+    F18AGPUADDCYCLE(8);
+
     F18AGPUFormatII;
 
-    if (((f18agpu.ST & F18AGPU_BIT_LGT) == 0) && ((f18agpu.ST & F18AGPU_BIT_EQ) != 0)) {
+    if ((F18AGPUGET_LGT == 0) || (F18AGPUGET_EQ != 0)) {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1372,10 +1408,7 @@ void f18agpu_jle(void)
         else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
@@ -1384,9 +1417,11 @@ void f18agpu_jle(void)
 // the number of words to branch
 void f18agpu_jeq(void)
 {
+    F18AGPUADDCYCLE(8);
+
     F18AGPUFormatII;
 
-    if ((f18agpu.ST & F18AGPU_BIT_EQ) != 0) {
+    if (F18AGPUGET_EQ != 0) {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1396,19 +1431,18 @@ void f18agpu_jeq(void)
         } else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
 // Jump if High or Equal: JHE dsp
 void f18agpu_jhe(void)
 {
+    F18AGPUADDCYCLE(8);
+
     F18AGPUFormatII;
 
-    if (((f18agpu.ST & F18AGPU_BIT_LGT) != 0) && ((f18agpu.ST & F18AGPU_BIT_EQ) != 0)) {
+    if ((F18AGPUGET_LGT != 0) || (F18AGPUGET_EQ != 0)) {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1418,19 +1452,18 @@ void f18agpu_jhe(void)
         } else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
 // Jump if Greater Than: JGT dsp
 void f18agpu_jgt(void)
 {
+    F18AGPUADDCYCLE(8);
+
     F18AGPUFormatII;
 
-    if ((f18agpu.ST & F18AGPU_BIT_AGT) != 0)  {
+    if (F18AGPUGET_AGT != 0)  {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1440,19 +1473,18 @@ void f18agpu_jgt(void)
         } else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
 // Jump if Not Equal: JNE dsp
 void f18agpu_jne(void)
 {
+    F18AGPUADDCYCLE(8);
+
     F18AGPUFormatII;
 
-    if ((f18agpu.ST & F18AGPU_BIT_EQ) == 0)  {
+    if (F18AGPUGET_EQ == 0)  {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1462,133 +1494,122 @@ void f18agpu_jne(void)
         } else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
 // Jump if No Carry: JNC dsp
 void f18agpu_jnc(void)
 {
-/*
-        if (f18agpu.getC() === 0) {
-            if (f18agpu.flagX !== 0) {
-                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUADDCYCLE(8);
 
-            if ((f18agpu.D & 0x80) !== 0) {
-                f18agpu.D = 128 - (f18agpu.D & 0x7f);
-                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
-            } else {
-                f18agpu.addPC(f18agpu.D + f18agpu.D);
-            }
-            return 10;
+    F18AGPUFormatII;
+    if (F18AGPUGET_C == 0) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-        else {
-            return 8;
+
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-*/
+        F18AGPUADDCYCLE(10-8);
+    }
 };
 
-    // Jump On Carry: JOC dsp
+// Jump On Carry: JOC dsp
 void f18agpu_joc(void)
 {
-/*
-        if (f18agpu.getC() !== 0) {
-            if (f18agpu.flagX !== 0) {
-                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUADDCYCLE(8);
 
-            if ((f18agpu.D & 0x80) !== 0) {
-                f18agpu.D = 128 - (f18agpu.D & 0x7f);
-                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
-            } else {
-                f18agpu.addPC(f18agpu.D + f18agpu.D);
-            }
-            return 10;
+    F18AGPUFormatII;
+    if (F18AGPUGET_C != 0) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-        else {
-            return 8;
+
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-*/
+        F18AGPUADDCYCLE(10-8);
+    }
 };
 
-    // Jump if No Overflow: JNO dsp
+// Jump if No Overflow: JNO dsp
 void f18agpu_jno(void)
 {
-/*
-        if (f18agpu.getOV() === 0) {
-            if (f18agpu.flagX !== 0) {
-                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUADDCYCLE(8);
 
-            if ((f18agpu.D & 0x80) !== 0) {
-                f18agpu.D = 128 - (f18agpu.D & 0x7f);
-                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
-            } else {
-                f18agpu.addPC(f18agpu.D + f18agpu.D);
-            }
-            return 10;
+    F18AGPUFormatII;
+    if (F18AGPUGET_OV == 0) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-        else {
-            return 8;
+
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-*/
+        F18AGPUADDCYCLE(10-8);
+    }
 };
 
+// Jump if Low: JL dsp
 void f18agpu_jl(void)
 {
-/*
-        if ((f18agpu.getLGT() === 0) && (f18agpu.getEQ() === 0)) {
-            if (f18agpu.flagX !== 0) {
-                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUADDCYCLE(8);
 
-            if ((f18agpu.D & 0x80) !== 0) {
-                f18agpu.D = 128 - (f18agpu.D & 0x7f);
-                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
-            } else {
-                f18agpu.addPC(f18agpu.D + f18agpu.D);
-            }
-            return 10;
+    F18AGPUFormatII;
+    if ((F18AGPUGET_LGT == 0) && (F18AGPUGET_EQ == 0)) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-        else {
-            return 8;
+
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-*/
+        F18AGPUADDCYCLE(10-8);
+    }
 };
 
 // Jump if High: JH dsp
 void f18agpu_jh(void)
 {
-/*
-        if ((f18agpu.getLGT() !== 0) && (f18agpu.getEQ() === 0))
-        {
-            if (f18agpu.flagX !== 0) {
-                f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
-            }
+    F18AGPUADDCYCLE(8);
 
-            if ((f18agpu.D & 0x80) !== 0) {
-                f18agpu.D = 128 - (f18agpu.D & 0x7f);
-                f18agpu.addPC(-(f18agpu.D + f18agpu.D));
-            } else {
-                f18agpu.addPC(f18agpu.D + f18agpu.D);
-            }
-            return 10;
-        } else {
-            return 8;
+    F18AGPUFormatII;
+    if ((F18AGPUGET_LGT != 0) && (F18AGPUGET_EQ == 0)) {
+        if (f18agpu.flagX != 0) {
+            f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
-*/
+
+        if ((f18agpu.D & 0x80) != 0) {
+            f18agpu.D = 128 - (f18agpu.D & 0x7f);
+            f18agpu_addpc(-(f18agpu.D + f18agpu.D));
+        } else {
+            f18agpu_addpc(f18agpu.D + f18agpu.D);
+        }
+        F18AGPUADDCYCLE(10-8);
+    }
 };
 
 // Jump on Odd Parity: JOP dsp
 void f18agpu_jop(void)
 {
+    F18AGPUADDCYCLE(8);
     F18AGPUFormatII;
 
-    if ((f18agpu.ST & F18AGPU_BIT_OP) != 0) {
+    if (F18AGPUGET_OP != 0) {
         if (f18agpu.flagX != 0) {
             f18agpu.PC = f18agpu.flagX;	// Update offset - it's relative to the X, not the opcode
         }
@@ -1599,10 +1620,7 @@ void f18agpu_jop(void)
         else {
             f18agpu_addpc(f18agpu.D + f18agpu.D);
         }
-        F18AGPUADDCYCLE(10);
-    }
-    else {
-        F18AGPUADDCYCLE(8);
+        F18AGPUADDCYCLE(10-8);
     }
 };
 
@@ -1610,62 +1628,57 @@ void f18agpu_jop(void)
 // Sets a bit in the CRU
 void f18agpu_sbo(void)
 {
-    F18AGPUFormatII;
-/*
-not implemented
+    unsigned short addval;
 
-    FormatII;
-    add=(ROMWORD(WP+24)>>1)&0xfff;      // read R12
-    if (D&0x80) {
-        add-=128-(D&0x7f);
-    } else {
-        add+=D;
-    }
-    wcru(add,1);
-*/
     F18AGPUADDCYCLE(12);
+
+    F18AGPUFormatII;
+    addval=f18agpu_readword((f18agpu.WP+24)>>1) & 0xFFF; // read R12
+    if ((f18agpu.D & 0x80) != 0) {
+        addval -= 128 - (f18agpu.D & 0x7f);
+    }
+    else {
+        addval+=f18agpu.D;
+    }
+    // not implemented wcru(add,1);
 };
 
 // Set Bit Zero: SBZ src
 // Zeros a bit in the CRU
 void f18agpu_sbz(void)
 {
-    F18AGPUFormatII;
+    unsigned short addval;
 
-    /*
-not implemented
-    FormatII;
-    add=(ROMWORD(WP+24)>>1)&0xfff;      // read R12
-    if (D&0x80) {
-        add-=128-(D&0x7f);
-    } else {
-        add+=D;
-    }
-    wcru(add,0);
-*/
     F18AGPUADDCYCLE(12);
+
+    F18AGPUFormatII;
+    addval=f18agpu_readword((f18agpu.WP+24)>>1) & 0xFFF; // read R12
+    if ((f18agpu.D & 0x80) != 0) {
+        addval -= 128 - (f18agpu.D & 0x7f);
+    }
+    else {
+        addval+=f18agpu.D;
+    }
+    // not implemented wcru(add,0);
 };
 
 // Test Bit: TB src
 // Tests a CRU bit
 void f18agpu_tb(void)
 {
-    F18AGPUFormatII;
+    unsigned short addval;
 
-    /*
-// not implemented
-    FormatII;
-    add=(ROMWORD(WP+24)>>1)&0xfff;  // read R12
-    if (D&0x80) {
-        add-=128-(D&0x7f);
-    } else {
-        add+=D;
-    }
-
-    if (rcru(add)) set_EQ; else reset_EQ;
-
-*/
     F18AGPUADDCYCLE(12);
+
+    F18AGPUFormatII;
+    addval=f18agpu_readword((f18agpu.WP+24)>>1) & 0xFFF; // read R12
+    if ((f18agpu.D & 0x80) != 0) {
+        addval -= 128 - (f18agpu.D & 0x7f);
+    }
+    else {
+        addval+=f18agpu.D;
+    }
+    // not implemented if (rcru(add)) set_EQ; else reset_EQ;
 };
 
 // Compare Ones Corresponding: COC src, dst
@@ -1673,22 +1686,21 @@ void f18agpu_tb(void)
 // set bits in the dest (mask), the equal bit is set
 void f18agpu_coc(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
+
+    F18AGPUADDCYCLE(14);
 
     F18AGPUFormatIII;
-
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);               // read source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     f18agpu_fixd();
-    x2 = f18agpu_readword(f18agpu.D);
+    x2 = f18agpu_readword(f18agpu.D);            // read dest
     x3 = x1 & x2;
     if (x3 == x1)
         F18AGPUSET_EQ
     else
         F18AGPURESETEQ
-
-    F18AGPUADDCYCLE(14);
 };
 
 // Compare Zeros Corresponding: CZC src, dst
@@ -1696,45 +1708,43 @@ void f18agpu_coc(void)
 // match up with a zero bit in the src to set the equals flag
 void f18agpu_czc(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
+
+    F18AGPUADDCYCLE(14);
 
     F18AGPUFormatIII;
-
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);                   // read srouce
     f18agpu_postIncrement(F18AGPU_SRC);
 
     f18agpu_fixd();
-    x2 = f18agpu_readword(f18agpu.D);
+    x2 = f18agpu_readword(f18agpu.D);                   // read dest
 
     x3 = x1 & x2;
     if (x3 == 0)
         F18AGPUSET_EQ
     else
         F18AGPURESETEQ
-
-    F18AGPUADDCYCLE(14);
 };
 
 // eXclusive OR: XOR src, dst
 void f18agpu_xor(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
+
+    F18AGPUADDCYCLE(14);
 
     F18AGPUFormatIII;
-
-    x1 = f18agpu_readword(f18agpu.S);
+    x1 = f18agpu_readword(f18agpu.S);           // read source
     f18agpu_postIncrement(F18AGPU_SRC);
 
     f18agpu_fixd();
-    x2 = f18agpu_readword(f18agpu.D);
+    x2 = f18agpu_readword(f18agpu.D);           // read dest
 
     x3 = (x1 ^ x2) & 0xFFFF;
-    f18agpu_writeword(f18agpu.D, x3);
+    f18agpu_writeword(f18agpu.D, x3);       // write dest
 
     F18AGPURESETLGT_AGT_EQ;
     f18agpu.ST |= wStatusLookup[x3] & F18AGPU_MSKLGT_AGT_EQ;
-
-    F18AGPUADDCYCLE(14);
 };
 
 // eXtended OPeration: XOP src ???
@@ -1858,7 +1868,9 @@ void f18agpu_stcr(void)
 // Note: src and dest are unsigned.
 void f18agpu_mpy(void)
 {
-    unsigned int x1,x3; //unsigned short x1,x3;
+    //unsigned short x1,x3;
+    unsigned __int32 x3;
+    unsigned short x1;
 
     F18AGPUFORMATIX;
 
@@ -1866,10 +1878,10 @@ void f18agpu_mpy(void)
     f18agpu_postIncrement(F18AGPU_SRC);
 
     f18agpu.D = f18agpu.WP + (f18agpu.D << 1);
-    x3 = f18agpu_readword(f18agpu.D);
+    x3 = f18agpu_readword(f18agpu.D);          // read dest
     x3 = x3 * x1;
-    f18agpu_writeword(f18agpu.D,(x3 >> 16) & 0xFFFF);
-    f18agpu_writeword(f18agpu.D + 2,(x3 & 0xFFFF));
+    f18agpu_writeword(f18agpu.D,(x3 >> 16) & 0xFFFF);  // write dest MSW
+    f18agpu_writeword(f18agpu.D + 2,(x3 & 0xFFFF));    // write dest LSW
 
     F18AGPUADDCYCLE(52);
 };
@@ -1877,24 +1889,108 @@ void f18agpu_mpy(void)
 // DIVide: DIV src, dst
 // Dest, a 2 word number, is divided by src. The result is stored as two words at the dst:
 // the first is the whole number result, the second is the remainder
+    // ST4 (OV) is to be set:
+    // Base cycles: 16
+    // 3 memory accesses:
+    //  Read instruction (already done)
+    //  Read source MSW
+    //  Read dest
+
+    // ST4 (OV) is not to be set:
+    // Base cycles: 92 - 124
+    // 6 memory accesses:
+    //  Read instruction (already done)
+    //  Read source MSW
+    //  Read dest
+    //  Read source LSW
+    //  Write dest quotient
+    //  Write dest remainder
+
+    // Sussing out the cycle count. It is likely a shift and test
+    // approach, due to the 16 bit cycle variance. We know the divisor
+    // is larger than the most significant word, ie: the total output
+    // of the first 16 bits of the 32-bit result MUST be >0000, so
+    // the algorithm likely starts with the first bit of the LSW, and
+    // shifts through up to 16 cycles, aborting early if the remaining
+    // value is smaller than the divisor (or if it's zero, but that
+    // would early out in far fewer cases).
+    //
+    // For example (using 4 bits / 2 bits = 2 bits):
+    //  DDDD
+    // / VV
+    //  ---
+    //    1 (subtract from DDDx if set)
+    //
+    //  0DDD
+    // /  VV
+    //   ---
+    //     2
+    //
+    // 12 are the bits in the result, and DDD goes to the remainder
+    //
+    // Proofs:
+    // 8/2 -> Overflow (10xx >= 10)
+    // 4/2 -> Ok (01xx < 10) -> 010x / 10 = '1' -> 010-10=0 -> 10 > 00 so early out, remaining bits 0 -> 10, remainder 0, 1 clock
+    // 1/1 -> Ok (00xx < 01) -> 000x / 01 = '0' -> x001 / 01 = '1' -> 001-01=0 -> 01>00 so finished (either way) -> 01, remainder 1, 2 clocks
+    // 5/2 -> Ok (01xx < 10) -> 010 / 10 = '1' -> 010-10=0 -> 10 > 001 so done -> 10, remainder 1, 1 clock
+    //
+    // TODO: We should be able to prove on real hardware that the early out works like this (greater than, and not 0) with a few choice test cases
 void f18agpu_div(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned __int32 x3;
+    unsigned short x1,x2;
+    //unsigned short x1,x2,x3;
 
     F18AGPUFORMATIX;
 
-    x2 = f18agpu_readword(f18agpu.S);
+    x2 = f18agpu_readword(f18agpu.S);     // read source MSW
     f18agpu_postIncrement(F18AGPU_SRC);
 
     f18agpu.D = f18agpu.WP + (f18agpu.D << 1);
-    x3 = f18agpu_readword(f18agpu.D);
+    x3 = f18agpu_readword(f18agpu.D);       // read dest
 
+    // E/A: When the source operand is greater than the first word of the destination
+    // operand, normal division occurs. If the source operand is less than or equal to
+    // the first word of the destination operand, normal division results in a quotient
+    // that cannot be represented in a 16-bit word. In this case, the computer sets the
+    // overflow status bit, leaves the destination operand unchanged, and cancels the
+    // division operation.
     if (x2 > x3) {		// x2 can not be zero because they're unsigned
-        x3 = (x3 << 16) | f18agpu_readword(f18agpu.D + 2);
+        x3 = (x3 << 16) | f18agpu_readword(f18agpu.D + 2);      // read source LSW
+#if 0
         x1 = x3 / x2;
         f18agpu_writeword(f18agpu.D, x1 & 0xFFFF);
         x1 = x3 % x2;
         f18agpu_writeword(f18agpu.D + 2, x1 & 0xFFFF);
+#else
+        // lets try it the iterative way, should be able to afford it
+        // tested with 10,000,000 random combinations, should be accurate :)
+        unsigned __int32 mask = (0xFFFF8000);   // 1 extra bit, as noted above
+        unsigned __int32 divisor = (x2<<15);    // slide up into place
+        int cnt = 16;                           // need to fill 16 bits
+        x1 = 0;                                 // initialize quotient, remainder will end up in x3 LSW
+        while (x2 <= x3) {
+            x1<<=1;
+            if ((x3&mask) >= divisor) {
+                x1|=1;
+                x3-=divisor;
+            }
+            mask>>=1;
+            divisor>>=1;
+            --cnt;
+            F18AGPUADDCYCLE(1);
+        }
+        if (cnt < 0) {
+            //debug_write("Warning: Division bug. Send to Tursi if you can.");
+        }
+        while (cnt-- > 0) {
+            // handle the early-out case
+            x1<<=1;
+        }
+        f18agpu_writeword(f18agpu.D, x1 & 0xFFFF); // write dest quotient
+        f18agpu_writeword(f18agpu.D + 2, x3 & 0xFFFF); // write dest remainder
+#endif
+
         F18AGPURESETOV;
         F18AGPUADDCYCLE(92);		// This is not accurate. (Up to 124 "depends on the partial quotient after each clock cycle during execution")
     }
@@ -1908,7 +2004,7 @@ void f18agpu_div(void)
 // Zero all bits in dest that are zeroed in src
 void f18agpu_szc(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -1952,7 +2048,7 @@ void f18agpu_szcb(void)
 // Subtract: S src, dst
 void f18agpu_s(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -2006,7 +2102,7 @@ void f18agpu_sb(void)
 // Compare words: C src, dst
 void f18agpu_c(void)
 {
-    unsigned int x3,x4; // unsigned short x3,x4;
+    unsigned short x3,x4;
 
     F18AGPUFORMATI;
 
@@ -2033,7 +2129,7 @@ void f18agpu_c(void)
 // CompareBytes: CB src, dst
 void f18agpu_cb(void)
 {
-    unsigned int x3,x4; // unsigned short x3,x4;
+    BYTE x3,x4; // unsigned short x3,x4;
 
     F18AGPUFORMATI;
 
@@ -2061,7 +2157,7 @@ void f18agpu_cb(void)
 // Add words: A src, dst
 void f18agpu_a(void)
 {
-    unsigned int x1,x2,x3;//unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -2153,7 +2249,7 @@ void f18agpu_movb(void)
 // are set in src
 void f18agpu_soc(void)
 {
-    unsigned int x1,x2,x3; //unsigned short x1,x2,x3;
+    unsigned short x1,x2,x3;
 
     F18AGPUFORMATI;
 
@@ -2196,7 +2292,7 @@ void f18agpu_socb(void)
 // F18A specific opcodes
 void f18agpu_callf18(void)
 {
-    unsigned int x2; //unsigned short x2;
+    unsigned short x2;
 
     F18AGPUFormatVI;
 
@@ -2212,7 +2308,7 @@ void f18agpu_callf18(void)
 
 void f18agpu_retf18(void)
 {
-    unsigned int x1; //unsigned short x1;
+    unsigned short x1;
 
     F18AGPUFormatVII;
 
@@ -2226,7 +2322,7 @@ void f18agpu_retf18(void)
 
 void f18agpu_pushf18(void)
 {
-    unsigned int x1,x2; //unsigned short x1,x2;
+    unsigned short x1,x2;
 
     F18AGPUFormatVI;
 
@@ -2243,7 +2339,9 @@ void f18agpu_pushf18(void)
 void f18agpu_slcf18(void)
 {
     BYTE cycles;
-    unsigned int x1,x2,x4; // unsigned short x1,x2,x4;
+    // unsigned short x1,x2,x4;
+    unsigned short x1,x4;
+    int x2;
 
     F18AGPUFormatVI;
 
@@ -2273,7 +2371,7 @@ void f18agpu_slcf18(void)
 
 void f18agpu_popf18(void)
 {
-    unsigned int x1,x2; //unsigned short x1,x2;
+    unsigned short x1,x2;
 
     F18AGPUFormatVI;               // S is really D in this one...
 

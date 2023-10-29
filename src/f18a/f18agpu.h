@@ -71,14 +71,22 @@
 #define F18AGPUFORMATVIII_1             { f18agpu.D=(f18agpu.in&0x000f); f18agpu.D=f18agpu.WP+(f18agpu.D<<1); f18agpu.S=f18agpu_readword(f18agpu.PC); ADDPC(2); }
 #define F18AGPUFORMATIX                 { f18agpu.D=(f18agpu.in&0x03c0)>>6; f18agpu.Ts=(f18agpu.in&0x0030)>>4; f18agpu.S=(f18agpu.in&0x000f); f18agpu.B=0; f18agpu_fixs(); }              // No destination here (dest calc'd after call) (DIV, MUL, XOP)
 
+// Group gets
+#define F18AGPUGET_LGT                  ( f18agpu.ST & F18AGPU_BIT_LGT )  // Logical Greater than: >0x0000
+#define F18AGPUGET_AGT                  ( f18agpu.ST & F18AGPU_BIT_AGT )   // Arithmetic Greater than: >0x0000 and <0x8000
+#define F18AGPUGET_EQ                   ( f18agpu.ST & F18AGPU_BIT_EQ ) // Equal: ==0x0000
+#define F18AGPUGET_C                    ( f18agpu.ST & F18AGPU_BIT_C )  // Carry: carry occurred during operation
+#define F18AGPUGET_OV                   ( f18agpu.ST & F18AGPU_BIT_OV ) // Overflow: overflow occurred during operation
+#define F18AGPUGET_OP                   ( f18agpu.ST & F18AGPU_BIT_OP )  // Odd parity: word has odd number of '1' bits
+
 // Group sets
-#define F18AGPUSET_LGT                  { f18agpu.ST |= 0x8000; }  // Logical Greater than: >0x0000
-#define F18AGPUSET_AGT                  { f18agpu.ST |= 0x4000; }   // Arithmetic Greater than: >0x0000 and <0x8000
-#define F18AGPUSET_EQ                   { f18agpu.ST |= 0x2000; }   // Equal: ==0x0000
-#define F18AGPUSET_C                    { f18agpu.ST |= 0x1000; }   // Carry: carry occurred during operation
-#define F18AGPUSET_OV                   { f18agpu.ST |= 0x0800; }   // Overflow: overflow occurred during operation
-#define F18AGPUSET_OP                   { f18agpu.ST |= 0x0400; }   // Odd parity: word has odd number of '1' bits
-#define F18AGPUSET_X                    { f18agpu.ST |= 0x0200; }   // Executing 'X' statement
+#define F18AGPUSET_LGT                  { f18agpu.ST |= F18AGPU_BIT_LGT; }  // Logical Greater than: >0x0000
+#define F18AGPUSET_AGT                  { f18agpu.ST |= F18AGPU_BIT_AGT; }   // Arithmetic Greater than: >0x0000 and <0x8000
+#define F18AGPUSET_EQ                   { f18agpu.ST |= F18AGPU_BIT_EQ; }   // Equal: ==0x0000
+#define F18AGPUSET_C                    { f18agpu.ST |= F18AGPU_BIT_C; }   // Carry: carry occurred during operation
+#define F18AGPUSET_OV                   { f18agpu.ST |= F18AGPU_BIT_OV; }   // Overflow: overflow occurred during operation
+#define F18AGPUSET_OP                   { f18agpu.ST |= F18AGPU_BIT_OP; }   // Odd parity: word has odd number of '1' bits
+#define F18AGPUSET_X                    { f18agpu.ST |= F18AGPU_BIT_X; }   // Executing 'X' statement
 
 // Group clears
 #define F18AGPURESETEQ                  { f18agpu.ST &= 0xdfff; }
